@@ -1,0 +1,12 @@
+---
+title: "Benchmarking survival models"
+author: "Abbas Rizvi"
+date: "11/11/2018"
+output: pdf_document  
+---
+
+```{r ch3_setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+This is chapter 3 bitches

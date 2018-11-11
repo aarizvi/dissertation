@@ -1,0 +1,12 @@
+---
+title: "Conclusion"
+author: "Abbas Rizvi"
+date: "11/11/2018"
+output: pdf_document  
+---
+
+```{r ch5_setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Wassup its chapter 5 at your service ... the end bitches

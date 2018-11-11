@@ -1,0 +1,12 @@
+---
+title: "chapter2"
+author: "Abbas Rizvi"
+date: "9/14/2018"
+output: pdf_document  
+---
+
+```{r ch2_setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+This is chapter 2 bitches

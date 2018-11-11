@@ -1,0 +1,185 @@
+---
+title: Genetic Associations in Acute Leukemia Patients after Matched Unrelated Donor
+  Allogeneic Hematopoetic Stem Cell Transplantation
+author: "Abbas A Rizvi, B.S., M.S., M.Sc."
+documentclass: DissertateUSU
+output:
+  pdf_document:
+    includes:
+      in_header: preamble.tex
+    keep_tex: yes
+    latex_engine: xelatex
+geometry:
+- top=1in
+- bottom=1in
+- right=1in
+- left=1.5in
+- includefoot
+params:
+  committee1: Lara E Sucheston-Campbell, MS, PhD, Adviser
+  committee2: Shili Lin, PhD
+  committee3: Guy Brock, PhD
+  committee4: Moray Campbell, PhD
+  degree: Pharmaceutical Sciences
+  gradschool: The Ohio State University
+  year: '2019'
+bibliography: dissertation_references.bib
+---
+
+```{r global_options, include=FALSE}
+## This saves you from having to do this for every chunk
+knitr::opts_chunk$set(fig.path = 'figures/',
+                      echo = FALSE, 
+                      warning = FALSE, 
+                      message = FALSE)
+## Do NOT Remove
+dissertateUSU::preamble_for_title()
+```
+
+<!-- Title page printed automatically -->
+\pagenumbering{roman}
+\pagestyle{empty}
+\copyrightpage
+
+<!-- Abstract -->
+\newpage
+\pagestyle{fancy}
+\fancyhead[L]{Abstract}
+\fancyhead[R]{\thepage}
+\fancyfoot[C]{}
+\chapter*{ABSTRACT}
+\addcontentsline{toc}{section}{Abstract}
+
+```{r child = "abstract.Rmd"}
+```
+
+
+<!-- Dedication -->
+\newpage
+\fancyhead[L]{Dedication}
+\fancyhead[R]{\thepage}
+\fancyfoot[C]{}
+\chapter*{DEDICATION}
+\addcontentsline{toc}{section}{Dedication}
+
+Dedicate it.
+
+<!-- Acknowledgements -->
+\newpage
+\fancyhead[L]{Acknowledgments}
+\fancyhead[R]{\thepage}
+\fancyfoot[C]{}
+\chapter*{ACKNOWLEDGEMENTS}
+\addcontentsline{toc}{section}{Acknowledgments}
+
+```{r child = "acknowledgements.Rmd"}
+```
+
+
+<!-- Vita -->
+\include{vita}
+
+
+<!-- Front Matter -->
+\newpage
+\fancyhead[L]{Table of Contents}
+\fancyhead[R]{\thepage}
+\fancyfoot[C]{}
+\tableofcontents
+
+\newpage
+\fancyhead[L]{List of Tables}
+\fancyhead[R]{\thepage}
+\fancyfoot[C]{}
+\listoftables
+
+\newpage
+\fancyhead[L]{List of Figures}
+\fancyhead[R]{\thepage}
+\fancyfoot[C]{}
+\listoffigures
+
+
+\newpage
+\pagenumbering{arabic}
+
+<!-- Introduction -->
+\newpage
+\pagestyle{plain}
+\fancyhead[L]{}
+\fancyhead[R]{}
+\fancyfoot[C]{\thepage}
+\chapter{Introduction}
+
+\doublespacing
+
+```{r child = "chapter1.Rmd"}
+```
+
+\FloatBarrier
+
+<!-- Chapter 2 -->
+\newpage
+\pagestyle{plain}
+\fancyhead[L]{}
+\fancyhead[R]{}
+\fancyfoot[C]{\thepage}
+
+\chapter{Survival Models}
+
+```{r child = "chapter2.Rmd"}
+```
+
+
+\FloatBarrier
+
+<!-- Chapter 3 -->
+\newpage
+\pagestyle{plain}
+\fancyhead[L]{}
+\fancyhead[R]{}
+\fancyfoot[C]{\thepage}
+
+\chapter{Benchmarking survival model software}
+
+```{r child = "chapter3.Rmd"}
+```
+
+\FloatBarrier
+\newpage
+\pagestyle{plain}
+\fancyhead[L]{}
+\fancyhead[R]{}
+\fancyfoot[C]{\thepage}
+
+\chapter{Genome wide association study of Acute Lymphobastic Leukemia (ALL) Donors and Recipients after Transplant}
+
+```{r child = "chapter4.Rmd"}
+```
+
+\FloatBarrier
+\newpage
+\pagestyle{plain}
+\fancyhead[L]{}
+\fancyhead[R]{}
+\fancyfoot[C]{\thepage}
+
+\chapter{Conclusion}
+
+```{r child = "chapter5.Rmd"}
+```
+
+\FloatBarrier
+
+\newpage
+\pagestyle{plain}
+\fancyhead[L]{}
+\fancyhead[R]{}
+\fancyfoot[C]{\thepage}
+
+\chapter*{REFERENCES}
+
+\setlength{\parindent}{-0.5in}
+\setlength{\leftskip}{0.4in}
+\setlength{\parskip}{6pt}
+\noindent

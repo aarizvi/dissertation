@@ -1,0 +1,19 @@
+---
+title: "acknowledgements"
+author: "Abbas Rizvi"
+date: "9/14/2018"
+output: pdf_document  
+---
+
+```{r ack_setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+0. Lara
+1. Ezgi
+2. Barbara Foster
+3. Martin Morgan
+5. Seb
+6. Moray
+7. Friends
+8. Bernie

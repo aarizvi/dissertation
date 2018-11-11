@@ -1,0 +1,12 @@
+---
+title: "Genome wide association study of Acute Lymphobastic Leukemia (ALL) Donors and Recipients after Transplant"
+author: "Abbas Rizvi"
+date: "11/11/2018"
+output: pdf_document  
+---
+
+```{r ch4_setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Did I not say this was chapter 4 bitches
