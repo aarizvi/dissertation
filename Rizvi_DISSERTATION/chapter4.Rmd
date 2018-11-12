@@ -1,5 +1,5 @@
 ---
-title: "Genome wide association study of Acute Lymphobastic Leukemia (ALL) Donors and Recipients after Transplant"
+title: "Acute Lymphobastic Leukemia (ALL) GWAS"
 author: "Abbas Rizvi"
 date: "11/11/2018"
 output: pdf_document  
@@ -9,4 +9,15 @@ output: pdf_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-Did I not say this was chapter 4 bitches
+# Reimputation with HRC
+Test 1 2 3
+
+# Pipeline to run analyses
+
+# Run ALL only and B-ALL only
+
+# Discovery
+
+# Interpretation
+
+# Discussion

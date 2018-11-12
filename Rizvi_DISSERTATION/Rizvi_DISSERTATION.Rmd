@@ -17,9 +17,9 @@ geometry:
 - includefoot
 params:
   committee1: Lara E Sucheston-Campbell, MS, PhD, Adviser
-  committee2: Shili Lin, PhD
-  committee3: Guy Brock, PhD
-  committee4: Moray Campbell, PhD
+  committee2: Guy Brock, PhD
+  committee3: Moray Campbell, PhD
+  committee4: Shili Lin, PhD
   degree: Pharmaceutical Sciences
   gradschool: The Ohio State University
   year: '2019'
@@ -105,7 +105,7 @@ Dedicate it.
 
 <!-- Introduction -->
 \newpage
-\pagestyle{plain}
+\pagestyle{plain} 
 \fancyhead[L]{}
 \fancyhead[R]{}
 \fancyfoot[C]{\thepage}
@@ -125,7 +125,7 @@ Dedicate it.
 \fancyhead[R]{}
 \fancyfoot[C]{\thepage}
 
-\chapter{Survival Models}
+\chapter{gwasurvivr}
 
 ```{r child = "chapter2.Rmd"}
 ```
@@ -145,19 +145,25 @@ Dedicate it.
 ```{r child = "chapter3.Rmd"}
 ```
 
+
 \FloatBarrier
+
+<!-- Chapter 4 -->
 \newpage
 \pagestyle{plain}
 \fancyhead[L]{}
 \fancyhead[R]{}
 \fancyfoot[C]{\thepage}
 
-\chapter{Genome wide association study of Acute Lymphobastic Leukemia (ALL) Donors and Recipients after Transplant}
+\chapter{Acute Lymphobastic Leukemia (ALL) GWAS}
 
 ```{r child = "chapter4.Rmd"}
 ```
 
+
 \FloatBarrier
+
+<!-- Chapter 5 -->
 \newpage
 \pagestyle{plain}
 \fancyhead[L]{}
@@ -169,8 +175,8 @@ Dedicate it.
 ```{r child = "chapter5.Rmd"}
 ```
 
-\FloatBarrier
 
+\FloatBarrier
 \newpage
 \pagestyle{plain}
 \fancyhead[L]{}
@@ -178,7 +184,7 @@ Dedicate it.
 \fancyfoot[C]{\thepage}
 
 \chapter*{REFERENCES}
-
+\singlespacing
 \setlength{\parindent}{-0.5in}
 \setlength{\leftskip}{0.4in}
 \setlength{\parskip}{6pt}
