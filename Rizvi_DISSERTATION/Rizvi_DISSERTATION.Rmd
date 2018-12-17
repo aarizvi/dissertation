@@ -1,8 +1,8 @@
 ---
 title: Genetic Associations in Acute Leukemia Patients after Matched Unrelated Donor
   Allogeneic Hematopoetic Stem Cell Transplantation
-author: "Abbas A Rizvi, B.S., M.S., M.Sc."
-documentclass: DissertateUSU
+author: "Abbas A Rizvi"
+documentclass: DissertateOSU
 output:
   pdf_document:
     includes:
@@ -23,7 +23,23 @@ params:
   degree: Pharmaceutical Sciences
   gradschool: The Ohio State University
   year: '2019'
-bibliography: dissertation_references.bib
+bibliography: dissertation_references.bib  
+link-citations: true  
+header-includes:
+- \usepackage{booktabs}
+- \usepackage{longtable}
+- \usepackage{array}
+- \usepackage{multirow}
+- \usepackage{wrapfig}
+- \usepackage{float}
+- \usepackage{colortbl}
+- \usepackage{pdflscape}
+- \usepackage{tabu}
+- \usepackage{threeparttable}
+- \usepackage{threeparttablex}
+- \usepackage[normalem]{ulem}
+- \usepackage{amsrefs}
+- \usepackage{filecontents}
 ---
 
 ```{r global_options, include=FALSE}
@@ -31,8 +47,11 @@ bibliography: dissertation_references.bib
 knitr::opts_chunk$set(fig.path = 'figures/',
                       echo = FALSE, 
                       warning = FALSE, 
-                      message = FALSE)
+                      message = FALSE,
+                      cache=FALSE)
 ## Do NOT Remove
+library(tidyverse)
+library(kableExtra)
 dissertateUSU::preamble_for_title()
 ```
 
@@ -62,40 +81,56 @@ dissertateUSU::preamble_for_title()
 \chapter*{DEDICATION}
 \addcontentsline{toc}{section}{Dedication}
 
-Dedicate it.
+Dedicated to Ezgi, my parents, my siblings and their kids, and my sweet little pooch Bernie. 
 
 <!-- Acknowledgements -->
 \newpage
-\fancyhead[L]{Acknowledgments}
+\pagestyle{plain} 
+\fancyhead[L]{}
 \fancyhead[R]{\thepage}
 \fancyfoot[C]{}
 \chapter*{ACKNOWLEDGEMENTS}
 \addcontentsline{toc}{section}{Acknowledgments}
+
+\doublespacing
 
 ```{r child = "acknowledgements.Rmd"}
 ```
 
 
 <!-- Vita -->
-\include{vita}
+\newpage
+\pagestyle{plain} 
+\fancyhead[L]{}
+\fancyhead[R]{}
+\fancyfoot[C]{}
+\chapter*{VITA}
+\addcontentsline{toc}{section}{Vita}
+\singlespacing
+
+```{r child = "vita.Rmd"}
+```
 
 
 <!-- Front Matter -->
 \newpage
-\fancyhead[L]{Table of Contents}
-\fancyhead[R]{\thepage}
+\pagestyle{plain} 
+\fancyhead[L]{}
+\fancyhead[R]{}
 \fancyfoot[C]{}
 \tableofcontents
 
 \newpage
-\fancyhead[L]{List of Tables}
-\fancyhead[R]{\thepage}
+\pagestyle{plain} 
+\fancyhead[L]{}
+\fancyhead[R]{}
 \fancyfoot[C]{}
 \listoftables
 
 \newpage
-\fancyhead[L]{List of Figures}
-\fancyhead[R]{\thepage}
+\pagestyle{plain} 
+\fancyhead[L]{}
+\fancyhead[R]{}
 \fancyfoot[C]{}
 \listoffigures
 
@@ -127,6 +162,9 @@ Dedicate it.
 
 \chapter{gwasurvivr}
 
+\doublespacing
+
+
 ```{r child = "chapter2.Rmd"}
 ```
 
@@ -141,6 +179,9 @@ Dedicate it.
 \fancyfoot[C]{\thepage}
 
 \chapter{Benchmarking survival model software}
+
+\doublespacing
+
 
 ```{r child = "chapter3.Rmd"}
 ```
@@ -157,6 +198,9 @@ Dedicate it.
 
 \chapter{Acute Lymphobastic Leukemia (ALL) GWAS}
 
+\doublespacing
+
+
 ```{r child = "chapter4.Rmd"}
 ```
 
@@ -170,7 +214,9 @@ Dedicate it.
 \fancyhead[R]{}
 \fancyfoot[C]{\thepage}
 
-\chapter{Conclusion}
+\chapter{Conclusion and Furture Work}
+
+\doublespacing
 
 ```{r child = "chapter5.Rmd"}
 ```
@@ -187,5 +233,5 @@ Dedicate it.
 \singlespacing
 \setlength{\parindent}{-0.5in}
 \setlength{\leftskip}{0.4in}
-\setlength{\parskip}{6pt}
+\setlength{\parskip}{12pt}
 \noindent
