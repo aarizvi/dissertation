@@ -1,0 +1,220 @@
+---
+title: "vita"
+author: "Abbas Rizvi"
+date: "9/14/2018"
+output: pdf_document  
+---
+
+```{r vita, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+\dateitem{2012}{B.S. Biology, SUNY Fredonia}
+\dateitem{2015}{M.Sc. Integrated Systems Biology,\\
+University of Luxembourg}
+\dateitem{2015}{M.S. Natural Sciences,\\
+University at Buffalo}
+\dateitem{2016-present}{Graduate Research Associate, \\ 
+Department of Pharmaceutics,\\
+The Ohio State University}
+
+
+\begin{filecontents*}{bibcode.tex}
+\bib{Rizvi2018}{article}{
+Author = {Rizvi, Abbas A.},
+Author = {Karaesmen, Ezgi},
+Author = {Morgan, Martin},
+Author = {Preus, Leah},
+Author = {Wang, Junke},
+Author = {Sovic, Michael},
+Author = {Hahn, Theresa},
+Author = {Sucheston-Campbell, Lara E.},
+Journal = {Bioinformatics},
+Month = {Nov},
+Title = {gwasurvivr: an R package for genome wide survival analysis},
+Year = {2018}}
+
+
+
+\bib{Long2018}{article}{
+Author = {Long, Mark D.},
+Author = {Singh, Prashant K.},
+Author = {Russell, James R.},
+Author = {Llimos, Gerard},
+Author = {Rosario, Spencer}, 
+Author = {Rizvi, Abbas A.},
+Author = {van den Berg, Patrick R.},
+Author = {Kirk, Jason},
+Author = {Sucheston-Campbell, Lara E.},
+Author = {Smiraglia, Dominic J.},
+Author = {Campbell, Moray},
+Issn = {1476-5594},
+Journal = {Oncogene},
+Month = {Aug},
+Title = {The miR-96 and RAR$\gamma$ signaling axis governs androgen signaling and prostate cancer progression},
+Year = {2018}
+}
+
+\bib{LSC2018}{article}{
+
+Author = {Sucheston-Campbell, Lara E.},
+Author = {Clay-Gilmour, Alyssa I.},
+Author = {Barlow, William E.},
+Author = {Budd, G. Thomas},
+Author = {Stram, Daniel O.},
+Author = {Haiman, Christopher A.},
+Author = {Sheng, Xin},
+Author = {Yan, Li},
+Author = {Zirpoli, Gary},
+Author = {Yao, Song},
+Author = {Jiang, Chen},
+Author = {Kouros, Owzar},
+Author = {Hershman, Dawn},
+Author = {Albain, Kathy S.},
+Author = {Hayes, Daniel F.},
+Author = {Moore, Halle C.},
+Author = {Hobday, Timothy J.},
+Author = {Stewart, James A.},
+Author = {Rizvi, Abbas A.},
+Author = {Isaacs, Claudine},
+Author = {Salim, Muhammad},
+Author = {Gralow, Jule R.},
+Author = {Hortobagyi, Gabriel N.},
+Author = {Livingston, Robert B.},
+Author = {Kroetz, Deanna L.},
+Author = {Ambrosone, Christine B.},
+Journal = {Pharmacogenetics and Genomics},
+Month = {Feb},
+Number = {2},
+Pages = {49-55},
+Title = {Genome-wide meta-analyses identifies novel taxane-induced peripheral neuropathy-associated loci},	
+Volume = {28},
+Year = {2018}
+}
+
+
+\bib{Karaesmen2017}{article}{
+Author = {Karaesmen, Ezgi},
+Author = {Rizvi, Abbas A.},
+Author = {Preus, Leah M.},
+Author = {McCarthy, Philip L.},
+Author = {Pasquini, Marcelo C.},
+Author = {Onel, Kenan},
+Author = {Zhu, Xiaochun},
+Author = {Spellman, Stephen},
+Author = {Haiman, Christopher A.},
+Author = {Stram, Daniel O.},
+Author = {Loreall Pooler},
+Author = {Xin Sheng},
+Author = {Qianqian Zhu},
+Author = {Li Yan},
+Author = {Qian Liu},
+Author = {Qiang Hu},
+Author = {Amy Webb},
+Author = {Guy Brock},
+Author = {Alyssa I. Clay-Gilmour},
+Author = {Sebastiano Battaglia},
+Author = {David Tritchler},
+Author = {Song Liu},
+Author = {Theresa Hahn},
+Author = {Lara E. Sucheston-Campbell},
+Journal = {Blood},
+Month = {Aug},
+Number = {13},
+Pages = {1585-1596},
+Title = {Replication and validation of genetic polymorphisms associated with survival after allogeneic blood or marrow transplant},
+Volume = {130},
+Year = {2017}
+}
+
+\bib{clay2017}{article}{
+Author = {Alyssa I. Clay-Gilmour},
+Author = {Theresa Hahn},
+Author = {Leah M. Preus},
+Author = {Kenan Onel},
+Author = {Andrew Skol},
+Author = {Eric Hungate},
+Author = {Qianqian Zhu},
+Author = {Christopher A. Haiman},
+Author = {Daniel O. Stram},
+Author = {Loreall Pooler},
+Author = {Xin Sheng},
+Author = {Li Yan},
+Author = {Qian Liu},
+Author = {Qiang Hu},
+Author = {Song Liu},
+Author = {Sebastiano Battaglia},
+Author = {Xiaochun Zhu},
+Author = {AnneMarie W. Block},
+Author = {Sheila N. J. Sait},
+Author = {Ezgi Karaesmen}, 
+Author = {Abbas A. Rizvi},
+Author = {Daniel J. Weisdorf},
+Author = {Christine B. Ambrosone},
+Author = {David Tritchler},
+Author = {Eva Ellinghaus},
+Author = {David Ellinghaus},
+Author = {Martin Stanulla},
+Author = {Jacqueline Clavel},
+Author = {Laurent Orsi},
+Author = {Stephen Spellman},
+Author = {Marcelo C. Pasquini},
+Author = {Philip L. McCarthy},
+Author = {Lara E. Sucheston-Campbell},
+Journal = {Blood Advances},
+Month = {September},
+Number = {20},
+Pages = {1717-1728},
+Title = {Genetic association with B-cell acute lymphoblastic leukemia in allogeneic transplant patients differs by age and sex},
+Volume = {1},
+Year = {2017}
+
+}
+
+
+\bib{rizvi2015}{thesis}{
+Author = {Abbas A. Rizvi},
+Month = {August},
+School = {University at Buffalo},
+Title = {Reprogramming androgen receptor and lysine-specific demethylase 1 transcriptome in castration-resistant prostate cancer},
+Year = {2015}
+
+}
+
+\bib{denies2014}{article}{
+Author = {DeNies, Maxwell S.},
+Author = {Johnson, Jordan},
+Author = {Maliphol, Amanda B.},
+Author = {Bruno, Michael},
+Author = {Kim, Annabelle},
+Author = {Rizvi, Abbas A.},
+Author = {Rustici, Kevyn},
+Author = {Medler, Scott},
+Journal = {Physiological Reports},
+Month = {Jan},
+Number = {1},
+Pages = {e00204},
+Title = {Diet-induced obesity alters skeletal muscle fiber types of male but not female mice},
+Volume = {2},
+Year = {2014}
+}
+
+\end{filecontents*}
+
+
+```{r, echo=FALSE}
+biblio <- bibtex::read.bib("./dissertation_references.bib")
+```
+
+
+```{block, type="publist"}
+\begin{biblist}
+\normalsize
+\input{bibcode}
+\end{biblist} 
+```
+
+\begin{fieldsstudy}
+\majorfield*
+\end{fieldsstudy}

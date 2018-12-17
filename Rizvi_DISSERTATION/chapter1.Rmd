@@ -10,58 +10,202 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 # Genetic Association Studies
-Genetic association studies test for correlation between disease status and genetic variation to identify candidate genes or genome regions that contribute to a specific disease. 
+Human genomes can differ from one another at single genomic positions such as single nucleotide polymorphisms (SNPs), or genomes may have larger structural changes, such as microsatellites regions, insertions/deletions (indels), copy number variations (CNVs), or variable-tandem repeats (VNTRs). To further understand genetic architecture as it relates to disease risk or to physical quantitative traits (i.e. height, weight), gene mapping studies are used to determine associations between genomic DNA sequence variations and phenotypic variability. These association mapping studies have increasingly evolved from looking at specific regions of interest (candidate gene assocation studies) to more agnostic approaches that investigate larger portions of the genome, such as genome wide assocation studies (GWAS), whole-exome sequencing studies (WES studies) and whole-genome sequencing studies (WGS studies). This dissertation is primarily focused on GWAS, specifically the application of using GWAS in the context of identifying common variants in after hematopoetic stem cell transplantation (HSCT), where more details will be discussed in subsequent subections of the Introduction. 
+
+GWAS employ genome-wide genotyping microarrays to measure genetic variation -- and they have become the standard platform in academic and industry to test for association of phenotype with common genetic variants. Common genetic variants are defined as those with a *minor allele frequency* (MAF) of $\geq$ 1% and rare variants are defined as those with a MAF $\leq$ than 1%. Genotyping microarrays can be designed to contain rare variants. GWAS ask if the allele of a genetic variant is found more often than what would be expected than by random chance in individuals with the phenotype of interest. (e.g. the disease being studied). 
+
+Many novel assocations that are identified are in non-coding regions 
+
+Genetic association studies aim to test for association between one or more single nucleotide polymorphisms (SNPs) and phenotype (trait), that may be attributable to disease or some other quantitative (i.e. height or weight) or discrete characteristic. 
+
+Individuals with higher frequencies of SNPs or genotypes may be interpreted to have increased risk of a specific phenotype. SNPs are the most widely used genetic markers. 
 
 
+Genetic associations studies usually fall under two main subcategories, candidate gene association studies (CGAS) or genome wide association studies (GWAS). CGAS are assocation studies that investigate specific genes or regions of interest. Typically these are performed when researchers believe that the underlying biology is understood and they want to identify specific markers that contribute to genetic variation in these 'known' regions. 
 
-## Candidate Gene Association Studies
-Candidate gene association studies (CGAS)
+GWAS are observational studies that aim to identify genetic variation 
 
 
-## Genome Wide Association Studies
-Genome wide association studies (GWAS)
+## Linkage Disequilibrium
 
+
+## Genetic Imputation
 
 
 # DISCOVeRY-BMT
 
-## Hematopoetic Stem Cell Transplantation
-Hematopoietic stem cell transplantation (HSCT) is an established therapeutic procedure that is used as a potentially curative treatment for life-threatening congenital or acquired blood disorders (malignant or non-malignant). [@Rizvi_2018] HSCT involves the intravenous infusion of autologous or allogeneic hematopoietic progenitor cells to restore normal function in patients whose bone marrow is compromised. Autologous HSCT involves self-donation of marrow stem cells, whereas allogeneic HSCT is when stem cells are transferred from a HLA-matched related donor (MRD) or a HLA-matched unrelated donor (MUD). Although a matched sibling donor is preferred, only approximately 30% of patients who may benefit from HSCT have such a donor available. In the United States, the number of allogeneic transplants yearly has dramatically risen over the past decade, across all diseases. Patients with acute myeloid leukemia (AML), acute lymphoblastic leukemia (ALL), or myelodysplastic syndrome (MDS), represent the largest group treated with allogeneic HSCT. While both patient care and matching has improved over the past few decades almost half of all high-resolution 10/10 MUD-HSCT recipients die within one-year post-transplant due to either their disease or transplant-related causes.2 These trends also show transplant-related causes are a larger contributor to mortality within the first 100-days post-transplant and shift towards primary disease after approximately six months post-transplant.2 Reducing TRM without increasing risk of disease death and vice versa continue to represent a substantial clinical challenge.
+\underline{D}etermining the \underline{I}nfluence of \underline{S}usceptibility \underline{CO}nveying \underline{V}ariants \underline{R}elated to one-\underline{Y}ear mortality after \underline{B}one \underline{M}arrow \underline{T}ransplant (DISCOVeRY-BMT) is a GWAS. This GWAS aims at identifying and characterizing non-human leukocyte antigen (HLA) genetic variation in the context of survival outcomes in acute lymphoblastic leukemia (ALL), acute myelogenous leukemia (AML) and myleodastic dysplastic syndrome (MDS) patients and their matched unrelated donor after hematopoietic stem cell transplantation (HSCT). HSCT is also called bone marrow transplantation (BMT) and hence both terms will be used interchangeably throughout this document. 
 
-## Genotyping and Imputation
-All samples were genotyped using the Illumina Human OmniExpress BeadChip and the Illumina HumanExome BeadChip (University of Southern California Genomics Facility). Samples were assigned to plates to ensure the even distribution of patient characteristics and potential confounding variables using Optimal Sample Assignment Tool (OSAT), an R/Bioconductor software package.74 Over 90% of DISCOVeRY-BMT patients self-reported as European American, Caucasian or White and thus replication and validation analyses are performed on these recipient-donor pairs. Stringent quality control was performed on both samples and SNPs within this population. Population outliers were removed using EIGENSTRAT75 (n=73). Additional sample quality control removed samples with missing call rate ≥ 2% (n=54), sex mismatch (n=9), abnormal inbreeding coefficients (n=20), and evidence of cryptic relatedness (n=17), yielding 2106 and 777 donor-recipient pairs in cohorts 1 and 2, respectively. Typed SNPs were removed if the call rate was <98%, there was deviation from Hardy-Weinberg equilibrium proportions or discordance between duplicate samples was >2%. In total 637,655 and 632,823 SNPs from the OmniExpress BeadChip were available for imputation in cohorts 1 and cohort 2, respectively, using 1000 Genomes Project Phase 3.  IMPUTE2 software was used for Imputation and QCTOOL was used to remove imputed genotypes with info score <0.7, certainty <0.7 and a minor allele frequency <0.00576,77. The recipient-donor mismatch genome dosage calculations, described above, were done as the absolute value of the recipient minus donor minor allele dosages. Rs2066847 (SNP13) in NOD2/CARD15 was the only variant analyzed from the Illumina HumanExome as it was not typed on the OmniExpress chip or available following imputation.
+## Hematopoetic Stem Cell Transplantation
+HSCT is an established therapeutic procedure that is used as a potentially curative treatment for life-threatening congenital or acquired blood disorders (malignant or non-malignant) [@Henig_2014]. HSCT involves the intravenous infusion of autologous or allogeneic hematopoietic progenitor cells to restore normal function in patients whose bone marrow is compromised. Autologous HSCT involves self-donation of marrow stem cells, whereas allogeneic HSCT is when stem cells are transferred from a HLA-matched related donor (MRD) or a HLA-matched unrelated donor (MUD). Although a matched sibling donor is preferred, only approximately 30% of patients who may benefit from HSCT have such a donor available. In the United States, the number of allogeneic transplants yearly has dramatically risen over the past decade, across all diseases [@Pasquini_2013]. Patients with acute myeloid leukemia (AML), acute lymphoblastic leukemia (ALL), or myelodysplastic syndrome (MDS), represent the largest group treated with allogeneic HSCT. While both patient care and matching has improved over the past few decades almost half of all high-resolution 10/10 MUD-HSCT recipients die within one-year post-transplant due to either their disease or transplant-related causes [@Pasquini_2013]. These trends also show transplant-related causes are a larger contributor to mortality within the first 100-days post-transplant and shift towards primary disease after approximately six months post-transplant [@DSouza_2017]. Reducing TRM without increasing risk of disease death and vice versa continue to represent a substantial clinical challenge.
+
+
+
+
+
+
+## Genotyping
+All samples were genotyped using the Illumina Human OmniExpress BeadChip and the Illumina HumanExome BeadChip (University of Southern California Genomics Facility). 
+
+Samples were assigned to plates to ensure the even distribution of patient characteristics and potential confounding variables using Optimal Sample Assignment Tool (OSAT), an R/Bioconductor software package [@OSAT].
+
+Over 90% of DISCOVeRY-BMT patients self-reported as European American, Caucasian or White and thus replication and validation analyses are performed on these recipient-donor pairs. 
+
+Stringent quality control was performed on both samples and SNPs within this population. Population outliers were removed using EIGENSTRAT [@Price_AL] (n=73). 
+
+
+Additional sample quality control removed samples with missing call rate ≥ 2% (n=54), sex mismatch (n=9), abnormal inbreeding coefficients (n=20), and evidence of cryptic relatedness (n=17), yielding 2106 and 777 donor-recipient pairs in cohorts 1 and 2, respectively. Typed SNPs were removed if the call rate was <98%, there was deviation from Hardy-Weinberg equilibrium proportions or discordance between duplicate samples was >2%. 
+
+In total 637,655 and 632,823 SNPs from the OmniExpress BeadChip were available for imputation in cohorts 1 and cohort 2, respectively, using 1000 Genomes Project Phase 3 [@1000genomes]. 
+
+IMPUTE2 [@Howie_2009] software was used for Imputation and QCTOOL was used to remove imputed genotypes with info score <0.7, certainty <0.7 and a minor allele frequency <0.005. The recipient-donor mismatch genome dosage calculations, described above, were done as the absolute value of the recipient minus donor minor allele dosages. Rs2066847 (SNP13) in NOD2/CARD15 was the only variant analyzed from the Illumina HumanExome as it was not typed on the OmniExpress chip or available following imputation.
+
+
+## Patient Characteristics
+All outcomes for patients in DISCOVeRY-BMT were adjudicated post-mortem by an expert panel of clinicians over a 3-day period [@Hahn_2015]. 
+
+```{r, echo=FALSE}
+covariate.file <- read_tsv("~/Google Drive/OSU_PHD/DBMT_100d/DBMT_PhenoData_EA_long_allVar_20181206.txt")
+
+dz.dist <- covariate.file %>%
+    group_by(sample_type, cohort, disease) %>%
+    tally() %>%
+    ungroup() %>%
+    mutate(cohort=ifelse(cohort==1, "cohort 1", "cohort 2")) %>% 
+    arrange(cohort) %>% 
+    gather(key, value, n) %>%
+    unite(sample_cohort, c("sample_type", "cohort")) %>%
+    spread(sample_cohort, value) %>%
+    select(-key) %>%
+    mutate_at(.vars=vars(contains("cohort")), .funs=funs(`per`=./sum(.))) %>%
+    mutate(`donor_cohort 1`=paste0(`donor_cohort 1`, " (", round(`donor_cohort 1_per`, 2)*100, "%)"),
+           `donor_cohort 2`=paste0(`donor_cohort 2`, " (", round(`donor_cohort 2_per`, 2)*100, "%)"),
+           `recipient_cohort 1`=paste0(`recipient_cohort 1`, " (", round(`recipient_cohort 1_per`, 2)*100, "%)"),
+           `recipient_cohort 2`=paste0(`recipient_cohort 2`, " (", round(`recipient_cohort 2_per`, 2)*100, "%)")) %>%
+    select(-`donor_cohort 1_per`:-`recipient_cohort 2_per`) %>%
+    as.data.frame()
+
+rownames(dz.dist) <- dz.dist$disease
+dz.dist$disease <- NULL
+
+dz.dist %>%
+    kable(format = "latex",
+          caption="Donor and Recipients Disease Characteristics in DISCOVeRY-BMT.", 
+          booktabs=TRUE) %>%
+    kable_styling(latex_options = "striped",
+                  full_width=FALSE) %>%
+    add_header_above(c(" ", "Donor (N/Percent %)"=2, "Recipient (N/Percent %)"=2)) %>%
+    footnote(general_title="",
+             general="Shown here are disease distributions of ALL, AML and MDS in DISCOVeRY-BMT cohorts. The percentage in each cell is computed column-wise as the proportion of sample size (N) within a cohort across disease group.",
+             footnote_as_chunk = TRUE,
+             threeparttable = TRUE)
+```
+
+Survival outcome distribution
+
+```{r, echo=FALSE, eval=FALSE}
+
+outcome.dist <- covariate.file %>%
+    group_by(sample_type, cohort, disease) %>%
+    tally() %>%
+    ungroup() %>%
+    mutate(cohort=ifelse(cohort==1, "cohort 1", "cohort 2")) %>% 
+    arrange(cohort) %>% 
+    gather(key, value, n) %>%
+    unite(sample_cohort, c("sample_type", "cohort")) %>%
+    spread(sample_cohort, value) %>%
+    select(-key) 
+    as.data.frame()
+
+rownames(outcome.dist) <- outcome.dist$disease
+outcome.dist$disease <- NULL
+
+outcome.dist %>%
+    kable(format = "latex", caption = "Donor and Recipients Outcome Distribution", booktabs=TRUE) %>%
+    kable_styling(latex_options = "striped",
+                  full_width = FALSE) %>%
+    add_header_above(c(" ", "Donor"=2, "Recipient"=2))
+```
+
+TRM subtypes
 
 ## Statistical Models
-Prior to genetic analyses, clinical covariates for inclusion in genome-wide survival models were selected using bidirectional stepwise Cox proportional hazard models of OS, PFS, TRM and DRM using R statistical software.78 Cox proportional hazard models of OS, TRM and DRM evaluated SNPs associated with time to death with all survivors censored at 1 year post-BMT.79 PFS was defined as the time to disease progression or death. Deaths from TRM and DRM were treated as competing risks and analyzed accordingly.80 SNP models for OS adjusted for recipient age, disease status (early/intermediate or advanced), and graft source (blood or marrow); PFS and DRM SNP models adjusted for recipient age and disease status; TRM SNP models adjusted for recipient age, graft source and body mass index (underweight/normal, overweight, or obese). Dosage data accounting for the probability of each genotype were used in all analyses of imputed data. Effect size estimates and standard errors from DISCOVeRY-BMT Cohorts 1 and 2 were compared and combined using a fixed-effects inverse variance meta-analyses in METAL. For each SNP,  heterogeneity of effect size estimates between cohorts 1 and 2 was assessed using p-values from significance tests of heterogeneity (phet) and I2.81 Variants with phet<0.05 and I2>50 were meta-analyzed with a random effects models using meta in R.82 
+Prior to genetic analyses, clinical covariates for inclusion in genome-wide survival models were selected using bidirectional stepwise regression [@Venables_2002] on Cox proportional hazard models [@cox1972] of OS, PFS, TRM and DRM using R statistical software [@r_core]. Cox proportional hazard models of OS, TRM and DRM evaluated SNPs associated with time to death with all survivors censored at 1 year post-BMT. PFS was defined as the time to disease progression or death [@therneau2013]. Deaths from TRM and DRM were treated as competing risks and analyzed accordingly [@fine1999]. SNP models for OS adjusted for recipient age, disease status (early/intermediate or advanced), and graft source (blood or marrow); PFS and DRM SNP models adjusted for recipient age and disease status; TRM SNP models adjusted for recipient age, graft source and body mass index (underweight/normal, overweight, or obese). Dosage data accounting for the probability of each genotype were used in all analyses of imputed data. Effect size estimates and standard errors from DISCOVeRY-BMT Cohorts 1 and 2 were compared and combined using a fixed-effects inverse variance meta-analyses in METAL [@metal]. For each SNP,  heterogeneity of effect size estimates between cohorts 1 and 2 was assessed using p-values from significance tests of heterogeneity ($P_{het}$) and $I^{2}$. Variants with $P_{het}$ < 0.05 and $I^{2}>50$ were meta-analyzed with a random effects models using meta in R [@Schwarzer_2007].
 
 ### Cox Proportional Hazards Model
 
-
+We describe how model equations already developed to express the effects of exposure on disease rates calculated from grouped data are adapted to the continuous case. Section 5.2 introduces the 'partial likelihood' methodology for estimating regression coefficients in models in which the exposure variables are assumed to act multiplicatively on the background rates. 
 
 ### Power Calculations
 
 We conducted the first adequately powered evaluation of these candidate SNP and gene hypotheses using typed and imputed data from an existing genome-wide association study (GWAS) named Determining the Influence of Susceptibility COnveying Variants Related to one-Year mortality after BMT (DISCOVeRY-BMT) to replicate or validate these published associations.$^{71-72}$ In addition, we leveraged the available genome-wide data from DISCOVeRY-BMT and measured the aggregate association of all SNPs in the candidate genes with survival outcomes to determine how many of these candidate genes play a significant role in survival after transplant. Lastly, using publically available data, we characterized the potential functionality of each candidate SNP in relation to the gene of interest. 
 
+We have the power to detect 
+
+Lower bound is based off each TRM subtype being at least 0.10 (10%) of all patients.
+
+
+```{r, fig.width=6, fig.height=4, fig.cap="Hazard ratios associated with survival models.", echo=FALSE}
+#####power to detect main snp effects associated with survival#####################
+get.delta=function(PA, propEvents, N, alpha, beta)
+  exp((qnorm(1-alpha)+qnorm(beta))/(sqrt(N*propEvents*PA*(1-PA))))
+propEvents=seq(0.1, 0.7, by=0.01)
+delta=mapply(get.delta, 
+             propEvents,
+             MoreArgs=list(PA=0.40, N=2580, alpha=0.05/1000000, beta=0.20))
+delta.lb=mapply(get.delta,
+                propEvents,
+                MoreArgs=list(PA=0.05,
+                              N=2580,
+                              alpha=0.05/1000000,
+                              beta=0.20))
+plot(propEvents,
+     delta,type="l",
+     axes=F,
+     ylim=c(0,4.0)
+     ,lwd=2,
+     main=c("Power Calculations"),
+     xlab="Proportion of Events",
+     ylab=c("Minimum Detectable", "Hazard Ratio"))
+abline(h=seq(0,4.0,by=0.25),col="gray72")
+abline(v=seq(0.1,0.7,by=0.025),col="gray72")
+axis(1);axis(2)
+lines(propEvents,delta,lwd=2)
+lines(propEvents,delta.lb,lwd=2,lty=2)
+legend(0.276,
+       4.0,
+       lty=1:2,
+       legend=c("MAF=0.40","MAF=0.05"),
+       lwd=2,
+       cex=1.2,
+       bty="o",
+       bg="white")
+# df <- data.frame(propEvents, delta, delta.lb)
+# df %>% filter(propEvents %in% c(propEvents[6], 0.5))
+```
+
 
 
 # Literature Review
-An extensive literature search of PubMed was performed using to identify peer-reviewed scientific studies (published on or before December 30, 2016) that reported non-HLA genetic polymorphisms associated with survival outcomes after allogeneic BMT, including disease-related mortality (DRM), progression-free survival (PFS), transplant-related mortality (TRM) and/or overall survival (OS).1-70 The PubMed search terms, filtering approach and link to all articles described herein are provided in the Supplemental Methods. 
+An extensive literature search of PubMed was performed using to identify peer-reviewed scientific studies (published on or before December 30, 2016) that reported non-HLA genetic polymorphisms associated with survival outcomes after allogeneic BMT, including disease-related mortality (DRM), progression-free survival (PFS), transplant-related mortality (TRM) and/or overall survival (OS) [@Karaesmen_2017]. The PubMed search terms, filtering approach and link to all articles described herein are provided in the Supplemental Methods. 
 
 For over a decade, researchers have conducted candidate gene association studies of patient survival outcomes after allogeneic blood or marrow transplantation (BMT). The intent of these studies was to identify genetic variants outside of the human leukocyte antigen (HLA) region that would increase knowledge about clinical management or serve as a potential target for novel therapeutics. $^{1-70}$ 
 
 The majority of these studies tested for associations in small datasets, ranging from a few dozen to a few hundred patients and donors, included heterogeneous diseases spanning benign to malignant hematological diseases, related and/or unrelated donors with various degrees of HLA-matching and patients treated across multiple decades, from the 1980s through early 2000s. 
 
 
-# Reproducing results of previous studies
-Results from genetic association studies should be reproduced in independent samples in order to confirm findings.83 Researchers have defined two distinctive terms to describe the reproducibility based on differences between the original study population and the confirmation studies: replication and validation.84 Replication is defined as the original and confirmation studies both having similar inclusion criteria (including the same ethnic/ancestral population) so that any differences between the study populations can be attributed to random variation.84 Validation is defined as the original and confirmation study populations having different inclusion criteria (including different ethnic/ancestral populations) so that any differences between the original and confirmation study could be due to systematic variation.84  Thus, replication analyses were conducted when the original study included HLA-matched unrelated donor BMTs in patients of European ancestry. Validation analyses were performed on studies of leukemia patients of non-European ancestry, patient populations who received a BMT from a matched related donor, or patient populations that were mixed between those who received a BMT from related and unrelated donor. For studies of outcomes involving multiple hematologic malignancies, the entire DISCOVeRY-BMT study population was analyzed. If the original study population was specified as AML, ALL and/or MDS, the same disease inclusion criteria were applied so that the replication/validation study population aligned with that of the original study population. 
+## Replication and Validation of Candidate Gene Studies
+Results from genetic association studies should be reproduced in independent samples in order to confirm findings [@colhoun2003]. Researchers have defined two distinctive terms to describe the reproducibility based on differences between the original study population and the confirmation studies: replication and validation [@Igl_2009]. Replication is defined as the original and confirmation studies both having similar inclusion criteria (including the same ethnic/ancestral population) so that any differences between the study populations can be attributed to random variation [[@Igl_2009]. Validation is defined as the original and confirmation study populations having different inclusion criteria (including different ethnic/ancestral populations) so that any differences between the original and confirmation study could be due to systematic variation [@Igl_2009]. 
 
-# Our study
+Thus, replication analyses were conducted when the original study included HLA-matched unrelated donor BMTs in patients of European ancestry. Validation analyses were performed on studies of leukemia patients of non-European ancestry, patient populations who received a BMT from a matched related donor, or patient populations that were mixed between those who received a BMT from related and unrelated donor. For studies of outcomes involving multiple hematologic malignancies, the entire DISCOVeRY-BMT study population was analyzed. If the original study population was specified as AML, ALL and/or MDS, the same disease inclusion criteria were applied so that the replication/validation study population aligned with that of the original study population. 
 
 ## Gene-Based Association Testing
-VErsatile Gene-based Association Study 2 (VEGAS2) software was used for gene-based association testing.85 VEGAS2 uses 106 Monte Carlo simulations to test the global significance of an association for sets of SNPs in defined genomic regions. VEGAS2 reports a gene-based P-value for each gene determined using individual SNP association P-values. Directional effects are not incorporated into analyses; thus, all SNPs can be aggregated without dampening an association signal.  For the gene-based replication or validation analyses, the P-values from typed and imputed SNPs in DISCOVeRY-BMT (+/- a 10kb flanking region) meta-analyses of OS, PFS, TRM and DRM were used as input into the VEGAS2 software. Gene-based P-values were calculated for donor, recipient, and R-D mismatch analyses of the full cohort (ALL, AML and MDS patients) or homogenous disease subgroups (ALL or AML or MDS patients) corresponding to the analyses performed in the original studies. 
+VErsatile Gene-based Association Study 2 (VEGAS2) software was used for gene-based association testing [@Mishra_2015]. VEGAS2 uses $10^{6}$ Monte Carlo simulations to test the global significance of an association for sets of SNPs in defined genomic regions. VEGAS2 reports a gene-based P-value for each gene determined using individual SNP association P-values. Directional effects are not incorporated into analyses; thus, all SNPs can be aggregated without dampening an association signal.  For the gene-based replication or validation analyses, the P-values from typed and imputed SNPs in DISCOVeRY-BMT (+/- a 10kb flanking region) meta-analyses of OS, PFS, TRM and DRM were used as input into the VEGAS2 software. Gene-based P-values were calculated for donor, recipient, and R-D mismatch analyses of the full cohort (ALL, AML and MDS patients) or homogenous disease subgroups (ALL or AML or MDS patients) corresponding to the analyses performed in the original studies. 
 
 ## Functional Annotation
-RegulomeDB,86  Blood expression quantitative trait loci (eQTL) Browser,87 and Variant Effect Predictor (VEP)88 were used to provide functional annotation of the candidate SNPs. For each database, the raw data scores, P-values and annotations, respectively were downloaded from each website and assigned to each SNP in our list. RegulomeDB scores are categorized as follows: 1a-1f are likely to affect transcription factor binding and linked to expression of a gene target; 2a-2c are likely to affect transcription factor binding; 3a-3b are less likely to affect transcription factor binding, and > 3 has minimal binding evidence. A RegulomeDB score is assigned based on the level and evidence of functional modification attributable to the SNP 86,89 in multiple cell lines from a range of tissues, with scores  from 1 to 7, with 1 having the highest functional effect, supported by experimental evidence and 7 having no modifying effect.89 RegulomeDB database derives these annotations using the publically available data sets from Gene Expression Omnibus (GEO), the Encyclopedia of DNA elements (ENCODE) project and the Roadmap Epigenome Consortium. The Blood eQTL data are derived from a study of correlations between genetic variants and gene expression in over 5000 patients, with replication in almost 3000 individuals. Herein, we consider only cis-eQTLs, defined as < 250KB distance between the SNP chromosomal position and the probe midpoint for gene expression. VEP was used to determine the hypothetical functional importance of missense and nonsense variants based on SIFT90, Mutation Taster91 and PolyPhen-2.92
+RegulomeDB Blood expression quantitative trait loci (eQTL) Browser, and Variant Effect Predictor (VEP)88 were used to provide functional annotation of the candidate SNPs. For each database, the raw data scores, P-values and annotations, respectively were downloaded from each website and assigned to each SNP in our list. RegulomeDB scores are categorized as follows: 1a-1f are likely to affect transcription factor binding and linked to expression of a gene target; 2a-2c are likely to affect transcription factor binding; 3a-3b are less likely to affect transcription factor binding, and > 3 has minimal binding evidence. A RegulomeDB score is assigned based on the level and evidence of functional modification attributable to the SNP in multiple cell lines from a range of tissues, with scores from 1 to 7, with 1 having the highest functional effect, supported by experimental evidence and 7 having no modifying effect. 
+
+RegulomeDB database derives these annotations using the publically available data sets from Gene Expression Omnibus (GEO), the Encyclopedia of DNA elements (ENCODE) project and the Roadmap Epigenome Consortium. The Blood eQTL data are derived from a study of correlations between genetic variants and gene expression in over 5000 patients, with replication in almost 3000 individuals. Herein, we consider only cis-eQTLs, defined as < 250KB distance between the SNP chromosomal position and the probe midpoint for gene expression. VEP was used to determine the hypothetical functional importance of missense and nonsense variants based on SIFT, Mutation Taster and PolyPhen-2.
 
 # Results
 ## DISCOVeRY-BMT Patient Characteristics

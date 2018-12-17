@@ -25,6 +25,9 @@
 \newcommand{\doublespaced}{\doublespacing}
 \newcommand{\triplespaced}{\setstretch {2.6}}
 
+
+\usepackage[table]{xcolor}
+
 %}}}
 
 % Text layout.
