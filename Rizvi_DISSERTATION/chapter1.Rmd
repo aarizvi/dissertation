@@ -67,6 +67,34 @@ All outcomes for patients in DISCOVeRY-BMT were adjudicated post-mortem by an ex
 ```{r, echo=FALSE}
 covariate.file <- read_tsv("~/Google Drive/OSU_PHD/DBMT_100d/DBMT_PhenoData_EA_long_allVar_20181206.txt")
 
+covariate.file %>%
+    group_by(sample_type, cohort) %>%
+    tally() %>%
+    ungroup() %>%
+    mutate(cohort=ifelse(cohort==1, "Cohort 1: N (Percent %)", "Cohort 2: N (Percent %)")) %>% 
+    arrange(sample_type) %>%  
+    group_by(sample_type) %>%
+    mutate(per=paste0("(", as.character(round((n/sum(n)*100),1)), "%)")) %>%
+    ungroup() %>% 
+    unite(n_per, c(n, per), sep=" ") %>%  
+    spread(cohort, n_per) %>%
+    rename(Genome=sample_type) %>%
+    mutate(Genome=ifelse(Genome=="donor", "Donor", "Recipient")) %>%
+    kable(format = "latex",
+          caption="Donor and Recipients Cohorts in DISCOVeRY-BMT.", 
+          booktabs=TRUE) %>%
+    kable_styling(latex_options = "striped",
+                  full_width=FALSE) %>%
+    footnote(general_title="",
+         general="Shown here are number of patients and donors in each cohort",
+         footnote_as_chunk = TRUE,
+         threeparttable = TRUE)
+
+```
+
+
+Disease Distribution
+```{r, echo=FALSE}
 dz.dist <- covariate.file %>%
     group_by(sample_type, cohort, disease) %>%
     tally() %>%
@@ -101,40 +129,359 @@ dz.dist %>%
              threeparttable = TRUE)
 ```
 
-Survival outcome distribution
+Defintions of outcomes:  
+Overall Survival (OS)  
+Disease Related Mortality (DRM)  
+Transplant Related Mortality (TRM)  
+Progression Free Survival (PFS)  
+Relapse (REL)  
 
-```{r, echo=FALSE, eval=FALSE}
+Proportions of Events Mixed disease with outcomes
 
-outcome.dist <- covariate.file %>%
-    group_by(sample_type, cohort, disease) %>%
-    tally() %>%
+```{r, echo=FALSE}
+mixed.outcome <- covariate.file %>%
+    filter(disease %in% c("ALL", "AML", "MDS")) %>%
+    group_by(sample_type, cohort) %>%
+    summarize(OS=sum(dead_1Y),
+              DRM=sum(disease_death_1Y),
+              TRM=sum(TRM_1Y),
+              PFS=sum(lfs_1Y),
+              REL=sum(rel_1Y, na.rm=TRUE),
+              GVHD=sum(GVHD_death_1Y),
+              OF=sum(OF_1Y),
+              INF=sum(infection_1Y)) %>% 
+    arrange(cohort) %>%
     ungroup() %>%
-    mutate(cohort=ifelse(cohort==1, "cohort 1", "cohort 2")) %>% 
-    arrange(cohort) %>% 
-    gather(key, value, n) %>%
-    unite(sample_cohort, c("sample_type", "cohort")) %>%
-    spread(sample_cohort, value) %>%
-    select(-key) 
+    mutate(total=c(2052, 2110, 763, 777)) %>%
+    mutate_at(.vars=vars(OS, DRM, PFS, REL, TRM, GVHD, OF, INF), .funs=funs(paste0(., " (", round((./total)*100, 2), "%)"))) %>%
+    select(-total) %>%
+    arrange(sample_type) %>%
+    unite(sample_cohort, c("sample_type", "cohort")) %>% 
+    gather(key, value, -sample_cohort) %>%
+    spread(sample_cohort, value) %>% 
+    rename(`Donor Cohort 1`=donor_1,
+           `Donor Cohort 2`=donor_2,
+           `Recipient Cohort 1`=recipient_1,
+           `Recipient Cohort 2`=recipient_2) %>%
+    mutate(key=factor(key, levels=c("OS", "DRM", "PFS", "REL", "TRM", "GVHD", "INF", "OF"))) %>%
+    arrange(key) %>%
     as.data.frame()
 
-rownames(outcome.dist) <- outcome.dist$disease
-outcome.dist$disease <- NULL
+rownames(mixed.outcome) <- mixed.outcome$key
+mixed.outcome <- mixed.outcome %>%
+    select(-key) 
 
-outcome.dist %>%
-    kable(format = "latex", caption = "Donor and Recipients Outcome Distribution", booktabs=TRUE) %>%
+mixed.outcome %>%
+    kable(format = "latex",
+          caption="Mixed Disease: Proportion of Events by Outcome and Cohort in Donor and Recipients", 
+          booktabs=TRUE) %>%
     kable_styling(latex_options = "striped",
-                  full_width = FALSE) %>%
-    add_header_above(c(" ", "Donor"=2, "Recipient"=2))
+                  full_width=FALSE) %>%
+    add_header_above(c(" ", "Donor (N/Percent %)"=2, "Recipient (N/Percent %)"=2)) %>%
+    footnote(general_title="",
+             general="Shown here are the proprtion of events for mixed disease (ALL, AML, and MDS) in both DISCOVeRY-BMT cohorts",
+             footnote_as_chunk = TRUE,
+             threeparttable = TRUE)
+``` 
+
+Explain that discrepancies between TRM and TRM subtypes are because some patients adjudication was not well differentiated between these subtypes.  
+
+```{r, echo=FALSE, fig.cap="Histogram of Donor and Recipient Age Distributions in Mixed Disease (AML, ALL, and MDS)"}
+covariate.file %>%
+    select(disease, sample_type, cohort, age, dnrage) %>% 
+    gather(key, value, -disease, -sample_type, -cohort) %>%
+    mutate(key=ifelse(key=="age", "recipient age", "donor age"),
+           cohort=ifelse(cohort==1, "cohort 1", "cohort 2")) %>%
+    filter(disease %in% c("AML", "ALL" ,"MDS")) %>%
+    group_by(sample_type, cohort) %>%
+    ggplot(aes(value)) +
+    geom_histogram() + 
+    facet_grid(cohort~key, scales = "free_y") +
+    ggtitle("Mixed Disease: Donor and Recipient Age Distribution") +
+    theme(plot.title = element_text(hjust = 0.5))
 ```
 
-TRM subtypes
+
+Proportion of Events AML/MDS with outcomes
+
+```{r, echo=FALSE}
+amlmds.outcome <- covariate.file %>%
+    filter(disease %in% c("AML","MDS")) %>%
+    group_by(sample_type, cohort) %>%
+    summarize(OS=sum(dead_1Y),
+              DRM=sum(disease_death_1Y),
+              TRM=sum(TRM_1Y),
+              PFS=sum(lfs_1Y),
+              REL=sum(rel_1Y, na.rm=TRUE),
+              GVHD=sum(GVHD_death_1Y),
+              OF=sum(OF_1Y),
+              INF=sum(infection_1Y)
+              ) %>% 
+    arrange(cohort) %>%
+    ungroup() %>%
+    mutate(total=c(1584, 1627, 670, 683)) %>%
+    mutate_at(.vars=vars(OS, DRM, PFS, REL, TRM, GVHD, OF, INF), .funs=funs(paste0(., " (", round((./total)*100, 2), "%)"))) %>%
+    select(-total) %>%
+    arrange(sample_type) %>% 
+    unite(sample_cohort, c("sample_type", "cohort")) %>% 
+    gather(key, value, -sample_cohort) %>%
+    spread(sample_cohort, value) %>% 
+    rename(`Donor Cohort 1`=donor_1,
+           `Donor Cohort 2`=donor_2,
+           `Recipient Cohort 1`=recipient_1,
+           `Recipient Cohort 2`=recipient_2) %>%
+    mutate(key=factor(key, levels=c("OS", "DRM", "PFS", "REL", "TRM", "GVHD", "INF", "OF"))) %>%
+    arrange(key) %>%
+    as.data.frame()
+
+
+
+rownames(amlmds.outcome) <- amlmds.outcome$key
+amlmds.outcome <- amlmds.outcome %>%
+    select(-key) 
+
+amlmds.outcome %>%
+    kable(format = "latex",
+          caption="AML + MDS: Proportion of Events by Outcome and Cohort in Donor and Recipients", 
+          booktabs=TRUE) %>%
+    kable_styling(latex_options = "striped",
+                  full_width=FALSE) %>%
+    add_header_above(c(" ", "Donor (N/Percent %)"=2, "Recipient (N/Percent %)"=2)) %>%
+    footnote(general_title="",
+             general="Shown here are the proprtion of events for AML+MDS in both DISCOVeRY-BMT cohorts",
+             footnote_as_chunk = TRUE,
+             threeparttable = TRUE)
+``` 
+
+```{r, echo=FALSE, fig.cap="Histogram of Donor and Recipient Age Distributions in AML and MDS patients"}
+covariate.file %>%
+    select(disease, sample_type, cohort, age, dnrage) %>% 
+    gather(key, value, -disease, -sample_type, -cohort) %>%
+    mutate(key=ifelse(key=="age", "recipient age", "donor age"),
+           cohort=ifelse(cohort==1, "cohort 1", "cohort 2")) %>%
+    filter(disease %in% c("AML", "MDS")) %>%
+    group_by(sample_type, cohort) %>%
+    ggplot(aes(value)) +
+    geom_histogram() + 
+    facet_grid(cohort~key, scales = "free_y") +
+    ggtitle("AML + MDS: Donor and Recipient Age Distribution") +
+    theme(plot.title = element_text(hjust = 0.5))
+```
+
+
+Proportions of Events in AMLonly with outcomes
+```{r, echo=FALSE}
+amlonly.outcome <- covariate.file %>%
+    filter(disease %in% c("AML")) %>%
+    group_by(sample_type, cohort) %>%
+    summarize(OS=sum(dead_1Y),
+              DRM=sum(disease_death_1Y),
+              TRM=sum(TRM_1Y),
+              PFS=sum(lfs_1Y),
+              REL=sum(rel_1Y, na.rm=TRUE),
+              GVHD=sum(GVHD_death_1Y),
+              OF=sum(OF_1Y),
+              INF=sum(infection_1Y)) %>% 
+    arrange(cohort) %>%
+    ungroup() %>%
+    mutate(total=c(1247, 1282, 478, 488)) %>%
+    mutate_at(.vars=vars(OS, DRM, PFS, REL, TRM, GVHD, OF, INF), .funs=funs(paste0(., " (", round((./total)*100, 2), "%)"))) %>%
+    select(-total) %>%
+    arrange(sample_type) %>% 
+    unite(sample_cohort, c("sample_type", "cohort")) %>% 
+    gather(key, value, -sample_cohort) %>%
+    spread(sample_cohort, value) %>% 
+    rename(`Donor Cohort 1`=donor_1,
+           `Donor Cohort 2`=donor_2,
+           `Recipient Cohort 1`=recipient_1,
+           `Recipient Cohort 2`=recipient_2) %>%
+    mutate(key=factor(key, levels=c("OS", "DRM", "PFS", "REL", "TRM", "GVHD", "INF", "OF"))) %>%
+    arrange(key) %>%
+    as.data.frame()
+
+rownames(amlonly.outcome) <- amlonly.outcome$key
+amlonly.outcome <- amlonly.outcome %>%
+    select(-key) 
+
+amlonly.outcome %>%
+    kable(format = "latex",
+          caption="AML only: Proportion of Events by Outcome and Cohort in Donor and Recipients", 
+          booktabs=TRUE) %>%
+    kable_styling(latex_options = "striped",
+                  full_width=FALSE) %>%
+    add_header_above(c(" ", "Donor (N/Percent %)"=2, "Recipient (N/Percent %)"=2)) %>%
+    footnote(general_title="",
+             general="Shown here are the proprtion of events for AML only in both DISCOVeRY-BMT cohorts",
+             footnote_as_chunk = TRUE,
+             threeparttable = TRUE)
+```
+
+
+```{r, echo=FALSE, fig.cap="Histogram of Recipient Age Distribution in AML and MDS patients"}
+covariate.file %>%
+    select(disease, sample_type, cohort, age, dnrage) %>% 
+    gather(key, value, -disease, -sample_type, -cohort) %>%
+    mutate(key=ifelse(key=="age", "recipient age", "donor age"),
+           cohort=ifelse(cohort==1, "cohort 1", "cohort 2")) %>%
+    filter(disease %in% c("AML")) %>%
+    group_by(sample_type, cohort) %>%
+    ggplot(aes(value)) +
+    geom_histogram() + 
+    facet_grid(cohort~key,  scales = "free_y") +
+    ggtitle("AML Patients: Donor and Recipient Age Distribution") +
+    theme(plot.title = element_text(hjust = 0.5))
+```
+
+
+Proportions of Events in ALLonly with outcomes
+
+```{r, echo=FALSE}
+allonly.outcome <- covariate.file %>%
+    filter(disease %in% c("ALL")) %>%
+    group_by(sample_type, cohort) %>%
+    summarize(OS=sum(dead_1Y),
+              DRM=sum(disease_death_1Y),
+              TRM=sum(TRM_1Y),
+              PFS=sum(lfs_1Y),
+              REL=sum(rel_1Y, na.rm=TRUE),
+              GVHD=sum(GVHD_death_1Y),
+              OF=sum(OF_1Y),
+              INF=sum(infection_1Y)) %>% 
+    arrange(cohort) %>% 
+    ungroup() %>% 
+    mutate(total=c(468, 483, 93, 94)) %>% 
+    mutate_at(.vars=vars(OS, DRM, PFS, REL, TRM, GVHD, OF, INF), .funs=funs(paste0(., " (", round((./total)*100, 2), "%)"))) %>%
+    select(-total) %>%
+    arrange(sample_type) %>% 
+    unite(sample_cohort, c("sample_type", "cohort")) %>% 
+    gather(key, value, -sample_cohort) %>%
+    spread(sample_cohort, value) %>% 
+    rename(`Donor Cohort 1`=donor_1,
+           `Donor Cohort 2`=donor_2,
+           `Recipient Cohort 1`=recipient_1,
+           `Recipient Cohort 2`=recipient_2) %>%
+    mutate(key=factor(key, levels=c("OS", "DRM", "PFS", "REL", "TRM", "GVHD", "INF", "OF"))) %>%
+    arrange(key) %>%
+    as.data.frame()
+
+rownames(allonly.outcome) <- allonly.outcome$key
+allonly.outcome <- allonly.outcome %>%
+    select(-key) 
+
+allonly.outcome %>%
+    kable(format = "latex",
+          caption="ALL only: Proportion of Events by Outcome and Cohort in Donor and Recipients", 
+          booktabs=TRUE) %>%
+    kable_styling(latex_options = "striped",
+                  full_width=FALSE) %>%
+    add_header_above(c(" ", "Donor (N/Percent %)"=2, "Recipient (N/Percent %)"=2)) %>%
+    footnote(general_title="",
+             general="Shown here are the proprtion of events for ALL only in both DISCOVeRY-BMT cohorts",
+             footnote_as_chunk = TRUE,
+             threeparttable = TRUE)
+
+```
+
+```{r, echo=FALSE, fig.cap="Histogram of Donor and Recipient Age Distributions in ALL patients"}
+covariate.file %>%
+    select(disease, sample_type, cohort, age, dnrage) %>% 
+    gather(key, value, -disease, -sample_type, -cohort) %>%
+    mutate(key=ifelse(key=="age", "recipient age", "donor age"),
+           cohort=ifelse(cohort==1, "cohort 1", "cohort 2")) %>%
+    filter(disease %in% c("ALL")) %>%
+    group_by(sample_type, cohort) %>%
+    ggplot(aes(value)) +
+    geom_histogram() + 
+    facet_grid(cohort~key, scales = "free_y") +
+    ggtitle("ALL Patients: Donor and Recipient Age Distribution") +
+    theme(plot.title = element_text(hjust = 0.5))
+```
+
+
+Proportions of Events in MDSonly with outcomes
+
+```{r, echo=FALSE}
+mdsonly.outcome <- covariate.file %>%
+    filter(disease %in% c("MDS")) %>%
+    group_by(sample_type, cohort) %>%
+    summarize(OS=sum(dead_1Y),
+              DRM=sum(disease_death_1Y),
+              TRM=sum(TRM_1Y),
+              PFS=sum(lfs_1Y),
+              REL=sum(rel_1Y, na.rm=TRUE),
+              GVHD=sum(GVHD_death_1Y),
+              OF=sum(OF_1Y),
+              INF=sum(infection_1Y)) %>% 
+    arrange(cohort) %>%
+    ungroup() %>%
+    mutate(total=c(337, 345, 192, 195)) %>%
+    mutate_at(.vars=vars(OS, DRM, PFS, REL, TRM, GVHD, OF, INF), .funs=funs(paste0(., " (", round((./total)*100, 2), "%)"))) %>%
+    select(-total) %>%
+    arrange(sample_type) %>% 
+    unite(sample_cohort, c("sample_type", "cohort")) %>% 
+    gather(key, value, -sample_cohort) %>%
+    spread(sample_cohort, value) %>% 
+    rename(`Donor Cohort 1`=donor_1,
+           `Donor Cohort 2`=donor_2,
+           `Recipient Cohort 1`=recipient_1,
+           `Recipient Cohort 2`=recipient_2) %>%
+    mutate(key=factor(key, levels=c("OS", "DRM", "PFS", "REL", "TRM", "GVHD", "INF", "OF"))) %>%
+    arrange(key) %>%
+    as.data.frame()
+
+rownames(mdsonly.outcome) <- mdsonly.outcome$key
+mdsonly.outcome <- mdsonly.outcome %>%
+    select(-key) 
+
+mdsonly.outcome %>%
+    kable(format = "latex",
+          caption="MDS only: Proportion of Events by Outcome and Cohort in Donor and Recipients", 
+          booktabs=TRUE) %>%
+    kable_styling(latex_options = "striped",
+                  full_width=FALSE) %>%
+    add_header_above(c(" ", "Donor (N/Percent %)"=2, "Recipient (N/Percent %)"=2)) %>%
+    footnote(general_title="",
+             general="Shown here are the proprtion of events for MDS only in both DISCOVeRY-BMT cohorts",
+             footnote_as_chunk = TRUE,
+             threeparttable = TRUE)
+```
+
+```{r, echo=FALSE, fig.cap="Histogram of Donor and Recipient Age Distributions in MDS patients"}
+covariate.file %>%
+    select(disease, sample_type, cohort, age, dnrage) %>% 
+    gather(key, value, -disease, -sample_type, -cohort) %>%
+    mutate(key=ifelse(key=="age", "recipient age", "donor age"),
+           cohort=ifelse(cohort==1, "cohort 1", "cohort 2")) %>%
+    filter(disease %in% c("MDS")) %>%
+    group_by(sample_type, cohort) %>%
+    ggplot(aes(value)) +
+    geom_histogram() + 
+    facet_grid(cohort~key,  scales = "free_y") +
+    ggtitle("MDS Patients: Donor and Recipient Age Distribution") +
+    theme(plot.title = element_text(hjust = 0.5))
+```
+
+Survival Curves for One year Outcomes
+```{r}
+
+```
+
+
+
+
+## Feature Selection 
+
 
 ## Statistical Models
-Prior to genetic analyses, clinical covariates for inclusion in genome-wide survival models were selected using bidirectional stepwise regression [@Venables_2002] on Cox proportional hazard models [@cox1972] of OS, PFS, TRM and DRM using R statistical software [@r_core]. Cox proportional hazard models of OS, TRM and DRM evaluated SNPs associated with time to death with all survivors censored at 1 year post-BMT. PFS was defined as the time to disease progression or death [@therneau2013]. Deaths from TRM and DRM were treated as competing risks and analyzed accordingly [@fine1999]. SNP models for OS adjusted for recipient age, disease status (early/intermediate or advanced), and graft source (blood or marrow); PFS and DRM SNP models adjusted for recipient age and disease status; TRM SNP models adjusted for recipient age, graft source and body mass index (underweight/normal, overweight, or obese). Dosage data accounting for the probability of each genotype were used in all analyses of imputed data. Effect size estimates and standard errors from DISCOVeRY-BMT Cohorts 1 and 2 were compared and combined using a fixed-effects inverse variance meta-analyses in METAL [@metal]. For each SNP,  heterogeneity of effect size estimates between cohorts 1 and 2 was assessed using p-values from significance tests of heterogeneity ($P_{het}$) and $I^{2}$. Variants with $P_{het}$ < 0.05 and $I^{2}>50$ were meta-analyzed with a random effects models using meta in R [@Schwarzer_2007].
+Prior to genetic analyses, clinical covariates for inclusion in genome-wide survival models were selected using bidirectional stepwise regression [@Venables_2002] on Cox proportional hazard models [@cox1972] of OS, PFS, TRM and DRM using R statistical software [@r_core]. Cox proportional hazard models of OS, TRM and DRM evaluated SNPs associated with time to death with all survivors censored at 1 year post-BMT. PFS was defined as the time to disease progression or death [@therneau2013]. 
+
+Deaths from TRM and DRM were treated as competing risks and analyzed accordingly [@fine1999]. SNP models for OS adjusted for recipient age, disease status (early/intermediate or advanced), and graft source (blood or marrow); PFS and DRM SNP models adjusted for recipient age and disease status; TRM SNP models adjusted for recipient age, graft source and body mass index (underweight/normal, overweight, or obese). Dosage data accounting for the probability of each genotype were used in all analyses of imputed data. Effect size estimates and standard errors from DISCOVeRY-BMT Cohorts 1 and 2 were compared and combined using a fixed-effects inverse variance meta-analyses in METAL [@metal]. For each SNP,  heterogeneity of effect size estimates between cohorts 1 and 2 was assessed using p-values from significance tests of heterogeneity ($P_{het}$) and $I^{2}$. Variants with $P_{het}$ < 0.05 and $I^{2}>50$ were meta-analyzed with a random effects models using meta in R [@Schwarzer_2007].
 
 ### Cox Proportional Hazards Model
 
 We describe how model equations already developed to express the effects of exposure on disease rates calculated from grouped data are adapted to the continuous case. Section 5.2 introduces the 'partial likelihood' methodology for estimating regression coefficients in models in which the exposure variables are assumed to act multiplicatively on the background rates. 
+
+### Model Validation
 
 ### Power Calculations
 
