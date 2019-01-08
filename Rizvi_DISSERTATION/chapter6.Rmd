@@ -1,0 +1,16 @@
+---
+title: "Conclusion and Further Work"
+author: "Abbas Rizvi"
+date: "11/11/2018"
+output: pdf_document  
+---
+
+```{r ch6_setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# +100 Days
+
+# Future Work
+
+# Conclusion

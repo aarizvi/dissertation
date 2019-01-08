@@ -1,5 +1,5 @@
 ---
-title: "Conclusion and Further Work"
+title: "Acute Lymphobastic Leukemia (ALL) GWAS"
 author: "Abbas Rizvi"
 date: "11/11/2018"
 output: pdf_document  
@@ -9,4 +9,12 @@ output: pdf_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-Wassup its chapter 5 at your service ... the end bitches
+# ALL stuff
+
+# Run ALL only and B-ALL only
+
+# Discovery
+
+# Interpretation
+
+# Discussion

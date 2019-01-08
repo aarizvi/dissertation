@@ -12,16 +12,9 @@ knitr::opts_chunk$set(echo = TRUE)
 # Reimputation with HRC
 Test 1 2 3
 
+
 # Model Selection
 
-# Pipeline to run analyses
+# Utilization and purpose
 
-# Run ALL only and B-ALL only
-
-
-
-# Discovery
-
-# Interpretation
-
-# Discussion
+# Conclusion

@@ -160,7 +160,7 @@ Dedicated to Ezgi, my parents, my siblings and their kids, and my sweet little p
 \fancyhead[R]{}
 \fancyfoot[C]{\thepage}
 
-\chapter{gwasurvivr}
+\chapter{Literature Review and Replication/Validation}
 
 \doublespacing
 
@@ -178,7 +178,7 @@ Dedicated to Ezgi, my parents, my siblings and their kids, and my sweet little p
 \fancyhead[R]{}
 \fancyfoot[C]{\thepage}
 
-\chapter{Benchmarking survival model software}
+\chapter{gwasurvivr}
 
 \doublespacing
 
@@ -196,7 +196,7 @@ Dedicated to Ezgi, my parents, my siblings and their kids, and my sweet little p
 \fancyhead[R]{}
 \fancyfoot[C]{\thepage}
 
-\chapter{Acute Lymphobastic Leukemia (ALL) GWAS}
+\chapter{Application and Pipeline}
 
 \doublespacing
 
@@ -214,7 +214,7 @@ Dedicated to Ezgi, my parents, my siblings and their kids, and my sweet little p
 \fancyhead[R]{}
 \fancyfoot[C]{\thepage}
 
-\chapter{Conclusion and Furture Work}
+\chapter{Acute Lymphobastic Leukemia (ALL) GWAS}
 
 \doublespacing
 
@@ -223,6 +223,24 @@ Dedicated to Ezgi, my parents, my siblings and their kids, and my sweet little p
 
 
 \FloatBarrier
+
+<!-- Chapter 6 -->
+\newpage
+\pagestyle{plain}
+\fancyhead[L]{}
+\fancyhead[R]{}
+\fancyfoot[C]{\thepage}
+
+\chapter{Conclusion and Future Work}
+
+\doublespacing
+
+```{r child = "chapter6.Rmd"}
+```
+
+
+\FloatBarrier
+
 \newpage
 \pagestyle{plain}
 \fancyhead[L]{}
