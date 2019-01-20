@@ -17,6 +17,6 @@ Thank you to Dr. Martin Morgan for taking time out of his extremely busy schedul
 
 I would not have gone done the road of computational biology/bioinformatics if it were not for two very important mentors of mine: Dr. Moray Campbell and Dr. Sebastiano Battaglia. Dr. Campbell set me up with a life defining opprtunity: the Cancer and Systems Biology program at the University of Luxembourg and VU University Amsterdam. And Dr. Battaglia for his mentorship during my Master's thesis.
 
-And thank you to Ezgi Karaesmen -- if it were not for you, I truly believe I would not had the level of success I have had for past four years. Your love, your support, your intelligence, and your ability to challenge me on my scientific thought, my coding, and my ability to think have been instrumental to me and I cannot thank you enough. 
+And thank you to Ezgi Karaesmen -- if it were not for you, I truly believe I would not had the level of success I have had for past four years. Your love, your support, your intelligence, and your ability to challenge me on my scientific thought, my coding, and my ability to think have been instrumental my development as a scientist -- I cannot thank you enough. 
 
 This work was supported by the National Institute of Health/National Heart, Blood, and Lung Institute R01HL102278 and National Institute of Health/National Cancer Institute R03CA188733. Support provided by the Center for Computational Research at the University at Buffalo.

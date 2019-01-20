@@ -9,13 +9,15 @@ output: pdf_document
 knitr::opts_chunk$set(echo = TRUE, eval=FALSE)
 ```
 
+
+# Introduction
 Genome-wide association studies (GWAS) are population-level experiments that investigate genetic variation in individuals to observe single nucleotide polymorphism (SNPs) associations with a phenotype. Genetic variants tested for association are genotyped on an array and imputed from a reference panel of sequenced genomes, e.g. 1000 Genomes Project [@1000genomes] or Haplotype Reference Consortium (HRC). 
 
 Imputed SNPs can be tested for association with binary outcomes (cases/controls) dnd quantitative outcomes (e.g., height) using a range of available software packages, including SNPTEST [@snptest] or PLINK [@plink]. However, existing software options for performing survival analyses, genipe [@genipe], SurvivalGWAS_SV [@survivalgwas_sv], and GWASTools [@gwastools] either require user interaction with raw output, were not initially designed for survival and/or have long run times. For these reasons, we developed an R/Bioconductor package, gwasurvivr [@Rizvi_2018], for genome wide survival analyses of imputed data in multiple file formats with flexible analysis and output options. 
 
 
 # Building an R package
-
+To build an R package
 
 
 # Data Structure

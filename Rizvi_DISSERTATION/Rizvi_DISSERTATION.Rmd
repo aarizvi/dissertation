@@ -9,22 +9,7 @@ output:
       in_header: preamble.tex
     keep_tex: yes
     latex_engine: xelatex
-geometry:
-- top=1in
-- bottom=1in
-- right=1in
-- left=1.5in
-- includefoot
-params:
-  committee1: Lara E Sucheston-Campbell, MS, PhD, Adviser
-  committee2: Guy Brock, PhD
-  committee3: Moray Campbell, PhD
-  committee4: Shili Lin, PhD
-  degree: Pharmaceutical Sciences
-  gradschool: The Ohio State University
-  year: '2019'
-bibliography: dissertation_references.bib  
-link-citations: true  
+  word_document: default
 header-includes:
 - \usepackage{booktabs}
 - \usepackage{longtable}
@@ -40,6 +25,22 @@ header-includes:
 - \usepackage[normalem]{ulem}
 - \usepackage{amsrefs}
 - \usepackage{filecontents}
+link-citations: yes
+geometry:
+- top=1in
+- bottom=1in
+- right=1in
+- left=1.5in
+- includefoot
+params:
+  committee1: Lara E Sucheston-Campbell, MS, PhD, Adviser
+  committee2: Guy Brock, PhD
+  committee3: Moray Campbell, PhD
+  committee4: Shili Lin, PhD
+  degree: Pharmaceutical Sciences
+  gradschool: The Ohio State University
+  year: '2019'
+bibliography: dissertation_references.bib
 ---
 
 ```{r global_options, include=FALSE}

@@ -9,6 +9,8 @@ output: pdf_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+# ALL: Schematic of Pipeline
+
 # ALL stuff
 
 # Run ALL only and B-ALL only

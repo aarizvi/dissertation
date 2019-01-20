@@ -10,6 +10,10 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 # Literature Review
+Genetic associations studies usually fall under two main subcategories, candidate gene association studies (CGAS) or genome wide association studies (GWAS). CGAS are association studies that investigate specific genes or regions of interest. Typically these are performed when researchers believe that the underlying biology is understood and they want to identify specific markers that contribute to genetic variation in these 'known' regions. 
+
+
+
 An extensive literature search of PubMed was performed using to identify peer-reviewed scientific studies (published on or before December 30, 2016) that reported non-HLA genetic polymorphisms associated with survival outcomes after allogeneic BMT, including disease-related mortality (DRM), progression-free survival (PFS), transplant-related mortality (TRM) and/or overall survival (OS) [@Karaesmen_2017]. The PubMed search terms, filtering approach and link to all articles described herein are provided in the Supplemental Methods. 
 
 For over a decade, researchers have conducted candidate gene association studies of patient survival outcomes after allogeneic blood or marrow transplantation (BMT). The intent of these studies was to identify genetic variants outside of the human leukocyte antigen (HLA) region that would increase knowledge about clinical management or serve as a potential target for novel therapeutics. $^{1-70}$ 
