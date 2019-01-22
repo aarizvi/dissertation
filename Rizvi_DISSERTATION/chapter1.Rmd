@@ -13,9 +13,8 @@ Broadly, this dissertation examines germline genetic variation in the context ma
 
 The project that this dissertation contributes to has the opportunity to be a real life example of a translational study (from computational analysis of biological data to bedside). The dissertation is broken down into 6 chapters. This chapter (Chapter 1) first introduces genetic association studies and important related concepts (genetic and statistical) that are needed to appreciate and understand the underlying analysis. Chapter 1 also introduces allogeneic HSCT and DISCOVeRY-BMT genome wide-association study (GWAS), including the corresponding clinical data in detail. Chapter 2 will discuss a replication and validation study of all previous literature that examined genetic variation in the same context as our study, which we published on in *Blood*. Chapter 3 discusses the R package that we developed and it details the development and testing procedures executed. The package is available on R/Bioconductor and was published in *Bioinformatics*. Chapter 4 is the application of the R package and custom pipeline developed to perform large automated GWAS, specialized to our lab, but can be generalized to other large scale projects. Chapter 5 discusses the discovery and inference of markers in ALL donor and recipient pairs. This dissertation ends with Chapter 6, which comprises preliminary data on genetic contributions to early death after transplant (the first 100 days) and the future directions that should be undertaken. 
 
-
 # Genetic Association Studies
-Genetic association studies test for correlations between genetic variation as it relates to disease risk or to physical quantitative traits (i.e. height or weight) [@Lewis_2012]. These studies have been successful in identifying certain variants as being predictive of disease susceptibility or drug response and have helped us understand that many diseases have complex genetic signatures that need to be further understood [@Visscher_2012]. The human genome consists of over 3 billion base pairs, all of which are contained in every nucleated cell in the body. A genome sequence is the complete collection of all nucleotides (A, C, T, or G for DNA genomes) that make up all the chromosomes in individuals or species [@Lander_2001]. The vast majority of nucleotides (>99.5%) are identical between individuals within a species, however, genetic variation arises within individuals and populations over time and different spaces. Indeed, the fundamental source of genetic variation is mutation, where permanent alterations occur to a single nucleotide or larger structural changes in the genome of a species. A mutation at single position (locus) in a DNA sequence that occurs in at least 1% of a population is called a single nucleotide polymorphism (SNP). SNPs are the most widely used marker to describe genetic variation. Larger structural variations may include microsatellite regions, insertion/deletions (indels), copy number variations (CNVs), or variable-tandem repeats (VNTRs) all of which have importance in understanding the genetic architecture and disease etiology [@Sudamant_2015]. For purposes of this document, unless otherwise specified, genetic variation will refer to single nucleotide polymorphisms (SNPs). SNPs will also be referred to as simply as polymorphisms, genetic markers, or markers interchangeably.
+Genetic association studies test for correlations between genetic variation as it relates to disease risk or to physical quantitative traits (i.e. height or weight) [@Lewis_2012]. These studies have been successful in identifying certain variants as being predictive of disease susceptibility or drug response and have helped us understand that many diseases have complex genetic signatures that need to be further understood [@Visscher_2012]. The human genome consists of over 3 billion base pairs, all of which are contained in every nucleated cell in the body. A genome sequence is the complete collection of all nucleotides (A, C, T, or G for DNA genomes) that make up all the chromosomes in individuals or species [@Lander_2001]. The vast majority of nucleotides (>99.5%) are identical between individuals within a species, however, genetic variation arises within individuals and populations over time and different spaces. Indeed, the fundamental source of genetic variation is mutation, where permanent alterations occur to a single nucleotide or larger structural changes in the genome of a species. A mutation at single position (locus) in a DNA sequence that occurs in at least 1% of a population is called a single nucleotide polymorphism (SNP). SNPs are the most widely used marker to describe genetic variation. Larger structural variations may include microsatellite regions, insertion/deletions (indels), copy number variations (CNVs), or variable-tandem repeats (VNTRs) all of which have importance in understanding the genetic architecture and disease etiology [@Sudmant_2015]. For purposes of this document, unless otherwise specified, genetic variation will refer to single nucleotide polymorphisms (SNPs). SNPs will also be referred to as simply as polymorphisms, genetic markers, or markers interchangeably.
 
 Different forms of the same variant are called *alleles*. For diploid organisms, one allele is passed from each parent. When the same variation is passed both parents it is called homozygous and when they are different it is known as heterozygous. When mutations are passed between generations they are known as *germline mutations*. Importantly, in humans (and other eukaroytes), genetic recombination occurs during meiosis, where large chunks of genetic materials are exchanged and shuffled between parents and their offspring. A particular combination of alleles that lie on the same chromosome are called *haplotypes*. 
 
@@ -23,108 +22,54 @@ While genetic variation only occurs in 0.1% to 0.5% of the human genome, modern 
 
 Historically, gene mapping studies were used to determine associations between genomic DNA sequence variations and phenotypic variability [@Visscher_2012]. These studies were quite successful, particularly in Mendelian traits (e.g. single gene disorders) [@botstein_2003]. Over the past two decades, research has increasingly evolved from looking at specific regions of interest (candidate gene association studies) to more agnostic approaches that investigate larger portions of the genome, such as genome wide association studies (GWAS), whole-exome sequencing studies (WES studies) and whole-genome sequencing studies (WGS studies) [@Timpson_2018]. This dissertation is primarily focused on GWAS, specifically the application of using GWAS in the context of identifying common variants in after hematopoetic stem cell transplantation (HSCT), where more details will be discussed in subsequent subsections of this chapter. 
 
-GWAS employ genotyping microarrays to measure genetic variation -- and they have become the standard platform in academic and industry to test for association of phenotype with common genetic variants. Common genetic variants are defined as those with a *minor allele frequency* (MAF) of $\geq$ 1% and rare variants are defined as those with a MAF $\leq$ than 1%. Genotyping microarrays are designed to contain common variants but optionally can contain rare variants. GWAS ask if the allele of a genetic variant is found more often than what would be expected than by random chance in individuals with the phenotype of interest (e.g. the disease being studied). If the variant (one allele) occurs more in those affected by the disease than those without the disease, then the variant deemed as being *associated* with the disease. 
+GWAS employ genotyping microarrays to measure genetic variation -- and they have become the standard platform in academic and industry to test for association of phenotype with common genetic variants. Common genetic variants are defined as those with a *minor allele frequency* (MAF) of $\geq$ 1% and rare variants are defined as those with a MAF $\leq$ than 1%. Genotyping microarrays are designed to contain common variants but optionally can contain rare variants. GWAS ask if the allele of a genetic variant is found more often than what would be expected than by random chance in individuals with the phenotype of interest (e.g. the disease being studied). If the variant (one allele) occurs more in those affected by the disease than those without the disease, then the variant deemed as being *associated* with the disease. Nonetheless, GWAS have been very successful at revealing new pathways involved in disease, but often the post-GWAS understanding of the associations is poorly understood. That is, identification of causal variants, biological relevance and the interaction that these associations have with other genetic or environmental factors. 
 
 ## Linkage Disequilibrium
-GWASs are heavily based on the principal of linkage disequilibrium (LD) at the population level. LD is the non-random dependence of allele frequencies at two more loci in the general population [@Jorde_2000]. LD reflects the relationship between alleles at different loci. In other words, LD is a measure of two alleles or specific sequences being inherited together. The unit of measure for LD is $r^{2}$ (squared correlation coefficient) [@Pritchard_2001]. In general, loci that are in close proximity exhibit stronger LD [@Pritchard_2001]. Perfect LD ($r^{2}$ = 1) means that no recombination occurred on this chunk of genome. Regions that are further apart on a chromosome exhibit weaker LD [@Reich_2001]. Low LD means that recombination occurred and that there are lots of possible rearrangements that may have occurred during meiosis. LD decay influences the number of SNPs needed to "tag" a haplotype, and that number of SNPs is just a small subset of the number of segregating polymorphisms in the population [@Reich_2001].   
-
-With the rapid growth of genetic association studies and statistical methods assessing genetic variation, researchers routinely exploit LD to map regions in the human genome. While costs have lowered over the past decade, a major barrier to overcome when conducting large scale studies, was the expense of searching the entire genome for disease associations [@hapmap_2005]. Whole-genome sequencing (WGS) would have had to been performed on numerous patients to identify variants, where the cost would have been unfeasible. 
-
-The first major large scale multi-institutional international project to finely map genetic variation was the HapMap project [@hapmap_2005]. HapMap developed a haplotype map of the human genome to finely describe patterns of human genetic variation. In fact, HapMap demonstrated that genomic blocks are shared in common areas across continental populations. 
-
-Since, 1000 Genomes Project [@1000genomes] has 
-
+GWAS are heavily based on the principal of linkage disequilibrium (LD) at the population level. LD is the non-random dependence of allele frequencies at two more loci in the general population [@Jorde_2000]. LD reflects the relationship between alleles at different loci. In other words, LD is a measure of two alleles or specific sequences being inherited together. The unit of measure for LD is $r^{2}$ (squared correlation coefficient) [@Pritchard_2001]. In general, loci that are in close proximity exhibit stronger LD [@Pritchard_2001]. Perfect LD ($r^{2}$ = 1) means that no recombination occurred on this chunk of genome. Regions that are further apart on a chromosome exhibit weaker LD [@Reich_2001]. Low LD means that recombination occurred and that there are lots of possible rearrangements that may have occurred during meiosis. LD decay influences the number of SNPs needed to "tag" a haplotype, and that number of SNPs is just a small subset of the number of segregating polymorphisms in the population [@Reich_2001]. Knowledge of haplotype structure makes it possible to retrieve more information from GWAS. Tagging SNPs with known haplotype block structure can capture much of the genetic information in a region.   
+With the rapid growth of genetic association studies and statistical methods assessing genetic variation, researchers routinely exploit LD to map regions in the human genome. While costs of genotyping have lowered over the past decade, a major barrier to overcome when conducting large scale studies, was the expense of searching the entire genome for disease associations [@hapmap_2005]. The International HapMap Project [@hapmap_2005] was the first attempt to address these challenges. HapMap was a large scale multi-institutional international project that finely mapped common genetic variation (or establish a "haplotype map"). HapMap demonstrated that genomic blocks are shared in common areas across continental population. HapMap alleviated high costs of studies by preferentially selecting 'tag' SNPs that covered the entire genome, and due to LD structure, inference could be drawn about nearby variants that were not genotyped [@bakker_2005]. HapMap ended with a catalogue across several populations for 420 haplotypes at 3.5 million SNPs[@hapmap_2007]. Afterwards, the 1000 Genomes Project, with similar ambitions to HapMap, aimed to create a more complete and thorough catalogue of human genetic variation, which could be leveraged for GWAS investigating disease [@1000genomes]. The consortium aimed to discover >95% of variants with MAF as low as 1% across the genome, as well as estimate population specific allele frequencies, haplotype maps and LD patterns of alleles [@1kb_phase1]. The results provided a more comprehensive picture of human genetic variation than what was previously available (5,008 haplotypes at over 88 million SNPs in 26 worldwide populations) [@1kb_phase1]. And even more recently, the Haplotype Reference Consortium (HRC) has described nearly 65,000 human haplotypes at ~40 million SNPs via whole-gene sequence data from predominantly European ancestry [@hrc]. Other reference panels have been developed, particularly population specific ones, but are beyond the scope of this document. 
 
 ## Genetic Imputation
-Genetic imputation (will also be simply referred to as imputation) has had significant contributions to genetic association studies. Imputation can be defined as predicting unobserved genotypes that were not directly assayed in a sample of individuals. The term refers to when a reference panel of haplotypes at set of a SNPs is used to impute SNPs that have been genotyped at a subset of that set of SNPs [@marchini_impute]. Today, several reference panels are available, such as (but not limited to) HapMap2 [@hapmap_2005], 1000 Genomes Phase 3 [@1000genomes], Haplotype Reference Consortium (HRC) [@hrc], which differ by the number of samples, sites (chromosomes 1-22, X), and number of haplotypes. 
+Genetic imputation (will also be simply referred to as imputation) has had significant contributions to genetic association studies. Imputation can be defined as predicting unobserved genotypes that were not directly assayed in a sample of individuals. The term refers to when a reference panel of haplotypes at set of a SNPs is used to impute SNPs that have been genotyped at a subset of that set of SNPs [@snptest]. Genotype imputation is useful for three reasons: (1) by boosting the number of SNPS that can be tested for association, thus increasing the power of the study, (2) homogenizes variant sets for meta-analyses, and (3) help control false positive for which genotype calling is challenging [@marchini_impute]. 
 
-Knowledge of haplotype structure makes it possible to retrieve more information from GWAS. Tagging SNPs with known haplotype block structure can capture much of the genetic information in a region. 
+Today, several reference panels are available, such as (but not limited to) HapMap2 [@hapmap_2005], 1000 Genomes Phase 3 [@1000genomes], HRC [@hrc], which differ by the number of samples, sites (chromosomes 1-22, X), and number of haplotypes. These reference panels are widely used to carry out accurate imputation in studies. HRC can impute SNPs with MAF as low as 0.1% [@hrc]. Most studies take a two step approach that first will impute the missing genotypes using the reference panel without consideration of the phenotype. The imputed genotypes are then tested for association with the phenotype in the second pass. Multiple phenotypes can be tested for association without the need for re-imputation. 
 
+Several imputation algorithms and software packages are available as stand-alone software, such as IMPUTE2 [@Howie_2009], MaCH [@mach_2010], BEAGLE [@browning_2016] or from imputation web services, such as the Sanger imputation server [@hrc, @durbin_2014] or the University of Michigan imputation server [@michigan_imputation]. The details of the imputation methods are beyond the scope of this dissertation, but very briefly, each algorithm is an extension of the hidden Markov model (HMMs) to carry out inference when modeling LD or haplotype estimation (also called phasing) [@li_2003]. The imputation methods vary in terms slight methodological differences in estimating haplotypes, computational performance and error rates.    
 
+## Meta-analysis
+Although GWAS have been successful at identifying novel loci that are associated to some disease or trait, the finding typically have modest effects and large sample sizes are needed to detect common variants with small effect sizes. In order to improve the power to detect variants with small effect sizes, meta-analyses have been used. Meta-analysis using summary statistics has been important for GWAS of complex genetic diseases and traits [@bakker_2008]. Researchers combine the effects of multiple studies without having to integrate both genotype and phenotype data. After imputation, meta-analysis is useful for different cohorts that are used on different genotyping chips to boost power. 
 
-
-Imputation can be performed across the entire genome (GWAS) or at targeted regions as part of a fine-mapping study.  
-
-
-
-Phasing (or haplotype estimation)
-
-
-IMPUTE2. Sanger Imputation Server. Michigan Imputation Server
-
+A popular tool to perform meta-analysis on GWAS is METAL [@metal]. METAL can combine either test statistics and standard errors, or p-values across studies (while taking direction of effect and sample size into account). The results are combined using fixed-effects or random-effects models.  
 
 # Hematopoetic Stem Cell Transplantation
-HSCT is an established therapeutic procedure that is used as a potentially curative treatment for life-threatening congenital or acquired blood disorders (malignant or non-malignant) [@Henig_2014]. 
+Blood cells continuously go through a self-renewing maturation process from less differentiated precursor cells to mature cells in a process called hematopoesis [@copelan_2006]. The process begins with hematopoetic stem cells (HSCs) which are located in center of bone marrow. HSCs differentiate into either lymphoid or myeloid progenitor cells and further develop into one of three lineages: red blood cells (erythrocytes), lymphocytes (T-cells, B-cells, and natural killer (NK) cells), and myeloid cells (granulocytes, megakaryocytes, and macrophages). All of these blood cells have vital roles in the human body. Tumors arise from malignant stem cells that usually originate from normal stem cells but retain the self-renewal property. Leukemic cells are limited in their ability to proliferate and incessantly are replenished from leukemic stem cells. Acute leukemias are characterized by the rapid increase of immature blood cells, such that the bone marrow is unable to produce health blood cells. Immediate treatment is required. Acute leukemias can be treated with some combination of chemotherapy, radiation therapy or an HSCT. When all other treatment options have been exhausted, an HSCT is used as last resort. 
 
-HSCT involves the intravenous infusion of autologous or allogeneic hematopoietic progenitor cells to restore normal function in patients whose bone marrow is compromised. Autologous HSCT involves self-donation of marrow stem cells, whereas allogeneic HSCT is when stem cells are transferred from a HLA-matched related donor (MRD) or a HLA-matched unrelated donor (MUD). 
-
-Although a matched sibling donor is preferred, only approximately 30% of patients who may benefit from HSCT have such a donor available. In the United States, the number of allogeneic transplants yearly has dramatically risen over the past decade, across all diseases [@Pasquini_2013]. 
-
-Patients with acute myeloid leukemia (AML), acute lymphoblastic leukemia (ALL), or myelodysplastic syndrome (MDS), represent the largest group treated with allogeneic HSCT. 
-
-While both patient care and matching has improved over the past few decades almost half of all high-resolution 10/10 HLA MUD-HSCT recipients die within one-year post-transplant due to either their disease or transplant-related causes [@Pasquini_2013]. 
-
-These trends also show transplant-related causes are a larger contributor to mortality within the first 100-days post-transplant and shift towards primary disease after approximately six months post-transplant [@DSouza_2017]. 
-
-Reducing TRM without increasing risk of disease death and vice versa continue to represent a substantial clinical challenge.
+HSCT is an established therapeutic procedure that is used as a potentially curative treatment for life-threatening congenital or acquired blood disorders (malignant or non-malignant) [@Henig_2014]. HSCT involves the intravenous infusion of autologous or allogeneic hematopoietic progenitor cells to restore normal function in patients whose bone marrow is compromised. Autologous HSCT involves self-donation of marrow stem cells, whereas allogeneic HSCT is when stem cells are transferred from a HLA-matched related donor (MRD) or a HLA-matched unrelated donor (MUD). Although a matched sibling donor is preferred, only approximately 30% of patients who may benefit from HSCT have such a donor available. In the United States, the number of allogeneic transplants yearly has dramatically risen over the past decade, across all diseases [@Pasquini_2013]. Patients with acute myeloid leukemia (AML), acute lymphoblastic leukemia (ALL), or myelodysplastic syndrome (MDS), represent the largest group treated with allogeneic HSCT. While both patient care and matching has improved over the past few decades almost half of all high-resolution 10/10 HLA MUD-HSCT recipients die within one-year post-transplant due to either their disease or transplant-related causes [@Pasquini_2013]. These trends also show transplant-related causes are a larger contributor to mortality within the first 100-days post-transplant and shift towards primary disease after approximately six months post-transplant [@DSouza_2017]. Reducing TRM without increasing risk of disease death and vice versa continue to represent a substantial clinical challenge.
 
 The four elements of HSCT are:  
 
-1. Graft Source  
-2. Graft Type  
-3. HLA matching  
-4. Pre-transplant conditioning regimens  
+1. Graft Source   
+The graft sources are either from bone marrow or peripheral blood stem cells (PBSCs). For bone marrow grafts, hematopoetic stem cells (HSCs) are typically extracted from the center of the posterior iliac crest (pelvis) using a large needle while the donor is under general anesthesia [@copelan_2006]. HSCs are continually going through a cycle of detaching from the bone marrow and entering circulation and back into the bone marrow, making it very convenient to use the peripheral blood as a source. 
 
-The graft sources are either from bone marrow or peripheral blood stem cells (PBSCs). For bone marrow grafts, hematopoetic stem cells (HSCs) are typically extracted from the center of the iliac crest (pelvis) using a large needle. The 
+2. Graft Type   
+The graft can either be autologous, syngeneic, allogeneic, or from umbilical cord blood. Autologous HSCTs are self-donating, where a patient's marrow is taken and treated exogeneously. In that time the patient is treated with chemotherapy to reduce the tumor burden and then cells are donated back to the patient. Syngeneic transplants are when the donor is an identical twin. And allogeneic HSCTs are when a related or unrelated donor is the graft source. Umbilical cord blood transplants are rich in HSCs but limited in volume and are less common than the other forms of transplant. 
 
+3. HLA matching   
+HLA genes are closely linked on chromosome 6 and are inherited as haplotypes. HLA encodes for the major histocompatibility complex (MHC). MHC are class of molecules that are found on antigen presenting cells and are important for initating immune response. MHC has two primary classes, class I and class I. MHC class I is encoded by HLA-A, -B, and -C. MHC class II is encoded by HLA-DP, -DM, -DOA, -DOB, -DQ, and -DR. The preferred HLA match for an allogeneic donor is high resolution typed 10/10, which means the matched alleles are at HLA-A, -B, -C, -DQ, and -DP. Survival varies considerably depending on which HLA alleles are matched. A single mismatch is a significant risk factor for development of GVHD and is associated with higher mortality and decreased survival [@hamilton_2012].
 
-
-
+4. Pre-transplant conditioning regimens    
+Patients are given pre-transplant chemotherapy to reduce tumor burden of the leukemia. HSCTs are most successful when patients are in first complete remission (CR1). These can include myeloablative chemotherapy or reduce intensity therapy.  
 
 # DISCOVeRY-BMT
-\underline{D}etermining the \underline{I}nfluence of \underline{S}usceptibility \underline{CO}nveying \underline{V}ariants \underline{R}elated to one-\underline{Y}ear mortality after \underline{B}one \underline{M}arrow \underline{T}ransplant (DISCOVeRY-BMT) is a GWAS. This GWAS aims at identifying and characterizing non-human leukocyte antigen (HLA) genetic variation in the context of survival outcomes in acute lymphoblastic leukemia (ALL), acute myelogenous leukemia (AML) and myelodysplastic syndrome (MDS) patients and their matched unrelated donor (MUD) after hematopoietic stem cell transplantation (HSCT). HSCT is also called bone marrow transplantation (BMT) and hence both terms will be used interchangeably throughout this document. Additionally, the terms recipients and patients will be used interchangeably. 
+\underline{D}etermining the \underline{I}nfluence of \underline{S}usceptibility \underline{CO}nveying \underline{V}ariants \underline{R}elated to one-\underline{Y}ear mortality after \underline{B}one \underline{M}arrow \underline{T}ransplant (DISCOVeRY-BMT) is a GWAS. This GWAS aims at identifying and characterizing non-human leukocyte antigen (HLA) genetic variation in the context of survival outcomes in acute lymphoblastic leukemia (ALL), acute myelogenous leukemia (AML) and myelodysplastic syndrome (MDS) patients and their matched unrelated donor (MUD) after hematopoietic stem cell transplantation (HSCT) [@lsc_2015]. HSCT is also called bone marrow transplantation (BMT) and hence both terms will be used interchangeably throughout this document. Additionally, the terms recipients and patients will be used interchangeably. 
 
 ## Patient Characteristics
-DISCOVeRY-BMT investigates donor and recipient genetic factors that contribute to 1 year cause-specific mortality after MUD-HSCT [@Hahn_2015, @Clay_2017]. This GWAS comprises two independent cohorts. All patients in DISCOVeRY-BMT were reported to the Center for International Blood and Marrow Research (CIBMTR) and had banked biorepository samples (blood samples) from recipients and donors at the National Marrow Donor Program (NMDP). Data that were reported to CIBMTR was collected from 151 transplant centers in the USA. Furthermore, all patients were de-identified and approved by the Roswell Park Cancer Institute Institutional Review Board and signed informed consent for research. Although no patients were excluded based on gender, age, or race, over 90% of DISCOVeRY-BMT cohorts were of self-reported European American ancestry. Additional exclusion criteria included: umbilical cord blood graft, *ex vivo* T-cell depleted graft or the patient underwent a prior autologous or allogeneic transplant.  
+DISCOVeRY-BMT investigates donor and recipient genetic factors that contribute to 1 year cause-specific mortality after MUD-HSCT [@Hahn_2015, @lsc_2015, @Clay_2017]. This GWAS comprises two independent cohorts. All patients in DISCOVeRY-BMT were reported to the Center for International Blood and Marrow Research (CIBMTR) and had banked biorepository samples (blood samples) from recipients and donors at the National Marrow Donor Program (NMDP). Data that were reported to CIBMTR was collected from 151 transplant centers in the USA. Furthermore, all patients were de-identified and approved by the Roswell Park Cancer Institute Institutional Review Board and signed informed consent for research. Although no patients were excluded based on gender, age, or race, over 90% of DISCOVeRY-BMT cohorts were of self-reported European American ancestry. Additional exclusion criteria included: umbilical cord blood graft, *ex vivo* T-cell depleted graft or the patient underwent a prior autologous or allogeneic transplant.  
 Blood samples were genotyped and comprise the genotype data is the "genetic data" that is reported throughout this dissertation. In preparation for this GWAS, all post-mortem cause-specific deaths of the patients were reviewed and judged by a post-mortem by an expert panel [@Hahn_2015]. The review and adjudicated of cause of death was conducted because many of the 151 centers the data are inconsistent in reporting and classification of outcome attributions. Thus the panel was established for concordance in cause of death, logic, and quality. Re-assessment by the panel was performed using autopsy reports and death certificates. The panel consisted of three HSCT oncologists and a HSCT clinical epidemiologist [@Hahn_2015].
 
-Both cohorts comprise AML, ALL, or MDS patients who were T-cell replete and treated with myeloablative (MA) or reduced intensity (RIC) conditioning regimens prior to transplant. Cohort 1 included 2110 HSCT recipients and 2052 10/10 HLA matched unrelated donors (matched at HLA-A, -B, -C, -DRB1, and -DQB1) from 2000 to 2008 (**Table 1.1**). Cohort 2 included included 763 donors and 777 recipients from the years 2000 to 2011 (**Table 1.1**). A subset of patients (n=281) in cohort 2 were 8/8 HLA matched (matched at HLA-A, -B, -C, -DRB1), while the remaining patients (n=496) had the same matching criteria as Cohort 1 and are 10/10 HLA matched. 
-
 ```{r, echo=FALSE}
+
 covariate.file <- read_tsv("~/Google Drive/OSU_PHD/DBMT_100d/DBMT_PhenoData_EA_long_allVar_20181206.txt")
 
-covariate.file %>%
-    group_by(sample_type, cohort) %>%
-    tally() %>%
-    ungroup() %>%
-    mutate(cohort=ifelse(cohort==1, "Cohort 1: N (Percent %)", "Cohort 2: N (Percent %)")) %>% 
-    arrange(sample_type) %>%  
-    group_by(sample_type) %>%
-    mutate(per=paste0("(", as.character(round((n/sum(n)*100),1)), "%)")) %>%
-    ungroup() %>% 
-    unite(n_per, c(n, per), sep=" ") %>%  
-    spread(cohort, n_per) %>%
-    rename(Genome=sample_type) %>%
-    mutate(Genome=ifelse(Genome=="donor", "Donor", "Recipient")) %>%
-    kable(format = "latex",
-          caption="Distribution of Donors and Recipients in DISCOVeRY-BMT Cohorts.", 
-          booktabs=TRUE) %>%
-    kable_styling(latex_options = "striped",
-                  full_width=FALSE) %>%
-    footnote(general_title="",
-         general="N denotes sample size. The percentages represent the proportion of donors or recipients in either cohort 1 or 2. The sample sizes reported here are based on completeness of follow up time intervals and event data.",
-         footnote_as_chunk = TRUE,
-         threeparttable = TRUE)
-
-```
-
-The proportion of patients with AML is relatively consistent between cohorts at approximately 60% of patients (**Table 1.2**). However, the proportion of ALL and MDS patients shifts between cohorts. For ALL, in cohort 1 the proportion is 23%, while in cohort 2, the proportion is 12% (**Table 1.2**). Similarly, for MDS, in cohort 1 the proportion of patients with this disease is 16% and in cohort 2 it is 25% (**Table 1.2**). 
-
-**Why do the ALL proportions go down in cohort 2**
-
-**Note: Inquire about changes in MDS definition between cohorts**
-
-```{r, echo=FALSE}
 dz.dist <- covariate.file %>%
     group_by(sample_type, cohort, disease) %>%
     tally() %>%
@@ -136,13 +81,15 @@ dz.dist <- covariate.file %>%
     spread(sample_cohort, value) %>%
     select(-key) %>%
     mutate_at(.vars=vars(contains("cohort")), .funs=funs(`per`=./sum(.))) %>%
-    mutate(`Donor Cohort 1`=paste0(`donor_cohort 1`, " (", round(`donor_cohort 1_per`, 2)*100, "%)"),
-           `Donor Cohort 2`=paste0(`donor_cohort 2`, " (", round(`donor_cohort 2_per`, 2)*100, "%)"),
-           `Recipient Cohort 1`=paste0(`recipient_cohort 1`, " (", round(`recipient_cohort 1_per`, 2)*100, "%)"),
-           `Recipient Cohort 2`=paste0(`recipient_cohort 2`, " (", round(`recipient_cohort 2_per`, 2)*100, "%)")) %>%
+    mutate(`Cohort 1`=paste0(`donor_cohort 1`, " (", round(`donor_cohort 1_per`, 2)*100, "%)"),
+           `Cohort 2`=paste0(`donor_cohort 2`, " (", round(`donor_cohort 2_per`, 2)*100, "%)"),
+           `cohort 1`=paste0(`recipient_cohort 1`, " (", round(`recipient_cohort 1_per`, 2)*100, "%)"),
+           `cohort 2`=paste0(`recipient_cohort 2`, " (", round(`recipient_cohort 2_per`, 2)*100, "%)")) %>%
     select(-`donor_cohort 1`:-`recipient_cohort 2`,
            -`donor_cohort 1_per`:-`recipient_cohort 2_per`) %>%
     as.data.frame()
+
+dz.dist <- rbind(dz.dist, c("Total",  2052, 763, 2110, 777))
 
 rownames(dz.dist) <- dz.dist$disease
 dz.dist$disease <- NULL
@@ -154,44 +101,71 @@ dz.dist %>%
     kable_styling(latex_options = "striped",
                   full_width=FALSE) %>%
     add_header_above(c(" ", "Donor (N/Percent %)"=2, "Recipient (N/Percent %)"=2)) %>%
+    row_spec(3, hline_after=TRUE) %>%
     footnote(general_title="",
              general="Shown here are disease proportions of ALL, AML and MDS in DISCOVeRY-BMT cohorts. The percentage in each cell is computed column-wise as the proportion of sample size (N) within a cohort across disease group.",
              footnote_as_chunk = TRUE,
              threeparttable = TRUE)
 ```
 
+Both cohorts comprise AML, ALL, or MDS patients who were T-cell replete and treated with myeloablative (MA) or reduced intensity (RIC) conditioning regimens prior to transplant. Cohort 1 included 2110 HSCT recipients and 2052 10/10 HLA matched unrelated donors (matched at HLA-A, -B, -C, -DRB1, and -DQB1) from 2000 to 2008 (**Table 1.1**). Cohort 2 included included 763 donors and 777 recipients from the years 2000 to 2011 (**Table 1.1**). A subset of patients (n=281) in cohort 2 were 8/8 HLA matched (matched at HLA-A, -B, -C, -DRB1), while the remaining patients (n=496) had the same matching criteria as Cohort 1 and are 10/10 HLA matched. 
+
+The proportion of patients with AML is relatively consistent between cohorts at approximately 60% of patients (**Table 1.1**). However, the proportion of ALL and MDS patients shifts between cohorts. For ALL, in cohort 1 the proportion is 23%, while in cohort 2, the proportion is 12% (**Table 1.1**). Similarly, for MDS, in cohort 1 the proportion of patients with this disease is 16% and in cohort 2 it is 25% (**Table 1.1**). 
+
+**Why do the ALL proportions go down in cohort 2**
+
+**Note: Inquire about changes in MDS definition between cohorts**
+
+
 ## Survival Outcome Definitions:  
-The survival outcomes are cause-specific deaths during the first year post-HSCT that were reviewed and re-assessed with high confidence (described above). The primary outcomes included are: disease related mortality (DRM), and transplant related mortality (TRM). The secondary outcomes were: overall survival (OS), progression-free survival (PFS), and relapse (REL).
+The survival outcomes are cause-specific deaths during the first year post-HSCT that were reviewed and re-assessed with high confidence (described above). The primary outcomes included are: disease related mortality (DRM), and transplant related mortality (TRM) (**Table 1.2**). The secondary outcomes were: overall survival (OS), progression-free survival (PFS), and relapse (REL) (**Table 1.2**).
 
-TRM subtypes were further stratified into graft-versus-host disease (GVHD), organ failure (OF), infection (INF), or other. Other causes of death included more rare events, such as (but not limited to) secondary malignancies, primary or secondary graft failure, or hemorrhage. 
+TRM subtypes were further stratified into graft-versus-host disease (GVHD), organ failure (OF), infection (INF), or other. Other causes of death included more rare events, such as (but not limited to) secondary malignancies, primary or secondary graft failure, or hemorrhage. Despite being adjudicated, TRM subtypes are difficult to differentiate from one another, and some times more than one may present in the autopsy or report. The boundaries aren't necessarily clear so there may be overlap between these patients. Nevertheless, GVHD deaths included acute or chronic GVHD, conditional upon a patient actively receiving treatment for GVHD at the time of death. Deaths that were considered to be infection were identified as arising from bacterial, fungal, viral, and/or protozoan organisms that caused organ damage. OF deaths were defined as organ toxicity relating to the transplant and not due to disease progression, GVHD, or infection. 
 
-GVHD deaths included acute or chronic GVHD, conditional upon a patient actively receiving treatment for GVHD at the time of death. 
-
-Deaths that were considered to be infection were identified as arising from bacterial, fungal, viral, and/or protozoan organisms that caused organ damage. OF deaths were defined as organ toxicity relating to the transplant and not due to disease progression, GVHD, or infection. 
-
-The cohorts had two primary outcomes:  
-
-**Disease Related Mortality (DRM)** -- broadly defined as deaths relating to leukemia/MDS relapse/progression, including death attributed to toxicity or infection from anti-leukemic treatments post-HSCT.
-
-**Transplant Related Mortality (TRM)** -- defined as any cause of death except the underlying disease, pre-existing disease, accidental death or suicide, or death unrelated to the transplant.  
-
-Secondary outcomes:  
-
-**Overall Survival (OS)** -- defined as any patient (recipient) that died at any point within the first 12 month window post-HSCT of this observational study. 
-
-**Progression Free Survival (PFS)** is defined as the time to relapse. All patients were analyzed as time to progression of disease 
-
-
-patients who were in complete remission (CR) before HSCT had documented disease progression after HSCT and succumb to the disease.
-
-**Relapse (REL)** -- patients who were not in CR pre-HSCT and the disease returns (relapse) after HSCT.
-
-Proportions of Events Mixed disease with outcomes
 
 ```{r, echo=FALSE}
-mixed.outcome <- covariate.file %>%
-    filter(disease %in% c("ALL", "AML", "MDS")) %>%
-    group_by(sample_type, cohort) %>%
+text_tbl <- data.frame(
+    Outcomes = c("Disease Related Mortality (DRM)", 
+                 "Transplant Related Mortality (TRM)",
+                 "Overall Survival (OS)",
+                 "Progression Free Survival (PFS)",
+                 "Relapse (REL)"),
+    Definitions=c("broadly defined as deaths relating to leukemia/MDS relapse/progression, including death attributed to toxicity or infection from anti-leukemic treatments post-HSCT.",
+               "defined as any cause of death except the underlying disease, pre-existing disease, accidental death or suicide, or death unrelated to the transplant.",
+               "defined as any patient (recipient) that died at any point within the first 12 month window post-HSCT of this observational study.",
+               "is defined as the time to relapse. All patients were analyzed as time to progression of disease",
+               "patients who were not in CR pre-HSCT and the disease returns (relapse) after HSCT.")
+)
+
+text_tbl %>%
+    kable(format = "latex",
+      caption="Definitions of Survival OUtcomes", 
+      booktabs=TRUE) %>%
+    kable_styling(latex_options = "striped",
+                  full_width=FALSE) %>%
+    group_rows("Primary Outcomes", 1, 2, latex_gap_space=".5em") %>%
+    group_rows("Secondary Outcomes", 3, 5, latex_gap_space=".5em") %>%
+    column_spec(2, width = "16em")
+```
+
+
+The phenotypes that are tested in DISCOVeRY-BMT are stratified into different disease groups:  
+1.  Mixed Disease -- which includes AML, MDS, and ALL (the full cohort).  
+2.  AML + MDS -- the myeloid malignancies being grouped together, excluded the lymphoid lineage (ALL)  
+3.  AML only -- includes only AML  
+4.  ALL only -- includes only ALL  
+5.  MDS only -- includes only MDS. This will not be tested or discussed in much detail.  
+
+Additional information that is included from the CIBMTR were recipient/donor age, recipient/donor sex, recipient BMI, graft source, Karnofsky performance score, disease status (early, intermediate, advanced), year of HSCT, and conditioning regimens given prior to transplant. These meta-data will be incorporated in the statistical models that will be discussed in the next subsection as well as other chapters. 
+
+In agreement with published CIBMTR statistics, overall survival for transplants with mixed disease is ~60% after 1 year in both DISCOVeRY-BMT cohorts (**Table 1.3**, **Figure 1.1A**). The proportions of events for DRM and TRM are similar for mixed disease approximately 20% (**Table 1.3**). However, interestingly, when looking at the survival curve it seems like most of the TRM events happen early and then DRM supercedes TRM as the year progresses (after about 6 months) (**Figure 1.1A**)
+
+```{r, echo=FALSE}
+outcome_distn <- function(disease_group){
+    data <- covariate.file %>%
+    filter(disease %in% !!disease_group,
+           sample_type == "recipient") %>% 
+    group_by(cohort) %>%
     summarize(OS=sum(dead_1Y),
               DRM=sum(disease_death_1Y),
               TRM=sum(TRM_1Y),
@@ -202,42 +176,56 @@ mixed.outcome <- covariate.file %>%
               INF=sum(infection_1Y)) %>% 
     arrange(cohort) %>%
     ungroup() %>%
-    mutate(total=c(2052, 2110, 763, 777)) %>%
-    mutate_at(.vars=vars(OS, DRM, PFS, REL, TRM, GVHD, OF, INF), .funs=funs(paste0(., " (", round((./total)*100, 2), "%)"))) %>%
-    select(-total) %>%
-    arrange(sample_type) %>%
-    unite(sample_cohort, c("sample_type", "cohort")) %>% 
-    gather(key, value, -sample_cohort) %>%
-    spread(sample_cohort, value) %>% 
-    rename(`Donor Cohort 1`=donor_1,
-           `Donor Cohort 2`=donor_2,
-           `Recipient Cohort 1`=recipient_1,
-           `Recipient Cohort 2`=recipient_2) %>%
-    mutate(key=factor(key, levels=c("OS", "DRM", "PFS", "REL", "TRM", "GVHD", "INF", "OF"))) %>%
+    mutate(total=c(2110, 777)) %>% 
+    mutate_at(.vars=vars(OS, DRM, PFS, REL, TRM, GVHD, OF, INF), .funs=funs(paste0(., " (", round((./total)*100, 2), "%)"))) %>% 
+    select(-total) %>% 
+    gather(key, value, -cohort) %>% 
+    spread(cohort, value) %>% 
+    rename(`Cohort 1`=`1`,
+           `Cohort 2`=`2`) %>% 
+    mutate(key=factor(key, levels=c("DRM", "TRM", "OS", "REL", "PFS", "GVHD", "INF", "OF"))) %>%
     arrange(key) %>%
     as.data.frame()
+    
+    levels(data$key) <- c("Disease related mortality (DRM)",
+                          "Transplant related mortality (TRM)",
+                          "Overall survival (OS)",
+                          "Relapse (REL)",
+                          "Progression free survival (PFS)",
+                          "Graft-versus-host disease (GVHD)",
+                          "Infection (INF)",
+                          "Organ failure (OF)")
+    
 
-rownames(mixed.outcome) <- mixed.outcome$key
-mixed.outcome <- mixed.outcome %>%
-    select(-key) 
+    data %>%
+        rename(Outcome=key)
+}
 
-mixed.outcome %>%
+outcome_distributions <- rbind(
+    outcome_distn(c("ALL", "AML", "MDS")),
+    outcome_distn(c("AML", "MDS")),
+    outcome_distn("AML"),
+    outcome_distn("ALL"))
+
+outcome_distributions %>% 
     kable(format = "latex",
-          caption="Mixed Disease: Proportion of Events by Outcome and Cohort in Donor and Recipients", 
+          caption="Proportion of Events by Survival Outcome", 
           booktabs=TRUE) %>%
     kable_styling(latex_options = "striped",
                   full_width=FALSE) %>%
-    add_header_above(c(" ", "Donor (N/Percent %)"=2, "Recipient (N/Percent %)"=2)) %>%
-    footnote(general_title="",
-             general="Shown here are the proportion of events for mixed disease (ALL, AML, and MDS) in both DISCOVeRY-BMT cohorts. The survival outcomes are overall survival (OS), progression free survival (PFS), disease related mortality (DRM), transplant related mortality (TRM), graft-versus-host disease (GVHD), infection (INF), or organ failure (OF).",
-             footnote_as_chunk = TRUE,
-             threeparttable = TRUE)
+    add_header_above(c(" ", "Recipient (N/Percent %)"=2)) %>%
+    group_rows("Mixed Disease", 1, 7, latex_gap_space=".5em") %>%
+    group_rows("AML + MDS ", 8, 16, latex_gap_space=".5em") %>%
+    group_rows("AML Only", 17, 24, latex_gap_space=".5em") %>%
+    group_rows("ALL Only", 25, 32, latex_gap_space=".5em") 
+
 ``` 
 
-Explain that discrepancies between TRM and TRM subtypes are because some patients adjudication was not well differentiated between these subtypes.  
 
-```{r, echo=FALSE, fig.cap="Histogram of Donor and Recipient Age Distributions in Mixed Disease (AML, ALL, and MDS)"}
-covariate.file %>%
+```{r, echo=FALSE, fig.height=8, fig.width=7, fig.cap="Histogram of Donor and Recipient Age Distributions in (A) Mixed Disease (AML, ALL, and MDS), (B) AML + MDS, (C) AML only, and (D) ALL only."}
+library(gridExtra)
+library(grid)
+mixed.age <- covariate.file %>%
     select(disease, sample_type, cohort, age, dnrage) %>% 
     gather(key, value, -disease, -sample_type, -cohort) %>%
     mutate(key=ifelse(key=="age", "recipient age", "donor age"),
@@ -247,67 +235,10 @@ covariate.file %>%
     ggplot(aes(value)) +
     geom_histogram() + 
     facet_grid(cohort~key, scales = "free_y") +
-    ggtitle("Mixed Disease: Donor and Recipient Age Distribution") +
-    xlab("age") +
-    theme(plot.title = element_text(hjust = 0.5))
-```
+    ggtitle("A. Mixed Disease") +
+    xlab("age")
 
-
-
-Proportion of Events AML/MDS with outcomes
-
-```{r, echo=FALSE}
-amlmds.outcome <- covariate.file %>%
-    filter(disease %in% c("AML","MDS")) %>%
-    group_by(sample_type, cohort) %>%
-    summarize(OS=sum(dead_1Y),
-              DRM=sum(disease_death_1Y),
-              TRM=sum(TRM_1Y),
-              PFS=sum(lfs_1Y),
-              REL=sum(rel_1Y, na.rm=TRUE),
-              GVHD=sum(GVHD_death_1Y),
-              OF=sum(OF_1Y),
-              INF=sum(infection_1Y)
-              ) %>% 
-    arrange(cohort) %>%
-    ungroup() %>%
-    mutate(total=c(1584, 1627, 670, 683)) %>%
-    mutate_at(.vars=vars(OS, DRM, PFS, REL, TRM, GVHD, OF, INF), .funs=funs(paste0(., " (", round((./total)*100, 2), "%)"))) %>%
-    select(-total) %>%
-    arrange(sample_type) %>% 
-    unite(sample_cohort, c("sample_type", "cohort")) %>% 
-    gather(key, value, -sample_cohort) %>%
-    spread(sample_cohort, value) %>% 
-    rename(`Donor Cohort 1`=donor_1,
-           `Donor Cohort 2`=donor_2,
-           `Recipient Cohort 1`=recipient_1,
-           `Recipient Cohort 2`=recipient_2) %>%
-    mutate(key=factor(key, levels=c("OS", "DRM", "PFS", "REL", "TRM", "GVHD", "INF", "OF"))) %>%
-    arrange(key) %>%
-    as.data.frame()
-
-
-
-rownames(amlmds.outcome) <- amlmds.outcome$key
-amlmds.outcome <- amlmds.outcome %>%
-    select(-key) 
-
-amlmds.outcome %>%
-    kable(format = "latex",
-          caption="AML + MDS: Proportion of Events by Outcome and Cohort in Donor and Recipients", 
-          booktabs=TRUE) %>%
-    kable_styling(latex_options = "striped",
-                  full_width=FALSE) %>%
-    add_header_above(c(" ", "Donor (N/Percent %)"=2, "Recipient (N/Percent %)"=2)) %>%
-    footnote(general_title="",
-             general="Shown here are the proprtion of events for AML+MDS in both DISCOVeRY-BMT cohorts. The survival outcomes are overall survival (OS), progression free survival (PFS), disease related mortality (DRM), transplant related mortality (TRM), graft-versus-host disease (GVHD), infection (INF), or organ failure (OF).",
-             footnote_as_chunk = TRUE,
-             threeparttable = TRUE)
-``` 
-
-
-```{r, echo=FALSE, fig.cap="Histogram of Donor and Recipient Age Distributions in AML and MDS patients"}
-covariate.file %>%
+amlmds.age <- covariate.file %>%
     select(disease, sample_type, cohort, age, dnrage) %>% 
     gather(key, value, -disease, -sample_type, -cohort) %>%
     mutate(key=ifelse(key=="age", "recipient age", "donor age"),
@@ -317,62 +248,10 @@ covariate.file %>%
     ggplot(aes(value)) +
     geom_histogram() + 
     facet_grid(cohort~key, scales = "free_y") +
-    ggtitle("AML + MDS: Donor and Recipient Age Distribution") +
-    xlab("age") +
-    theme(plot.title = element_text(hjust = 0.5))
-```
+    ggtitle("B. AML + MDS") +
+    xlab("age") 
 
-Proportions of Events in AMLonly with outcomes
-
-```{r, echo=FALSE}
-amlonly.outcome <- covariate.file %>%
-    filter(disease %in% c("AML")) %>%
-    group_by(sample_type, cohort) %>%
-    summarize(OS=sum(dead_1Y),
-              DRM=sum(disease_death_1Y),
-              TRM=sum(TRM_1Y),
-              PFS=sum(lfs_1Y),
-              REL=sum(rel_1Y, na.rm=TRUE),
-              GVHD=sum(GVHD_death_1Y),
-              OF=sum(OF_1Y),
-              INF=sum(infection_1Y)) %>% 
-    arrange(cohort) %>%
-    ungroup() %>%
-    mutate(total=c(1247, 1282, 478, 488)) %>%
-    mutate_at(.vars=vars(OS, DRM, PFS, REL, TRM, GVHD, OF, INF), .funs=funs(paste0(., " (", round((./total)*100, 2), "%)"))) %>%
-    select(-total) %>%
-    arrange(sample_type) %>% 
-    unite(sample_cohort, c("sample_type", "cohort")) %>% 
-    gather(key, value, -sample_cohort) %>%
-    spread(sample_cohort, value) %>% 
-    rename(`Donor Cohort 1`=donor_1,
-           `Donor Cohort 2`=donor_2,
-           `Recipient Cohort 1`=recipient_1,
-           `Recipient Cohort 2`=recipient_2) %>%
-    mutate(key=factor(key, levels=c("OS", "DRM", "PFS", "REL", "TRM", "GVHD", "INF", "OF"))) %>%
-    arrange(key) %>%
-    as.data.frame()
-
-rownames(amlonly.outcome) <- amlonly.outcome$key
-amlonly.outcome <- amlonly.outcome %>%
-    select(-key) 
-
-amlonly.outcome %>%
-    kable(format = "latex",
-          caption="AML only: Proportion of Events by Outcome and Cohort in Donor and Recipients", 
-          booktabs=TRUE) %>%
-    kable_styling(latex_options = "striped",
-                  full_width=FALSE) %>%
-    add_header_above(c(" ", "Donor (N/Percent %)"=2, "Recipient (N/Percent %)"=2)) %>%
-    footnote(general_title="",
-             general="Shown here are the proprtion of events for AML only in both DISCOVeRY-BMT cohorts. The survival outcomes are overall survival (OS), progression free survival (PFS), disease related mortality (DRM), transplant related mortality (TRM), graft-versus-host disease (GVHD), infection (INF), or organ failure (OF).",
-             footnote_as_chunk = TRUE,
-             threeparttable = TRUE)
-```
-
-
-```{r, echo=FALSE, fig.cap="Histogram of Donor and Recipient Age Distribution in AML and MDS patients"}
-covariate.file %>%
+aml.age <- covariate.file %>%
     select(disease, sample_type, cohort, age, dnrage) %>% 
     gather(key, value, -disease, -sample_type, -cohort) %>%
     mutate(key=ifelse(key=="age", "recipient age", "donor age"),
@@ -382,63 +261,9 @@ covariate.file %>%
     ggplot(aes(value)) +
     geom_histogram() + 
     facet_grid(cohort~key,  scales = "free_y") +
-    ggtitle("AML Patients: Donor and Recipient Age Distribution") +
-    xlab("age") +
-    theme(plot.title = element_text(hjust = 0.5))
-```
-
-
-Proportions of Events in ALLonly with outcomes
-
-```{r, echo=FALSE}
-allonly.outcome <- covariate.file %>%
-    filter(disease %in% c("ALL")) %>%
-    group_by(sample_type, cohort) %>%
-    summarize(OS=sum(dead_1Y),
-              DRM=sum(disease_death_1Y),
-              TRM=sum(TRM_1Y),
-              PFS=sum(lfs_1Y),
-              REL=sum(rel_1Y, na.rm=TRUE),
-              GVHD=sum(GVHD_death_1Y),
-              OF=sum(OF_1Y),
-              INF=sum(infection_1Y)) %>% 
-    arrange(cohort) %>% 
-    ungroup() %>% 
-    mutate(total=c(468, 483, 93, 94)) %>% 
-    mutate_at(.vars=vars(OS, DRM, PFS, REL, TRM, GVHD, OF, INF), .funs=funs(paste0(., " (", round((./total)*100, 2), "%)"))) %>%
-    select(-total) %>%
-    arrange(sample_type) %>% 
-    unite(sample_cohort, c("sample_type", "cohort")) %>% 
-    gather(key, value, -sample_cohort) %>%
-    spread(sample_cohort, value) %>% 
-    rename(`Donor Cohort 1`=donor_1,
-           `Donor Cohort 2`=donor_2,
-           `Recipient Cohort 1`=recipient_1,
-           `Recipient Cohort 2`=recipient_2) %>%
-    mutate(key=factor(key, levels=c("OS", "DRM", "PFS", "REL", "TRM", "GVHD", "INF", "OF"))) %>%
-    arrange(key) %>%
-    as.data.frame()
-
-rownames(allonly.outcome) <- allonly.outcome$key
-allonly.outcome <- allonly.outcome %>%
-    select(-key) 
-
-allonly.outcome %>%
-    kable(format = "latex",
-          caption="ALL only: Proportion of Events by Outcome and Cohort in Donor and Recipients", 
-          booktabs=TRUE) %>%
-    kable_styling(latex_options = "striped",
-                  full_width=FALSE) %>%
-    add_header_above(c(" ", "Donor (N/Percent %)"=2, "Recipient (N/Percent %)"=2)) %>%
-    footnote(general_title="",
-             general="Shown here are the proprtion of events for ALL only in both DISCOVeRY-BMT cohorts. The survival outcomes are overall survival (OS), progression free survival (PFS), disease related mortality (DRM), transplant related mortality (TRM), graft-versus-host disease (GVHD), infection (INF), or organ failure (OF).",
-             footnote_as_chunk = TRUE,
-             threeparttable = TRUE)
-
-```
-
-```{r, echo=FALSE, fig.cap="Histogram of Donor and Recipient Age Distributions in ALL patients"}
-covariate.file %>%
+    ggtitle("C. AML Only") +
+    xlab("age")
+all.age <- covariate.file %>%
     select(disease, sample_type, cohort, age, dnrage) %>% 
     gather(key, value, -disease, -sample_type, -cohort) %>%
     mutate(key=ifelse(key=="age", "recipient age", "donor age"),
@@ -448,62 +273,10 @@ covariate.file %>%
     ggplot(aes(value)) +
     geom_histogram() + 
     facet_grid(cohort~key, scales = "free_y") +
-    ggtitle("ALL Patients: Donor and Recipient Age Distribution") +
-    xlab("age") +    
-    theme(plot.title = element_text(hjust = 0.5))
-```
+    ggtitle("D. ALL Only") +
+    xlab("age") 
 
-
-Proportions of Events in MDSonly with outcomes
-
-```{r, echo=FALSE}
-mdsonly.outcome <- covariate.file %>%
-    filter(disease %in% c("MDS")) %>%
-    group_by(sample_type, cohort) %>%
-    summarize(OS=sum(dead_1Y),
-              DRM=sum(disease_death_1Y),
-              TRM=sum(TRM_1Y),
-              PFS=sum(lfs_1Y),
-              REL=sum(rel_1Y, na.rm=TRUE),
-              GVHD=sum(GVHD_death_1Y),
-              OF=sum(OF_1Y),
-              INF=sum(infection_1Y)) %>% 
-    arrange(cohort) %>%
-    ungroup() %>%
-    mutate(total=c(337, 345, 192, 195)) %>%
-    mutate_at(.vars=vars(OS, DRM, PFS, REL, TRM, GVHD, OF, INF), .funs=funs(paste0(., " (", round((./total)*100, 2), "%)"))) %>%
-    select(-total) %>%
-    arrange(sample_type) %>% 
-    unite(sample_cohort, c("sample_type", "cohort")) %>% 
-    gather(key, value, -sample_cohort) %>%
-    spread(sample_cohort, value) %>% 
-    rename(`Donor Cohort 1`=donor_1,
-           `Donor Cohort 2`=donor_2,
-           `Recipient Cohort 1`=recipient_1,
-           `Recipient Cohort 2`=recipient_2) %>%
-    mutate(key=factor(key, levels=c("OS", "DRM", "PFS", "REL", "TRM", "GVHD", "INF", "OF"))) %>%
-    arrange(key) %>%
-    as.data.frame()
-
-rownames(mdsonly.outcome) <- mdsonly.outcome$key
-mdsonly.outcome <- mdsonly.outcome %>%
-    select(-key) 
-
-mdsonly.outcome %>%
-    kable(format = "latex",
-          caption="MDS only: Proportion of Events by Outcome and Cohort in Donor and Recipients", 
-          booktabs=TRUE) %>%
-    kable_styling(latex_options = "striped",
-                  full_width=FALSE) %>%
-    add_header_above(c(" ", "Donor (N/Percent %)"=2, "Recipient (N/Percent %)"=2)) %>%
-    footnote(general_title="",
-             general="Shown here are the proprtion of events for MDS only in both DISCOVeRY-BMT cohorts. The survival outcomes are overall survival (OS), progression free survival (PFS), disease related mortality (DRM), transplant related mortality (TRM), graft-versus-host disease (GVHD), infection (INF), or organ failure (OF).",
-             footnote_as_chunk = TRUE,
-             threeparttable = TRUE)
-```
-
-```{r, echo=FALSE, fig.cap="Histogram of Donor and Recipient Age Distributions in MDS patients"}
-covariate.file %>%
+mds.age <- covariate.file %>%
     select(disease, sample_type, cohort, age, dnrage) %>% 
     gather(key, value, -disease, -sample_type, -cohort) %>%
     mutate(key=ifelse(key=="age", "recipient age", "donor age"),
@@ -516,14 +289,23 @@ covariate.file %>%
     ggtitle("MDS Patients: Donor and Recipient Age Distribution") +
     xlab("age") +
     theme(plot.title = element_text(hjust = 0.5))
+
+grid.arrange(mixed.age,
+             amlmds.age,
+             aml.age,
+             all.age,
+             ncol=2)
 ```
 
 Survival Curves for One year Outcomes
 
 
+```{r, echo=FALSE, fig.width=8, fig.height=9, fig.align="left", fig.cap="Survival curves for all disease groups being tested (Mixed disease, AML+MDS, AML only, and ALL only). The x-axis is survival probability. The y-axis is time in months. Cohorts 1 and 2 are shown in the left and right panel respectively. The gray shaded areas are 95 percent confidence intervals. (A) Red is disease-related mortality (DRM), green is overall survival (OS), and blue is transplant related mortality (TRM). (B) Cyan is relapse and red is progresion free survival (PFS)"}
+library(survminer)
+library(survival)
+library(grid)
+library(gridExtra)
 
-
-```{r, echo=FALSE, fig.width=8, fig.height=5, fig.align="left", fig.cap="Survival curves for all disease groups being tested (Mixed disease, AML+MDS, AML only, and ALL only). The x-axis is survival probability. The y-axis is time in months. Cohorts 1 and 2 are shown in the left and right panel respectively. Red is disease-related mortality (DRM), green is overall survival (OS), and blue is transplant related mortality (TRM). The gray shaded areas are 95 percent confidence intervals."}
 covs_surv <- covariate.file %>%
     select(sample_type,
            cohort,
@@ -562,251 +344,132 @@ covs_surv_long <- covs_surv %>%
            key=str_replace(key, "OF_1Y", "OF")) %>%
     rename(outcome=key)
 
-library(survminer)
-library(survival)
+survivalPlot <- function(outcome_group, title){
+    mixed.main <- covs_surv_long %>%
+    filter(outcome %in% !!outcome_group)
 
-mixed.main <- covs_surv_long %>%
-    filter(outcome %in% c("OS", "DRM" ,"TRM"))
+    m <- survfit(Surv(time=time, event=event) ~ outcome + cohort, 
+            data=mixed.main) %>%
+        ggsurvplot(fit=.,
+                   data=mixed.main,
+                   risk.table=FALSE,
+                   conf.int=FALSE,
+                   title="Mixed Disease Cohorts 1 and 2 Survival Curves") 
+    
+    m.df <- m$data.survplot %>%
+        mutate(disease="Mixed")
+    
+    amlmds.main <- covs_surv_long %>%
+        filter(disease %in%  c("AML", "MDS"),
+               outcome %in% !!outcome_group)
+    amlonly <- covs_surv_long %>%
+        filter(disease %in%  c("AML"),
+               outcome %in% !!outcome_group)
+    allonly <- covs_surv_long %>%
+        filter(disease %in%  c("ALL"),
+               outcome %in% !!outcome_group)
+    mdsonly <- covs_surv_long %>%
+        filter(disease %in%  c("MDS"),
+               outcome %in% !!outcome_group)
+    
+    
+    m2 <- survfit(Surv(time=time, event=event) ~ outcome + cohort, 
+            data=amlmds.main) %>%
+        ggsurvplot(fit=.,
+                   data=amlmds.main,
+                   risk.table=FALSE,
+                   conf.int=FALSE,
+                   title="AML + MDS Cohorts 1 and 2 Survival Curves") 
+    
+    m3 <- survfit(Surv(time=time, event=event) ~ outcome + cohort, 
+            data=amlonly) %>%
+        ggsurvplot(fit=.,
+                   data=amlonly,
+                   risk.table=FALSE,
+                   conf.int=FALSE,
+                   title="AML only Cohorts 1 and 2 Survival Curves")
+    
+    m4 <- survfit(Surv(time=time, event=event) ~ outcome + cohort, 
+            data=allonly) %>%
+        ggsurvplot(fit=.,
+                   data=allonly,
+                   risk.table=FALSE,
+                   conf.int=FALSE,
+                   title="ALL only Cohorts 1 and 2 Survival Curves")
+    
+    m5 <- survfit(Surv(time=time, event=event) ~ outcome + cohort, 
+            data=mdsonly) %>%
+        ggsurvplot(fit=.,
+                   data=mdsonly,
+                   risk.table=FALSE,
+                   conf.int=FALSE,
+                   title="AML + MDS Cohorts 1 and 2 Survival Curves")
+    m2.df <- m2$data.survplot %>%
+        mutate(disease="AML + MDS")
+    m3.df <- m3$data.survplot %>%
+        mutate(disease="AML")
+    m4.df <- m4$data.survplot %>%
+        mutate(disease="ALL")
+    m5.df <- m5$data.survplot %>%
+        mutate(disease="MDS")
+    
+    
+    m.new <- rbind(m.df, m2.df, m3.df, m4.df, m5.df)
+    
+    m.new <- m.new %>%
+        mutate(disease=factor(disease, levels=c("Mixed", "AML + MDS", "AML", "ALL", "MDS")))
+    
+    p <- m.new %>%
+        mutate(cohort=ifelse(cohort==1, "Cohort 1", "Cohort 2")) %>%
+        ggplot(aes(time, surv, color=outcome)) +
+        geom_line() + 
+        facet_grid(cohort~disease) +
+        ylim(c(0, 1)) +
+        scale_x_continuous(name="Time (months)", breaks=c(0,3, 6, 9, 12)) +
+        labs(title=title,
+             y="Survival Probability") +
+        geom_ribbon(aes(ymin=m.new$surv-(1.96*m.new$std.err),
+                        ymax=m.new$surv+(1.96*m.new$std.err)),
+                    alpha=0.2,
+                    linetype=0) +
+        theme_bw() 
+    p +
+        theme(legend.position = c(0.047, 0.17),
+              legend.title=element_text(size=8),
+              legend.text=element_text(size=6))
+}
 
-m <- survfit(Surv(time=time, event=event) ~ outcome + cohort, 
-        data=mixed.main) %>%
-    ggsurvplot(fit=.,
-               data=mixed.main,
-               risk.table=FALSE,
-               conf.int=FALSE,
-               title="Mixed Disease Cohorts 1 and 2 Survival Curves") 
+s1 <- survivalPlot(c("TRM", "DRM", "OS"), "A. Disease, Transplant and Overall Death by Disease")
+s2 <- survivalPlot(c("PFS", "REL"), "B. Progression Free Survival and Relapse by Disease")
 
-m.df <- m$data.survplot %>%
-    mutate(disease="Mixed")
-
-amlmds.main <- covs_surv_long %>%
-    filter(disease %in%  c("AML", "MDS"),
-           outcome %in% c("OS", "DRM" ,"TRM"))
-
-amlonly <- covs_surv_long %>%
-    filter(disease %in%  c("AML"),
-           outcome %in% c("OS", "DRM" ,"TRM"))
-
-allonly <- covs_surv_long %>%
-    filter(disease %in%  c("ALL"),
-           outcome %in% c("OS", "DRM" ,"TRM"))
-
-mdsonly <- covs_surv_long %>%
-    filter(disease %in%  c("MDS"),
-           outcome %in% c("OS", "DRM" ,"TRM"))
-
-
-m2 <- survfit(Surv(time=time, event=event) ~ outcome + cohort, 
-        data=amlmds.main) %>%
-    ggsurvplot(fit=.,
-               data=amlmds.main,
-               risk.table=FALSE,
-               conf.int=FALSE,
-               title="AML + MDS Cohorts 1 and 2 Survival Curves") 
-
-m3 <- survfit(Surv(time=time, event=event) ~ outcome + cohort, 
-        data=amlonly) %>%
-    ggsurvplot(fit=.,
-               data=amlonly,
-               risk.table=FALSE,
-               conf.int=FALSE,
-               title="AML only Cohorts 1 and 2 Survival Curves")
-
-m4 <- survfit(Surv(time=time, event=event) ~ outcome + cohort, 
-        data=allonly) %>%
-    ggsurvplot(fit=.,
-               data=allonly,
-               risk.table=FALSE,
-               conf.int=FALSE,
-               title="ALL only Cohorts 1 and 2 Survival Curves")
-
-m5 <- survfit(Surv(time=time, event=event) ~ outcome + cohort, 
-        data=mdsonly) %>%
-    ggsurvplot(fit=.,
-               data=mdsonly,
-               risk.table=FALSE,
-               conf.int=FALSE,
-               title="AML + MDS Cohorts 1 and 2 Survival Curves")
-
-
-m2.df <- m2$data.survplot %>%
-    mutate(disease="AML + MDS")
-
-m3.df <- m3$data.survplot %>%
-    mutate(disease="AML")
-
-m4.df <- m4$data.survplot %>%
-    mutate(disease="ALL")
-
-m5.df <- m5$data.survplot %>%
-    mutate(disease="MDS")
-
-
-m.new <- rbind(m.df, m2.df, m3.df, m4.df, m5.df)
-
-m.new <- m.new %>%
-    mutate(disease=factor(disease, levels=c("Mixed", "AML + MDS", "AML", "ALL", "MDS")))
-
-p <- m.new %>%
-    mutate(cohort=ifelse(cohort==1, "Cohort 1", "Cohort 2")) %>%
-    ggplot(aes(time, surv, color=outcome)) +
-    geom_line() + 
-    facet_grid(cohort~disease) +
-    ylim(c(0, 1)) +
-    scale_x_continuous(name="Time (months)", breaks=c(0,3, 6, 9, 12)) +
-    labs(title="Disease, Transplant and Overall Death: All Disease Groups Cohorts 1 and 2 Survival Curves",
-         y="Survival Probability") +
-    geom_ribbon(aes(ymin=m.new$surv-(1.96*m.new$std.err),
-                    ymax=m.new$surv+(1.96*m.new$std.err)),
-                alpha=0.2,
-                linetype=0) +
-    theme_bw() 
-p +
-    theme(legend.position = c(0.047, 0.17),
-          legend.title=element_text(size=8),
-          legend.text=element_text(size=6))
-
+grid.arrange(s1, s2, ncol=1)
 ```
-
-
-```{r, echo=FALSE, fig.width=8, fig.height=5, fig.align="left", fig.cap="Survival curves for all disease groups being tested (Mixed disease, AML+MDS, AML only, and ALL only). Cohorts 1 and 2 are shown in the left and right panel respectively. Red is progression free survival (PFS) and teal is relapse (REL). The gray shaded areas are 95 percent confidence intervals."}
-mixed.main <- covs_surv_long %>%
-    filter(outcome %in% c("PFS", "REL"))
-
-m <- survfit(Surv(time=time, event=event) ~ outcome + cohort, 
-        data=mixed.main) %>%
-    ggsurvplot(fit=.,
-               data=mixed.main,
-               risk.table=FALSE,
-               conf.int=FALSE,
-               title="Mixed Disease Cohorts 1 and 2 Survival Curves") 
-
-m.df <- m$data.survplot %>%
-    mutate(disease="Mixed")
-
-amlmds.main <- covs_surv_long %>%
-    filter(disease %in%  c("AML", "MDS"),
-           outcome %in% c("PFS", "REL"))
-
-amlonly <- covs_surv_long %>%
-    filter(disease %in%  c("AML"),
-           outcome %in% c("PFS", "REL"))
-
-allonly <- covs_surv_long %>%
-    filter(disease %in%  c("ALL"),
-           outcome %in% c("PFS", "REL"))
-
-mdsonly <- covs_surv_long %>%
-    filter(disease %in%  c("MDS"),
-           outcome %in% c("PFS", "REL"))
-
-m2 <- survfit(Surv(time=time, event=event) ~ outcome + cohort, 
-        data=amlmds.main) %>%
-    ggsurvplot(fit=.,
-               data=amlmds.main,
-               risk.table=FALSE,
-               conf.int=FALSE,
-               title="AML + MDS Cohorts 1 and 2 Survival Curves") 
-
-m3 <- survfit(Surv(time=time, event=event) ~ outcome + cohort, 
-        data=amlonly) %>%
-    ggsurvplot(fit=.,
-               data=amlonly,
-               risk.table=FALSE,
-               conf.int=FALSE,
-               title="AML only Cohorts 1 and 2 Survival Curves")
-
-m4 <- survfit(Surv(time=time, event=event) ~ outcome + cohort, 
-        data=allonly) %>%
-    ggsurvplot(fit=.,
-               data=allonly,
-               risk.table=FALSE,
-               conf.int=FALSE,
-               title="ALL only Cohorts 1 and 2 Survival Curves")
-
-m5 <- survfit(Surv(time=time, event=event) ~ outcome + cohort, 
-        data=mdsonly) %>%
-    ggsurvplot(fit=.,
-               data=mdsonly,
-               risk.table=FALSE,
-               conf.int=FALSE,
-               title="AML + MDS Cohorts 1 and 2 Survival Curves")
-
-m2.df <- m2$data.survplot %>%
-    mutate(disease="AML + MDS")
-
-m3.df <- m3$data.survplot %>%
-    mutate(disease="AML")
-
-m4.df <- m4$data.survplot %>%
-    mutate(disease="ALL")
-
-m5.df <- m5$data.survplot %>%
-    mutate(disease="MDS")
-
-m.new <- rbind(m.df, m2.df, m3.df, m4.df, m5.df)
-
-m.new <- m.new %>%
-    mutate(disease=factor(disease, levels=c("Mixed", "AML + MDS", "AML", "ALL", "MDS")))
-
-p <- m.new %>%
-    mutate(cohort=ifelse(cohort==1, "Cohort 1", "Cohort 2")) %>%
-    ggplot(aes(time, surv, color=outcome)) +
-    geom_line() + 
-    facet_grid(cohort~disease) +
-    ylim(c(0, 1)) +
-    scale_x_continuous(name="Time", breaks=c(0,3, 6, 9, 12)) +
-    labs(title="Progression and Relapse Death: All Disease Groups Cohorts 1 and 2 Survival Curves",
-         y="Survival Probability") +
-    geom_ribbon(aes(ymin=m.new$surv-(1.96*m.new$std.err),
-                    ymax=m.new$surv+(1.96*m.new$std.err)),
-                alpha=0.2,
-                linetype=0) +
-    theme_bw() 
-p +
-    theme(legend.position = c(0.047, 0.17),
-          legend.title=element_text(size=8),
-          legend.text=element_text(size=6))
-```
-
 
 
 ## Genotyping and Quality Control
-All samples were genotyped on a Illumina Human OmniExpress BeadChip whole-genome genotyping microarray. This chip has approximately 750,000 tagged SNPs that were strategically selected from all three phases of the International HapMap project to capture the greatest amount of common SNP variation (>5% MAF). 
+All samples were genotyped on a Illumina Human OmniExpress BeadChip whole-genome genotyping microarray. This chip had 637,655 tagged SNPs available that were strategically selected from all three phases of the HapMap project to capture the greatest amount of common SNP variation (>5% MAF). 
 
-Samples were assigned to plates to ensure the even distribution of patient characteristics and potential confounding variables using Optimal Sample Assignment Tool (OSAT), an R/Bioconductor software package [@OSAT].
+Samples were assigned to plates to ensure the even distribution of patient characteristics and potential confounding variables using Optimal Sample Assignment Tool (OSAT), an R/Bioconductor software package [@OSAT]. Over 90% of DISCOVeRY-BMT patients self-reported as European American, Caucasian or White and thus replication and validation analyses are performed on these recipient-donor pairs. 
 
-Over 90% of DISCOVeRY-BMT patients self-reported as European American, Caucasian or White and thus replication and validation analyses are performed on these recipient-donor pairs. 
+An important concept in statistical genetics is *population stratification* and the necessirty to adjust for it when doing association studies. The assocation could be due to the underlying structure of the population and not a disease associated locus. QC is done to control from those using one of several different available software. Stringent quality control was performed on both samples and SNPs within this population. Population outliers were removed using EIGENSTRAT [@Price_AL] (n=73). Additional sample quality control removed samples with missing call rate ≥ 2% (n=54), sex mismatch (n=9), abnormal inbreeding coefficients (n=20), and evidence of cryptic relatedness (n=17), yielding 2107 and 777 donor-recipient pairs in cohorts 1 and 2, respectively. Typed SNPs were removed if the call rate was <98%, there was deviation from Hardy-Weinberg equilibrium proportions or discordance between duplicate samples was >2%. 
 
-An important concept in statistical genetics is *population stratification*
-**Define population stratification**
-
-Stringent quality control was performed on both samples and SNPs within this population. Population outliers were removed using EIGENSTRAT [@Price_AL] (n=73). 
-
-
-Additional sample quality control removed samples with missing call rate ≥ 2% (n=54), sex mismatch (n=9), abnormal inbreeding coefficients (n=20), and evidence of cryptic relatedness (n=17), yielding 2106 and 777 donor-recipient pairs in cohorts 1 and 2, respectively. Typed SNPs were removed if the call rate was <98%, there was deviation from Hardy-Weinberg equilibrium proportions or discordance between duplicate samples was >2%. 
-
-In total 637,655 and 632,823 SNPs from the OmniExpress BeadChip were available for imputation in cohorts 1 and cohort 2, respectively, using 1000 Genomes Project Phase 3 [@1000genomes]. 
-
-IMPUTE2 [@Howie_2009] software was used for Imputation and QCTOOL was used to remove imputed genotypes with info score <0.7, certainty <0.7 and a minor allele frequency <0.005. The recipient-donor mismatch genome dosage calculations, described above, were done as the absolute value of the recipient minus donor minor allele dosages. Rs2066847 (SNP13) in NOD2/CARD15 was the only variant analyzed from the Illumina HumanExome as it was not typed on the OmniExpress chip or available following imputation.
-
+Originally, DISCOVeRY-BMT was imputed using IMPUTE2 and 1000 Geomes Phase 3 data. Again, as the most of the population are of European ancestry, when HRC was released, DISCOVeRY-BMT was reimputed using HRC to have higher quality imputation specific to this population. 
 
 # Statistical Analysis
 
 ## Cox Proportional Hazards Model
-Survival models examine the time it takes for events to occur. Specifically, survival models examine the relationship between survival (time that passes before some event occurs) and one or more *covariates* (predictors) that may be associated with that quantity of time. The Cox proportional hazards regression model [@cox1972] is used for survival analysis and is our main statistical model of choice.
+Survival models examine the time it takes for events to occur. Specifically, survival models examine the relationship between survival (time that passes before some event occurs) and one or more *covariates* (predictors) that may be associated with that quantity of time. The Cox proportional hazards regression model [@cox1972] is used for survival analysis and is our main statistical model of choice. 
+
+Assumptions of the Cox model:  
+
+1. the regression coefficient ($\beta$) is constant over time (proportional hazards assumption)  
+2. linear combination of covariates  
+3. link function is exponential  
 
 ### Mathematical concepts and notations
 The Cox model is as follows:
 
-Consider a population of subjects, i, we observe either time to event or censoring. For the censored individuals, we know that time to event is greater than censoring time. So the survival function is S(t)
-
-
-
-
-Let $T$ represent survival time. 
-
-T is a random variable:  
+Consider a population of subjects, $i$, we observe either time to event or censoring. For the censored individuals, we know that time to event is greater than censoring time. So the survival function is $S(t)$. Let $T$ represent survival time. $T$ is a random variable:  
 
 Cumulative distribution function (CDF):    
 \begin{equation} \label{1}
@@ -823,20 +486,7 @@ The survival function $S(t)$ is the complement of the CDF:
 S(t) = Pr(T \geq t) = 1 - P(t)
 \end{equation}
 
-and the hazard function is $\lambda(t)$ (or age specific failure rate)
-
-
-
-The hazard function, $\lambda(t)$, is the distribution of survival times, which assesses the instantaneous risk of dying at time $t$, conditional on survival to that time:
-
-** make a sentence about assuming no ties **
-
-** baseline hazard is nuissance paramter and is completely removed**
-
-**covariate information on different items easily incorporated**
-
-** data censoring patterns often encountered in life tests (such as those in senior citizens studies) do not affect the partial likelihood equation **
-
+and the hazard function is $\lambda(t)$ (or age specific failure rate). The hazard function, $\lambda(t)$, is the distribution of survival times, which assesses the instantaneous risk of dying at time $t$, conditional on survival to that time:
 
 \begin{equation} \label{eq4}
 \begin{split}
@@ -851,7 +501,6 @@ Let $X_i = X_{i1}, ..., X_{ip}$ be realized values of covariates for subject $i$
 
 The hazard function for the Cox model has the form:
 
-
 \begin{equation} \label{eq5}
 \begin{split}
 \lambda(t|X_i) & = \lambda_0(t) \cdot \exp(\beta_1 X_{i1} + ... + \beta_p X_{ip}) \\
@@ -859,9 +508,7 @@ The hazard function for the Cox model has the form:
 \end{split}
 \end{equation}
  
-This expression gives us the hazard function at time $t$ for subject $i$ with covariate vector $X_i$.
-
-The probability of the event to be observed occurring with subject $i$ at time $Y_i$ can be written as:
+This expression gives us the hazard function at time $t$ for subject $i$ with covariate vector $X_i$. The baseline hazard is a nuissance paramter and is completely removed. An assumption of no ties is made. The probability of the event to be observed occurring with subject $i$ at time $Y_i$ can be written as:
 
 \begin{equation}
 \begin{split}
@@ -871,51 +518,165 @@ L_i(\beta) & = \frac{\lambda(Y_i|X_i)}{\sum_{j:Y_j \geq Y_i} \lambda(Y_i|X_j)} \
 \end{split}
 \end{equation}
 
-We describe how model equations already developed to express the effects of exposure on disease rates calculated from grouped data are adapted to the continuous case. Section 5.2 introduces the 'partial likelihood' methodology for estimating regression coefficients in models in which the exposure variables are assumed to act multiplicatively on the background rates. 
-
-
 
 ** Don't forget to mention hazard ratio computation ** 
-
-
-
-### Feature Selection 
-
-Prior to genetic analyses, clinical covariates for inclusion in genome-wide survival models were selected using bidirectional stepwise regression [@Venables_2002] on Cox proportional hazard models [@cox1972] of OS, PFS, TRM and DRM using R statistical software [@r_core]. Cox proportional hazard models of OS, TRM and DRM evaluated SNPs associated with time to death with all survivors censored at 1 year post-BMT. PFS was defined as the time to disease progression or death [@therneau2013]. 
-
-Deaths from TRM and DRM were treated as competing risks and analyzed accordingly [@fine1999]. SNP models for OS adjusted for recipient age, disease status (early/intermediate or advanced), and graft source (blood or marrow); PFS and DRM SNP models adjusted for recipient age and disease status; TRM SNP models adjusted for recipient age, graft source and body mass index (underweight/normal, overweight, or obese). Dosage data accounting for the probability of each genotype were used in all analyses of imputed data. Effect size estimates and standard errors from DISCOVeRY-BMT Cohorts 1 and 2 were compared and combined using a fixed-effects inverse variance meta-analyses in METAL [@metal]. For each SNP,  heterogeneity of effect size estimates between cohorts 1 and 2 was assessed using p-values from significance tests of heterogeneity ($P_{het}$) and $I^{2}$. Variants with $P_{het}$ < 0.05 and $I^{2}>50$ were meta-analyzed with a random effects models using meta in R [@Schwarzer_2007].
-
-### Covariates Included In Models
-1. OS -- age, disease status, graft source
-2. DRM -- age, disease status
-3. TRM -- age, BMI (obesity, overweight), graft source
-4. PFS -- age, disease status
-5. OF -- disease status, graft source
-6. INF -- age, BMI, CMVpn, CMVp, CMVn
-7. GVHD -- age, donor age, BMI
-
-Disease types are included in the model, depending on the disease group the analysis was conducted on. E.g. for analyses without ALL (AML and MDS), AML dummy or MDS dummy were used. 
-
-
-
+Hazard ratio is the ratio of hazard rates described by 
 
 ### Model Diagnostics
+The Cox model can be evaluated in two ways. The proportional hazards assumption can be tested using Schoenfeld residuals graphically or using a goodness-of-fit test [@schoenfeld1982]. The model itself can be validated by simulation. Here will we show both methods. 
 
-Schoenfield residuals
+Schoenfeld residuals are based on the effects of the predictor variables that are assumed to be independent of time, plotting these residuals versus time is done to visually assess the effect of the predictor variable and its relationship with time. A smooth line is fit to the plot of the residuals [@grambsch_ph]. If the smoothed line has a slope and intercept of approximately 0, then the proportional hazards assumption has been met [@grambsch_ph]. 
 
-Simulating hazard function
+```{r, echo=FALSE, fig.width=6, fig.height=7.3, fig.cap="Schoenfeld Residuals for Overall Survival (OS) adjusted for age, disease status and graft source. The Global Schoenfeld Test is a two-sided chi-square test. Each individual Schoenfeld test is a per-variable chi square test. P < 0.05 is statistically significant."}
+library(survival) 
+library(survminer)
+covariate.file <- read_tsv("~/Google Drive/OSU_PHD/DBMT_100d/DBMT_PhenoData_EA_long_allVar_20181216.txt")
+c1 <- covariate.file %>%
+    filter(sample_type=="recipient",
+           cohort==1) %>%
+    mutate(age_cat = ifelse(age >= 40, 1, 0),
+           intxsurv_1Y_days=intxsurv_1Y*30.4167)
+res.cox <- coxph(Surv(time=intxsurv_1Y, dead_1Y) ~ age + DiseaseStatusAdvanced + PBlood, data=c1)
+test.ph <- cox.zph(res.cox)
+ggcoxzph(test.ph)
+```
 
 
+```{r, echo=FALSE, fig.height=3, fig.width=6, fig.align="left", fig.cap="Model Diagnostics. Predicted Survival Probabilities"}
+covariate.file <- read_tsv("~/Google Drive/OSU_PHD/DBMT_100d/DBMT_PhenoData_EA_long_allVar_20181216.txt")
+# cohort 1
+c1 <- covariate.file %>%
+    filter(sample_type=="recipient",
+           cohort==1) %>%
+    mutate(age_cat = ifelse(age >= 40, 1, 0),
+           intxsurv_1Y_days=intxsurv_1Y*30.4167) # convert to days
+library(survival)
+library(survminer)
 
+c2 <- covariate.file %>%
+    filter(sample_type=="recipient",
+           cohort==2) %>%
+    mutate(age_cat = ifelse(age >= 40, 1, 0),
+           intxsurv_1Y_days=intxsurv_1Y*30.4167) 
+
+simFun <- function(time, event, covariates, data, nsamps){
+    y <- data %>%
+        select_at(vars(covariates)) %>% 
+        distinct() %>%
+        mutate(covariates=apply(.==1,1,function(a) {paste0(colnames(.)[a], collapse = " + ")}),
+               covariates=ifelse(covariates=="", "1", covariates)) %>% 
+        arrange(covariates)
+    #### get real data stats ###
+    models <- vector('list', nrow(y))
+    for(i in seq_len(nrow(y))){
+        covs <- y$covariates[i]
+        models[[i]] <- ggsurvplot(surv_fit(
+            formula(paste0("Surv(", time, ", ", event,") ~ ", paste(covs, collapse=" + "))),
+            data=data.frame(data)
+            )
+        )$data.survplot
+    }
+    models[[1]] <- models[[1]] %>% mutate(strata=1)
+    models <- mapply(function(x, cat) x %>% select_at(vars(time:strata)) %>% mutate(covariates=cat), models, y$covariates, SIMPLIFY = FALSE)
+    models <- do.call("rbind", models)
+    models <- models %>% 
+        mutate(type="observed") %>%
+        filter(!str_detect(strata, pattern=regex("[0]"))) %>%
+        select(-strata)
+    #### for simulated data 
+    mod <- coxph(formula(paste0("Surv(", time, ", ", event,") ~ ", paste(covariates, collapse=" + "))), data=data.frame(data))
+    tdom <- basehaz(mod)$time
+    cumhaz <- basehaz(mod)$hazard
+    # survival probability 
+    survFunTime <- exp(-cumhaz)
+    survdf <- data.frame(idx=1:length(tdom), 
+                         tdom=tdom, 
+                         cumhaz=cumhaz, 
+                         survFunTime=survFunTime)
+    # hazard function and cumulative hazard function in cohort 1
+    hazFuncumFunPlot <- survdf %>% 
+        gather(key, value, -idx, -tdom) %>%
+        mutate(key=ifelse(key=="cumhaz", "Cumulative Hazard Function", "Survival Function")) %>%
+        ggplot(aes(tdom, value)) +
+        geom_point() +
+        facet_wrap(~key) +
+        scale_x_continuous(breaks=c(0, 3, 6, 9, 12)) + 
+        xlab("Months") +
+        ylab("Probability")
+    # random samples
+    u <- runif(nsamps)
+    failtimes <- tdom[colSums(outer(survFunTime, u, `>`))]
+    failtimes <- data.frame(failtimes)
+    ## baseline
+    # now grab covariates
+    betas <- coef(mod)
+    # simulation 
+    sim_res <- vector("list", nrow(y))
+    total_fit <- vector('list', nrow(y))
+    for (i in seq_len(nrow(y))) {
+        x <- y %>% 
+            select(-covariates) %>%
+            slice(i) %>%
+            unlist()
+        survFunTotal <- exp(-cumhaz * exp(sum(x*betas)))
+        sim_res[[i]] <- data.frame(res=tdom[colSums(outer(survFunTotal, u, `>`))])
+        total_fit[[i]] <- ggsurvplot(surv_fit(Surv(res) ~ 1, data=sim_res[[i]]))$data.survplot
+    }
+    total_fit <- mapply(function(x, cat) x %>% mutate(covariates=cat), total_fit, y$covariates, SIMPLIFY = FALSE)
+    total_fit <- do.call('rbind', total_fit)
+    total_fit <- total_fit %>% 
+        mutate(type="predicted")
+    baseline_surv <- total_fit %>% 
+        filter(covariates=="no covariates")
+    res <- rbind(models, total_fit)
+    res <- res %>%
+        filter(surv!=0) %>%
+        mutate(covariates=ifelse(covariates==1, "baseline", covariates),
+               covariates=str_replace_all(covariates, "\\+", "+ \n")) %>%
+        ggplot(aes(time, surv, color=type)) +
+        geom_line() +
+        facet_wrap(~covariates) +
+        ylim(c(0,1)) + 
+        scale_x_continuous(breaks=c(0, 3, 6, 9, 12)) +
+        xlab('Months') +
+        ylab('Survival Probability') +
+        theme(legend.position=c(1, 0.2),
+        legend.justification="right") 
+    # histograms 
+    sim_res <- mapply(function(x, cat) x %>% mutate(covariates=cat), sim_res, y$covariates, SIMPLIFY = FALSE)
+    sim_res <- do.call("rbind", sim_res)
+    sim_res <- sim_res %>%
+        mutate(covariates=ifelse(covariates==1, "no covariates", covariates),
+               covariates=str_replace_all(covariates, "\\+", "+ \n")) 
+    eq <- paste0(time, " | ", event, " ~ \n ", paste(covariates, collapse=" + \n"))
+    real_data_res <- data.frame(res=data[[time]], 
+                                covariates=eq) 
+    
+    full_data <- rbind(real_data_res, sim_res)
+    full_data <- full_data %>%
+        mutate(covariates=factor(covariates, levels=c(eq, unique(sim_res$covariates)))) %>%
+        ggplot(aes(x=res)) +
+        geom_histogram() + 
+        facet_wrap(~covariates) +
+        xlab("Months")
+    final <- list(hazFuncumFunPlot, res, full_data)
+}
+
+c1.os.pred <- simFun("intxsurv_1Y", "dead_1Y", c("age_cat", "PBlood", "DiseaseStatusAdvanced"), c1, 2110)
+c1.os.pred[[1]]
+```
+
+```{r, echo=FALSE, fig.width=6, fig.height=4.5, fig.cap="Model Diagnostics. Predicted Survival Curves"}
+c1.os.pred[[2]]
+```
+
+```{r, echo=FALSE, fig.width=6, fig.height=6, fig.cap="Model Diagnostics. Histogram of observed and predicted survival times"}
+c1.os.pred[[3]]
+```
 
 
 ## Power Calculations
-We conducted meta-analyses to combine the effects of both cohorts (discussed in next section below), as such, power calculations were done considering the sample size of both cohorts combined. 
-Minimum detectable hazard ratios of recipient and/or donor depend on three variables: 1.) proportion of individuals experiencing an event, 2.) frequency of a causal variant, and 3.) the quality of genotyping SNPs that capture the genetic variation underlying the hazard of an event. Events are measured at 100 days and at the most updated observation time (most recent phenotype data available is May 5th, 2017) post-HSCT. The events that will be measured are death due to transplant (TRM) and specific causes of death (organ failure, infection, GVHD) attributable to TRM. OS is a function of TRM and thus we will present minimum detectable hazard ratios for OS. The proportion of events (Figure 3) ranges from infrequent events to (i.e. TRM subtypes) to frequent events (i.e. OS). We will assume lower and upper bound causal variant frequency between 5% and 40%, respectively. For Aim 1, we assumed SNPs selected for genotyping capture 85% of the variation across each gene; thus, all power calculations are corrected by setting our effective total sample size equal to 0.85 x 3532 = ~3000. We present the range of hazard ratios detectable for varying proportions of events and allele frequencies in a univariate model assuming 80% power to detect genome-wide significance at 5x10-8. With 3,532 recipient-donor pairs, the minimum detectable hazard ratio under these assumptions is identical 
-for recipient genotype, donor genotype, and the mismatch between donor and recipients. Given the minimum proportion of events experienced in TRM subtypes and overall TRM are between 0.10 and 0.30 with a common allele (MAF=0.40), we have power to detect hazard ratios between 1.69 and 1.35, respectively. Under these same proportion of events, with more rare variants (MAF=0.05), we have the power to detect hazard ratios between 3.3 and 2.0, respectively. For OS models, assuming the overall rate of death is 0.50, we can detect SNPs in with hazard ratios between 1.26 (MAF=0.40) and 1.7 (MAF=0.05). 
-
-
-Lower bound is based off each TRM subtype being at least 0.10 (10%) of all patients.
+We conducted meta-analyses to combine the effects of both cohorts (discussed in next section below), as such, power calculations were done considering the sample size of both cohorts combined. Minimum detectable hazard ratios of recipient and/or donor depend on three variables: 1.) proportion of individuals experiencing an event, 2.) frequency of a causal variant, and 3.) the quality of genotyping SNPs that capture the genetic variation underlying the hazard of an event. Events are measured at 1 year and at the most updated observation time (most recent phenotype data available is May 5th, 2017) post-HSCT. The events that will be measured are death due to transplant (TRM) and specific causes of death (organ failure, infection, GVHD) attributable to TRM. OS is a function of TRM and thus we will present minimum detectable hazard ratios for OS. The proportion of events (Figure 3) ranges from infrequent events to (i.e. TRM subtypes) to frequent events (i.e. OS). We will assume lower and upper bound causal variant frequency between 5% and 40%, respectively. We assumed SNPs selected for genotyping capture 85% of the variation across each gene; thus, all power calculations are corrected by setting our effective total sample size equal to 0.85 x 3532 = ~3000. We present the range of hazard ratios detectable for varying proportions of events and allele frequencies in a univariate model assuming 80% power to detect genome-wide significance at $5\text{x}10^{-8}$. With 3,532 recipient-donor pairs, the minimum detectable hazard ratio under these assumptions is identical for recipient genotype, donor genotype, and the mismatch between donor and recipients. Given the minimum proportion of events experienced in TRM subtypes and overall TRM are between 0.10 and 0.30 with a common allele (MAF=0.40), we have power to detect hazard ratios between 1.69 and 1.35, respectively. Under these same proportion of events, with more rare variants (MAF=0.05), we have the power to detect hazard ratios between 3.3 and 2.0, respectively. For OS models, assuming the overall rate of death is 0.50, we can detect SNPs in with hazard ratios between 1.26 (MAF=0.40) and 1.7 (MAF=0.05). Lower bound is based off each TRM subtype being at least 0.10 (10%) of all patients.
 
 
 ```{r, fig.width=6, fig.height=4, fig.cap="Hazard ratios associated with survival models.", echo=FALSE}
@@ -956,10 +717,6 @@ legend(0.276,
 # df <- data.frame(propEvents, delta, delta.lb)
 # df %>% filter(propEvents %in% c(propEvents[6], 0.5))
 ```
-
-# Meta-analysis
-
-
 
 
 
