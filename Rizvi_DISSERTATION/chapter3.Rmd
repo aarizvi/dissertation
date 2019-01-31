@@ -44,17 +44,17 @@ gwasurvivr was faster than genipe (Lemieux Perreault, et al., 2016), SurvivalGWA
 
 gwasurvivr is a fast, efficient, and flexible program well suited for multi-core processors and easily run in a computing cluster environment. 
 
-
-
 `gwasurvivr` is an R package that can be used to conduct survival analysis (Cox proportional hazards model) on imputed GWAS data from either IMPUTE2 (Howie, et al., 2009) or VCF files from the Michigan and/or Sanger imputation servers. `gwasurvivr` can also be used on directly typed data in plink format (`.bed`, `.bim` and `.fam` files).
 
 Herein, we detail our implementation of the Cox model, generation of the simulated data and survival benchmarking and graphically report the correlation of `gwasurvivr` beta coefficient estimates, minor allele frequencies (MAF) and p-values with those produced from SurvivalGWAS_SV, genipe, and GWASTools.
 
 To reproduce the data and create Figure 1 and Supplementary Figures 2-4, the data is available on the [gwasurvivr manuscript repository](https://github.com/suchestoncampbelllab/gwasurvivr_manuscript). [GitHub Large File Storage (LFS)](https://git-lfs.github.com/). 
 
-To clone the whole repository:  
+To clone the whole repository:    
+
 ```
-git lfs clone https://github.com/suchestoncampbelllab/gwasurvivr_manuscript.git
+git lfs clone \
+    https://github.com/suchestoncampbelllab/gwasurvivr_manuscript.git
 ```
 
 # Implementation of Survival Model in gwasurvivr 
@@ -425,3 +425,4 @@ For the Sanger imputation server, we grab the `INFO` field directly from the VCF
 
 ### IMPUTE2 Imputation
 The INFO score for IMPUTE2 (Howie, et al., 2009) results are not calculated in `gwasurvivr` internally, instead we use the INFO scores that are provided in a separate file after performing imputation (`.info` file). Users select SNPs from the `.info` file to remove based on preferred criterion (ie INFO < .8) these are then used in the argument `exclude.snps` in `impute2CoxSurv` to filter out the SNPs prior to analysis.
+

@@ -1,7 +1,7 @@
 ---
 title: "Application and Implementation"
 author: "Abbas Rizvi"
-date: "11/11/2018"
+date: "11/21/2018"
 output: pdf_document  
 ---
 
@@ -11,18 +11,21 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Introduction
 
+Does this say anything? Maybe this is the problem.
+
 # Methodology
 
 ## Schematic of pipeline
 
 ## Reimputation with HRC
+
 Test 1 2 3
 
 ## Imputed data location
 
 
 ## perl script
-```{perl}
+```{perl, eval=FALSE}
 #! /usr/bin/perl
 use warnings;
 use strict;
@@ -163,12 +166,11 @@ while(<MANIFEST>) {
 
 Required commands:
 
-```
+```{eval=FALSE}
     -m        path to the manifest file
     -e        e-mail address for messaging
     -w        walltime in format 00:00:00
     -rscript  /projects/rpci/lsuchest/lsuchest/DBMT_metaPipeline/run_gwasurvivr.R (or path to another user defined R script)
-
 ```
 
 ## Manifest file

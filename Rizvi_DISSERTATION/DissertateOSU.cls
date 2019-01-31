@@ -1,6 +1,6 @@
 % -------------------------------------------------------------------
 %  @LaTeX-class-file{
-%     filename        = "DissertateUSU.cls",
+%     filename        = "DissertateOSU.cls",
 %     version         = "1.0",
 %     date            = "01 July 2017",
 %     codetable       = "ISO/ASCII",
@@ -11,7 +11,7 @@
 % --------------------------------------------------------------------
 
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesClass{DissertateUSU}[2017/07/01 v1.0 DissertateUSU Class]
+\ProvidesClass{DissertateOSU}[2017/07/01 v1.0 DissertateOSU Class]
 \LoadClass[12pt, oneside, letterpaper]{book}
 
 %%%%%%%%%%%%%%%%%
