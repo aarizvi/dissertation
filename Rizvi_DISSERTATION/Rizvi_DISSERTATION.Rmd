@@ -4,14 +4,14 @@ title: Genetic Associations in Acute Leukemia Patients after Matched Unrelated D
 author: "Abbas A Rizvi"
 documentclass: DissertateOSU
 output:
-  pdf_document:
+  pdf_document:  
     includes:
       in_header: preamble.tex
     keep_tex: yes
     latex_engine: xelatex
-  word_document: default
 header-includes:
 - \usepackage{booktabs}
+- \usepackage{placeins}
 - \usepackage{longtable}
 - \usepackage{array}
 - \usepackage{multirow}
@@ -25,6 +25,8 @@ header-includes:
 - \usepackage[normalem]{ulem}
 - \usepackage{amsrefs}
 - \usepackage{filecontents}
+- \usepackage{pdflscape}
+- \usepackage{afterpage}
 link-citations: yes
 geometry:
 - top=1in
@@ -41,6 +43,8 @@ params:
   gradschool: The Ohio State University
   year: '2019'
 bibliography: dissertation_references.bib
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r global_options, include=FALSE}
@@ -49,10 +53,15 @@ knitr::opts_chunk$set(fig.path = 'figures/',
                       echo = FALSE, 
                       warning = FALSE, 
                       message = FALSE,
-                      cache=FALSE)
+                      cache=FALSE,
+                      tidy=TRUE,
+                      tidy.opts=list(width.cutoff=45))
+
 ## Do NOT Remove
 library(tidyverse)
+library(formatR)
 library(kableExtra)
+
 dissertateUSU::preamble_for_title()
 ```
 
@@ -63,9 +72,9 @@ dissertateUSU::preamble_for_title()
 
 <!-- Abstract -->
 \newpage
-\pagestyle{fancy}
-\fancyhead[L]{Abstract}
-\fancyhead[R]{\thepage}
+\pagestyle{plain}
+\fancyhead[L]{}
+\fancyhead[R]{}
 \fancyfoot[C]{}
 \chapter*{ABSTRACT}
 \addcontentsline{toc}{section}{Abstract}
@@ -76,8 +85,9 @@ dissertateUSU::preamble_for_title()
 
 <!-- Dedication -->
 \newpage
-\fancyhead[L]{Dedication}
-\fancyhead[R]{\thepage}
+\pagestyle{plain}
+\fancyhead[L]{}
+\fancyhead[R]{}
 \fancyfoot[C]{}
 \chapter*{DEDICATION}
 \addcontentsline{toc}{section}{Dedication}
@@ -88,7 +98,7 @@ Dedicated to Ezgi, my parents, my siblings and their kids, and my sweet little p
 \newpage
 \pagestyle{plain} 
 \fancyhead[L]{}
-\fancyhead[R]{\thepage}
+\fancyhead[R]{}
 \fancyfoot[C]{}
 \chapter*{ACKNOWLEDGEMENTS}
 \addcontentsline{toc}{section}{Acknowledgments}
@@ -135,7 +145,6 @@ Dedicated to Ezgi, my parents, my siblings and their kids, and my sweet little p
 \fancyfoot[C]{}
 \listoffigures
 
-
 \newpage
 \pagenumbering{arabic}
 
@@ -146,7 +155,6 @@ Dedicated to Ezgi, my parents, my siblings and their kids, and my sweet little p
 \fancyhead[R]{}
 \fancyfoot[C]{\thepage}
 \chapter{Introduction}
-
 \doublespacing
 
 ```{r child = "chapter1.Rmd"}
@@ -160,15 +168,11 @@ Dedicated to Ezgi, my parents, my siblings and their kids, and my sweet little p
 \fancyhead[L]{}
 \fancyhead[R]{}
 \fancyfoot[C]{\thepage}
-
-\chapter{Literature Review and Replication/Validation}
-
+\chapter{Replication and Validation of Previous HSCT Literature}
 \doublespacing
-
 
 ```{r child = "chapter2.Rmd"}
 ```
-
 
 \FloatBarrier
 
@@ -178,37 +182,32 @@ Dedicated to Ezgi, my parents, my siblings and their kids, and my sweet little p
 \fancyhead[L]{}
 \fancyhead[R]{}
 \fancyfoot[C]{\thepage}
-
-\chapter{gwasurvivr}
-
+\chapter{gwasurvivr: an R Bioconductor package for genome wide survival analysis}
 \doublespacing
-
 
 ```{r child = "chapter3.Rmd"}
 ```
 
-
 \FloatBarrier
 
 <!-- Chapter 4 -->
+
 \newpage
 \pagestyle{plain}
 \fancyhead[L]{}
 \fancyhead[R]{}
 \fancyfoot[C]{\thepage}
-
 \chapter{Application and Pipeline}
-
 \doublespacing
 
-
-```{r child = "chapter4.Rmd"}
+```{r child="chapter4.Rmd", eval=TRUE}
 ```
 
 
 \FloatBarrier
 
 <!-- Chapter 5 -->
+
 \newpage
 \pagestyle{plain}
 \fancyhead[L]{}
@@ -219,13 +218,14 @@ Dedicated to Ezgi, my parents, my siblings and their kids, and my sweet little p
 
 \doublespacing
 
-```{r child = "chapter5.Rmd"}
+```{r child = "chapter5.Rmd", eval=TRUE}
 ```
 
 
 \FloatBarrier
 
 <!-- Chapter 6 -->
+
 \newpage
 \pagestyle{plain}
 \fancyhead[L]{}
@@ -236,7 +236,7 @@ Dedicated to Ezgi, my parents, my siblings and their kids, and my sweet little p
 
 \doublespacing
 
-```{r child = "chapter6.Rmd"}
+```{r child = "chapter6.Rmd", eval=TRUE}
 ```
 
 
@@ -248,9 +248,30 @@ Dedicated to Ezgi, my parents, my siblings and their kids, and my sweet little p
 \fancyhead[R]{}
 \fancyfoot[C]{\thepage}
 
+
 \chapter*{REFERENCES}
 \singlespacing
 \setlength{\parindent}{-0.5in}
 \setlength{\leftskip}{0.4in}
 \setlength{\parskip}{12pt}
 \noindent
+
+<div id="refs"></div>
+
+\FloatBarrier
+
+\newpage
+\setlength{\parindent}{0.5in}
+\setlength{\leftskip}{0in}
+\setlength{\parskip}{12pt}
+\pagestyle{plain}
+\fancyhead[L]{}
+\fancyhead[R]{}
+\fancyfoot[C]{\thepage}
+\chapter*{APPENDICES}
+\addcontentsline{toc}{chapter}{APPENDICES}
+
+\doublespacing 
+
+```{r child="ch2_appendix.Rmd", eval=TRUE}
+```

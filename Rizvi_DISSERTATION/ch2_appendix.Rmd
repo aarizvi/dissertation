@@ -2,10 +2,10 @@
 title: "appendix"
 author: "Abbas Rizvi"
 date: "9/14/2018"
-output: pdf_document  
+output: pdf_document
 ---
 
-```{r app_setup, include=FALSE}
+```{r ch2app_setup, include=FALSE}
 def.chunk.hook  <- knitr::knit_hooks$get("chunk")
 knitr::knit_hooks$set(chunk = function(x, options) {
   x <- def.chunk.hook(x, options)
@@ -15,18 +15,19 @@ knitr::knit_hooks$set(chunk = function(x, options) {
 knitr::opts_chunk$set(echo = TRUE, eval=FALSE, size="scriptsize")
 ```
 
+# Chapter 2
 
-# Candidate Gene Analyses
+## Candidate Gene Analyses
 
 We conducted an exhaustive literature search looking at papers from 71 candidate gene studies that were found via Pubmed search. The candidate gene studies focused on any blood disorders as long as one of the disorders was either ALL or AML. The candidate gene studies typically looked at several candidate SNPs in candidate genes and determined if there was an association with the SNP and survival outcomes (DRM, OS, PFS, or TRM). We gathered all of the SNPs that were studied in these candidate gene studies (even if they were not significant in the original study). 
 
-The final table can be found on UB CCR at:    
-`/projects/rpci/lsuchest/abbasriz/candidate_gene/ \`  
+\noindent The final table can be found on UB CCR at:    
+\noindent `/projects/rpci/lsuchest/abbasriz/candidate_gene/ \`  
 `result_files_cg/final_table/cg_snptable.txt`.  
 
-The ultimate goal of this study was to test all of the candidate SNPs in DISCOVeRY-BMT to replicate or validate the original studies' findings. Replication means that the phenotype and population are the same. Validation means that the phenotype is the same but the study population is not necessarily the same (i.e. different ethnic group). And also, because these studies essentially had gene based hypotheses, we sought to test DISCOVeRY-BMT survival data using gene-based statistical approaches (VEGAS2 software) to test whether the aggregation of the entire gene locus was significant or not. 
+\noindent The ultimate goal of this study was to test all of the candidate SNPs in DISCOVeRY-BMT to replicate or validate the original studies' findings. Replication means that the phenotype and population are the same. Validation means that the phenotype is the same but the study population is not necessarily the same (i.e. different ethnic group). And also, because these studies essentially had gene based hypotheses, we sought to test DISCOVeRY-BMT survival data using gene-based statistical approaches (VEGAS2 software) to test whether the aggregation of the entire gene locus was significant or not. 
 
-Here we present our data analysis.
+\noindent Here we present our data analysis.
 
 \singlespacing
 ```{bash Awk to retrieve final list after results, eval=F}
@@ -72,7 +73,7 @@ write.table(gene.list,
 \doublespacing
 
 \noindent We need to grab the typed and imputed SNPs from DISCOVeRY-BMT. These are located in:    
-`/projects/rpci/lsuchest/lsuchest/Rserve/ImputeData/var/db/gwas/ \`  
+\noindent `/projects/rpci/lsuchest/lsuchest/Rserve/ImputeData/var/db/gwas/ \`  
 `imputed_data/BMT093013_forImpute/Impute2_summary/Impute2.INFO`   
 
 \noindent file. 
@@ -96,8 +97,8 @@ chr10-0-5000000 --- chr10:66627:D 66627 0.548 0.590 0.734 0 -1 -1 -1
 \doublespacing
 \noindent Now that we have the gene locations, we are going to create a shell script that will be able to grab the `Impute2.INFO` file regions and let us collect all of the SNPs that we have from DISCOVeRY-BMT that are typed and imputed. The shell script can be found at:  
 
-`/projects/rpci/lsuchest/lsuchest/CandidateGeneReplication/ \`  
-\noindent `parse_Impute2INFO/awk_Impute2.INFO_by_geneLoc_cg.sh`
+\noindent `/projects/rpci/lsuchest/lsuchest/CandidateGeneReplication/ \`  
+`parse_Impute2INFO/awk_Impute2.INFO_by_geneLoc_cg.sh`
 
 This shell script rearranges the columns to the following: `chr`, `position`, `gene`, `snp_id`, `rs_id`, `exp_freq_q1`, `info`, `certainty`, `type`, `info_type0`, `concord_type0`, `r2_type0`. 
 
@@ -166,35 +167,37 @@ write.table(info, file="/projects/rpci/lsuchest/abbasriz/candidate_gene/info.cg.
 ```
 
 \doublespacing 
+
 ## Survival Results Directories
 Individual (donor/recipient genotyping cohorts 1 and 2) and shared (mismatch between donor-recipient pairs from cohorts 1 and 2), done for 4 different outcomes (DRM, PFS, OS, TRM) and 4 different disease groups (AMLonly, ALLonly, mixed, noALL), and their corresponding meta analyses (combining cohort 1 and 2 using a fixed effect model from METAL software) are located in different directories on UB CCR. 3 genomes (donor, recipient, shared) x 3 cohorts (c1, c2, meta) x 4 outcomes (DRM, PFS, OS, TRM) x 4 diseases (AML, ALL, mixed, noALL) = 144 analyses.
 
 \noindent Individual directory:     
-`/projects/rpci/lsuchest/lsuchest/Rserve/ImputeData/var/db/gwas/ \`  
+\noindent `/projects/rpci/lsuchest/lsuchest/Rserve/ImputeData/var/db/gwas/ \`  
 `imputed_data/BMT093013_forImpute/analyses/`  
 \noindent Meta-individual directory:    
-`/projects/rpci/lsuchest/lsuchest/Rserve/ImputeData/var/db/gwas/ \`  
+\noindent `/projects/rpci/lsuchest/lsuchest/Rserve/ImputeData/var/db/gwas/ \`  
 ` imputed_data/BMT093013_forImpute/analyses/METAL.results/`  
 \noindent Shared directory:    
-`/projects/rpci/lsuchest/lsuchest/Rserve/ImputeData/var/db/gwas/ \`  
+\noindent `/projects/rpci/lsuchest/lsuchest/Rserve/ImputeData/var/db/gwas/ \`  
 `imputed_data/SHARED/analyses/METAL.RESULTS.SHARED/`  
 \noindent Meta-shared directory:    
-`/projects/rpci/lsuchest/lsuchest/Rserve/ImputeData/var/db/gwas/ \`    
+\noindent `/projects/rpci/lsuchest/lsuchest/Rserve/ImputeData/var/db/gwas/ \`    
 `imputed_data/BMT093013_forImpute/analyses/METAL.results/`  
 
 \noindent As a collective, these directories contain files of 144 analyses. However, the result files are not so well organized. Using some unix commands to capture a clean amount of directories and files, as well as *ad hoc* manual curation, final directory lists (`/projects/rpci/lsuchest/lsuchest/CandidateGeneReplication/ \`  
 \noindent `survival_results_directories/`) can be found in the following files: `ind.directories.txt`, `shared.directories.txt`, `meta.ind.directories.txt`, and `meta.shared.directories.txt`.
 
-## Parsing Result Files for High Quality Candidate Gene SNPs
+### Parsing Result Files for High Quality Candidate Gene SNPs
 We have survival results located in these directories, now we want to subset each of these survival results for just all of the high quality SNPs in our candidate genes. Here I will show only 1 of 4 (`independent_results.R`) parsing results. The others are `meta_independent.results.R`, `shared_results.R`, and `meta_results.R`. I split these up to decrease computational time and to have some safety checks at a smaller scale. 
 
 \noindent The result files go into the directory: `/projects/rpci/lsuchest/abbasriz/\`
-\noindent `candidate_gene/result_files_cg/impute.results.w.typedsnps`  
+`candidate_gene/result_files_cg/impute.results.w.typedsnps`  
 
 \noindent The result files will be in the following format:  
 `genome_cohort_outcome_disease.txt`, e.g. (`D_c1_DRM_ALLonly.txt`, for donor, cohort 1, death to due to disease, ALL only subset)
 
 \singlespacing
+
 ```{r, eval=F}
 ## INDEPENDENT RESULTS
 library(data.table)
@@ -250,6 +253,7 @@ for(i in 1:length(ind)){
 \noindent `result_files_cg/res.directories/independent_results.sh`) was written to run this command using SLURM:  
 
 \singlespacing
+
 ```{bash, eval=F}
 #!/bin/bash
 #SBATCH --time=24:00:00
@@ -278,13 +282,15 @@ echo "###### end time: $tend"
 ```
 
 \doublespacing
+
 \noindent Again, the 144 result files can be found in: `/projects/rpci/lsuchest/abbasriz/\`  
-\noindent `candidate_gene/result_files_cg/impute.results.w.typedsnps/`
+`candidate_gene/result_files_cg/impute.results.w.typedsnps/`
 
 ## Remove Duplicates 
 METAL and VEGAS2 ignore duplicates rsids. In DISCOVeRY-BMT often has duplicates rsids due to some SNPs being typed AND imputed. We filtered these files to removed the typed SNPs, as the imputed SNP may be more reliable as it is calculated using the reference genome. Again, we separated this into 3 jobs, divvying up the results by donor, recipient, and shared. Instead of using two columns to remove duplicates, we removed duplicates by searching for duplicates and removing the one with lower base pair (i.e. position 111110 would be typed and position 111111 would be imputed, so we would remove position 111110 in this case). Here we demonstrate this using only the donor files (donor_remove_dups.R and donor_remove_dups.sh)
 
 \singlespacing
+
 ```{r, eval=F}
 # donor_remove_dups.R
 library(data.table)
@@ -343,7 +349,7 @@ So since the meta analysis files didn't have hazard ratio coefficients and confi
 
 A metal script can be run using METAL software:  
 
-### Example of METAL script (e.g. metal.txt)
+## Example of METAL script (e.g. metal.txt)
 \singlespacing
 ```{bash, eval=F}
 module load metal 
@@ -373,7 +379,9 @@ MINWEIGHT 10
 ```
 
 \doublespacing
-### Python script to generate metal files
+
+## Python script to generate metal files
+
 To automate this for our cohorts we wrote a Python script to generate all of these different pairwise metal scripts. 
 
 \singlespacing
@@ -458,10 +466,11 @@ f.close()
 ```
 
 \doublespacing
-\noindent The results are stored in `.tbl` files in `/projects/rpci/lsuchest/abbasriz/ \` 
-\noindent `candidate_gene/metal_results/`.
+\noindent The results are stored in `.tbl` files in `/projects/rpci/lsuchest/abbasriz/ \`   
+`candidate_gene/metal_results/`.
 
-### Merge meta-analys results back into original files
+## Merge meta-analys results back into original files
+
 Now that we had the meta-analysis results, we merged the beta coefficients and standard errors, back into the `._M_$'` files so that we could have the same format. The script that does this can be found at:  
 `/projects/rpci/lsuchest/abbasriz/candidate_gene/ \`  
 \noindent `metal_results/merge_metal_res_w_impute_res.R`
@@ -515,7 +524,8 @@ for(i in 1:length(res.files)){
 }
 ```
 
-### Calculate Hazard Ratios and 95% CI
+## Calculate Hazard Ratios and 95% CI
+
 \doublespacing
 Now that all the files are in the same format, we can automate the way that we calculate the hazard ratios and HR 95 CI, as all files should be the same for all analyses. Here we used the R script: `/projects/rpci/lsuchest/abbasriz/ \`   
 \noindent `candidate_gene/result_files_cg/calc_hazardratios.R`. This R script also ensures both allele1 and allele2 are uppercase and reassigns the rows in the `impute` column to `typed` (repeated rsid) and `imputed` (---).
@@ -556,7 +566,7 @@ for(i in 1:length(res.files)){
 }
 ```
 
-### Create genome, cohort, outcome, disease columns
+## Create genome, cohort, outcome, disease columns
 \doublespacing
 The script can be found at `/projects/rpci/lsuchest/abbasriz/ \`   
 \noindent `candidate_gene/result_files_cg/descript_columns.R`
@@ -749,7 +759,7 @@ v2.res <- read.table("cg_v2table.txt", header=T)
 head(v2.res)
 ```
 
-### Top SNP and gene Based Pvalue adjustment
+## Top SNP and gene Based Pvalue adjustment
 \doublespacing
 Grab number of typed SNPs from just cohort 1 (because it's the largest cohort). The script to count the typed SNPs is called `typed_snps.R` and `typed_snps.sh`. 
 
@@ -828,7 +838,7 @@ head(v2.typed.snps)
 
 \doublespacing
 
-# NOD2 analysis
+## NOD2 analysis
 NOD2 is a gene that has been frequently been studied in candidate gene studies looking at genetic variants from patients who have been treated with blood and marrow transplants (BMT). Oftentimes when NOD2 is studied, three SNPs frequently appear which have been labeled as SNP8 (rs2066844), SNP12 (rs2066845), and SNP13 (rs2066847). SNP8 and SNP12 were genotyped in in the DISCOVeRY-BMT GWAS and SNP13 was not genotyped in DISCOVeRY-BMT. In order to still consider this SNP, we searched for a SNP that may be in LD with rs2066847, and the best LD pair found in DISCOVeRY-BMT was rs146528649 ($r^2$ = 0.7422). All of the groups that studied NOD2, also chose the same design in the way they analyzed this SNP, such that only the patient-donor pairs that were homozygous wildtype for all 3 SNPs were deemed “wild type”, and on the contrary, if any one variant was present in any of the 3 SNPs in either of the donor-recipient pair, they were deemed to have a variant. Survival analysis was conducted using this aforementioned classification method.
 
 \noindent Here we will discuss how we pre-processed the DISCOVeRY-BMT data to grab these SNPs of interest and how we implemented a similar composite scoring design and subsequent survival analysis. In order to replicate these studies we will subset rs2066844, rs2066845 and rs146528649 from the imputed data. Each of these SNPs lie on  chr16 between the ranges of 50000000-55000000. The imputed data was found on the UB supercomputer at the following location:  
@@ -1380,8 +1390,10 @@ write.table(nod2.final, file="nod2_survival_pvals.txt",
 ```
 
 
-# CCR5 analysis
+### CCR5 analysis
+
 \doublespacing
+
 Creating a file with the CCR SNPs in it:  
 
 ```{bash, eval-FAKSE}
@@ -2083,4 +2095,202 @@ write.table(
     row.names = F,
     col.names = T
     )
+```
+
+## Candidate Replication and Validation Plots
+
+```{r, eval=FALSE}
+library(stringr)
+library(grid)
+library(gtable)
+library(gridExtra)
+
+CG_DBMT <- read.table(
+    "~/Google Drive/OSU_PHD/dissertation/code/chapter2/SNP_CGwDBMT_20170522.txt",
+    sep = "\t",
+    header = T,
+    stringsAsFactors = F
+)
+CG_DBMT.sig <- CG_DBMT %>%
+    filter(Significance == "Significant")
+DBMT <- CG_DBMT.sig %>%
+    select(Gene:Graft, Outcome, Genome,SNP, Pvalue_D.BMT, N_D.BMT) %>%
+    mutate(Group = "DISCOVeRY-BMT") %>%
+    rename(numPvalue=Pvalue_D.BMT, N=N_D.BMT)
+fig.tbl <- CG_DBMT.sig %>%
+    select(Gene:Graft, Outcome, Genome,SNP,
+           numPvalue, N, Group) %>%
+    bind_rows(DBMT) %>%
+    mutate(log_pval = -log(numPvalue, base = 10) )
+mac <- read.table("~/Google Drive/OSU_PHD/dissertation/code/chapter2/MacMillan2003.txt",
+                  header=T, 
+                  sep="\t", 
+                  stringsAsFactors = F)
+mac <- mac %>%
+    mutate(log_pval=-log10(numPvalue),
+           Group=ifelse(Group=="Replication in DISCOVeRY-BMT", "DISCOVeRY-BMT", "Replication"))
+fig.tbl <- rbind(fig.tbl, mac)
+plotFun <- function(repval){
+    sub.genes <- fig.tbl %>%
+        filter(Group == repval) %>%
+        pull(Gene)
+    fig.tbl <- fig.tbl %>%
+        filter(Gene %in% c(sub.genes, "CCL2", "MIF"),
+               Group %in% c(repval, "DISCOVeRY-BMT"),
+               SNP != "rs2066842") 
+    fig.tbl$Group <- as.factor(fig.tbl$Group)
+    levels(fig.tbl$Group) <- c(paste0(repval, " in DISCOVeRY-BMT"), "Literature")
+    if(repval=="Replication"){
+        group.facet.labs <- c(`Replication in DISCOVeRY-BMT`="Replication in \n DISCOVeRY-BMT",
+                              Literature="Literature")
+    }else if(repval=="Validation"){
+        group.facet.labs <- c(Literature="Literature",
+                              `Validation in DISCOVeRY-BMT`="Validation in \n DISCOVeRY-BMT")
+    }
+    pR <- fig.tbl %>%
+        mutate(SNP=str_replace(SNP, "D-R group 3 vs D-R group 1", 
+                               "D-R group 3 vs\n D-R group 1"),
+               SNP=str_replace(SNP, "D-R group 3 vs D-R group 2",
+                               "D-R group 3 vs\n D-R group 2"),
+               Outcome=str_replace(Outcome, "DD", "DRM"),
+               Genome=str_replace(Genome, "^R$", "Recipient"),
+               Genome=str_replace(Genome, "^D$", "Donor"),
+               Genome=str_replace(Genome, "^S$", "Mismatch"), 
+               Gene=str_replace(Gene, "NOD2", "NOD2/\nCARD15")) %>% 
+        ggplot(aes(SNP, log_pval)) +
+        geom_hline(yintercept = -log10(0.05), color="red") +
+        geom_point(aes(color=Genome, shape=Outcome, size=N), stroke=1.5) +
+        facet_grid(Group~Gene, 
+                   scales="free_x", 
+                   space="free", 
+                   labeller = labeller(Group=group.facet.labs)) +
+        guides(size=FALSE) +
+        theme(rect = element_rect(fill = "white"),
+              legend.key = element_rect(fill = "white"),
+              panel.border = element_rect(colour = "gray85", fill=NA),
+              panel.background = element_rect(fill = "white"),
+              panel.grid.major = element_line(colour = "gray85"),
+              plot.background = element_rect(fill = "white"),
+              axis.text.x = element_text(hjust = 1, size=18, angle = -90),
+              axis.text.y = element_text(hjust = 1, size=18, angle = -90),
+              strip.text.x = element_text(size = 18, face="italic", angle=-90),
+              strip.text.y = element_text(size = 18, angle=-90),
+              axis.title.y = element_text(size=18, angle=-90),
+              axis.title.x = element_text(size=18, angle=-90),
+              panel.spacing.x=unit(0.1, "lines"),
+              panel.spacing.y=unit(0.1, "lines"),
+              legend.position=c(0.05, 0.565)) + 
+        scale_y_reverse() +
+        ylab("-log10(Pvalue)") +
+        scale_shape_discrete(solid=FALSE, 
+                             guide = guide_legend(direction = "horizontal", 
+                                                  title.position = "right",
+                                                  title.theme=element_text(angle = -90,
+                                                                           size=18),
+                                                  label.position="bottom",
+                                                  label.hjust = 0.5, 
+                                                  label.vjust = 0.5,
+                                                  label.theme = element_text(angle = -90,
+                                                                             size=18)
+                                                  )
+                             ) +
+        scale_color_discrete(guide = guide_legend(direction = "horizontal",
+                                                  title.position = "right",
+                                                  title.theme=element_text(angle=-90,
+                                                                           size=18),
+                                                  label.position="bottom", 
+                                                  label.hjust = 0.5, 
+                                                  label.vjust = 0.5,
+                                                  label.theme = element_text(angle = -90,
+                                                                             size=18)
+                                                  )
+                             ) 
+    
+    
+    xr <- ggplotGrob(pR)
+    #labelR <- "Pvalues"
+    labelT <- "Genes"
+    posT <- subset(xr$layout,
+                   grepl("strip-t", name),
+                   select=t:r)
+    height <- xr$heights[min(posT$t)]
+    xr <- gtable_add_rows(xr, height, min(posT$t)-1)
+    # Construct the new strip grobs
+    stripT <- gTree(name = "Strip_top",
+                    children = gList(
+                        rectGrob(gp = gpar(col = NA, 
+                                           fill = "grey85")),
+                        textGrob(labelT, rot = -90,
+                                 gp = gpar(fontsize = 18,
+                                           col = "grey10"))))
+    # Position the grobs in the gtable
+    xr <- gtable_add_grob(xr,
+                          stripT,
+                          t = min(posT$t),l = min(posT$l)
+                          ,r = max(posT$r),
+                          name = "strip-top")
+    # Add small gaps between strips
+    xr <- gtable_add_rows(xr,
+                          unit(1/5, "line"),
+                          min(posT$t))
+    # Draw it
+    grid.newpage()
+    grid.draw(xr)
+} 
+
+plotFun("Replication")
+plotFun("Validation")
+```
+
+## RegulomeDB of Candidate SNPs
+```{r, eval=FALSE}
+library(tidyverse)
+x <- readxl::read_xlsx("~/Google Drive/OSU_PHD/dissertation/code/chapter2/repval_supps.xlsx",
+                       sheet=1,
+                       na = "NS") ## this is supp table 1 from CG paper
+x <- x %>%
+    mutate(P.Value = as.numeric(P.Value),
+           pval_cat = case_when(
+               is.na(P.Value) ~ "Not Significant",
+               P.Value >= 0.05 ~ "Not Significant",
+               P.Value < 0.05 ~ "Significant")) %>%
+    select(SNP, pval_cat) %>%
+    distinct()
+regdb <- read_delim("~/Downloads/RegulomeDB.dbSNP141.lessCol.txt", delim=" ", col_names = FALSE)
+colnames(regdb) <- c("chr", "pos", "SNP", "RegDB_Score")
+# big file takes up too much memory
+rm(regdb)
+cg.regDB <- regdb %>%
+    right_join(x) %>%
+    distinct() %>%
+    group_by(RegDB_Score, pval_cat) %>%
+    summarise(Count=n()) %>%
+    ungroup() %>%
+    rename(RegulomeDB_Score = RegDB_Score) %>%
+    mutate(Freq=Count/sum(Count))
+write.table(cg.regDB,
+            file="~/Google Drive/OSU_PHD/dissertation/code/chapter2/cg_regulomedb.txt",
+            sep="\t", 
+            quote=FALSE, 
+            row.names=FALSE, 
+            col.names=TRUE)
+cg.regDB <- read.table("~/Google Drive/OSU_PHD/dissertation/code/chapter2/cg_regulomedb.txt",
+                       header = TRUE,
+                       sep="\t")
+p <- cg.regDB %>%
+    na.omit() %>%
+    ggplot(aes(x=fct_rev(RegulomeDB_Score), y=Count, fill=pval_cat) ) +
+    geom_col() +
+    scale_fill_manual(values=c("black", "gray70")) +
+    guides(fill=guide_legend(title=NULL), cex=1) + 
+    xlab("RegulomeDB Score") +
+    ylab("Number of previously reported SNPs") + 
+    labs(fill="Reported Association to Survival") +
+    coord_flip() + 
+    theme_bw() +
+    theme(legend.position = c(0.7, 0.9), 
+          legend.text=element_text(size=14),
+          axis.text=element_text(size=14),
+          axis.title=element_text(size=16))
+p
 ```

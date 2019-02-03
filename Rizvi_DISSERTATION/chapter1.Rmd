@@ -38,7 +38,7 @@ Genetic imputation (will also be simply referred to as imputation) has had signi
 
 Today, several reference panels are available, such as (but not limited to) HapMap2 [@hapmap_2005], 1000 Genomes Phase 3 [@1000genomes], HRC [@hrc], which differ by the number of samples, sites (chromosomes 1-22, X), and number of haplotypes. These reference panels are widely used to carry out accurate imputation in studies. HRC can impute SNPs with MAF as low as 0.1% [@hrc]. Most studies take a two step approach that first will impute the missing genotypes using the reference panel without consideration of the phenotype. The imputed genotypes are then tested for association with the phenotype in the second pass. Multiple phenotypes can be tested for association without the need for re-imputation. 
 
-Several imputation algorithms and software packages are available as stand-alone software, such as IMPUTE2 [@Howie_2009], MaCH [@mach_2010], BEAGLE [@browning_2016] or from imputation web services, such as the Sanger imputation server [@hrc; @durbin_2014] or the University of Michigan imputation server [@michigan_imputation]. The details of the imputation methods are beyond the scope of this dissertation, but very briefly, each algorithm is an extension of the hidden Markov model (HMMs) to carry out inference when modeling LD or haplotype estimation (also called phasing) [@li_2003]. The imputation methods vary in terms slight methodological differences in estimating haplotypes, computational performance and error rates.    
+Several imputation algorithms and software packages are available as stand-alone software, such as IMPUTE2 [@Howie_2009], MaCH [@mach_2010], BEAGLE [@browning_2016] or from imputation web services, such as the Sanger imputation server [@hrc, @durbin_2014] or the University of Michigan imputation server [@michigan_imputation]. The details of the imputation methods are beyond the scope of this dissertation, but very briefly, each algorithm is an extension of the hidden Markov model (HMMs) to carry out inference when modeling LD or haplotype estimation (also called phasing) [@li_2003]. The imputation methods vary in terms slight methodological differences in estimating haplotypes, computational performance and error rates.    
 
 ## Meta-analysis
 Although GWAS have been successful at identifying novel loci that are associated to some disease or trait, the finding typically have modest effects and large sample sizes are needed to detect common variants with small effect sizes. In order to improve the power to detect variants with small effect sizes, meta-analyses have been used. Meta-analysis using summary statistics has been important for GWAS of complex genetic diseases and traits [@bakker_2008]. Researchers combine the effects of multiple studies without having to integrate both genotype and phenotype data. After imputation, meta-analysis is useful for different cohorts that are used on different genotyping chips to boost power. 
@@ -246,6 +246,7 @@ library(survival)
 library(grid)
 library(gridExtra)
 
+
 covs_surv <- covariate.file %>%
     select(sample_type,
            cohort,
@@ -283,6 +284,7 @@ covs_surv_long <- covs_surv %>%
            key=str_replace(key, "infection_1Y", "INF"),
            key=str_replace(key, "OF_1Y", "OF")) %>%
     rename(outcome=key)
+
 
 survivalPlot <- function(outcome_group, title){
     mixed.main <- covs_surv_long %>%
@@ -465,212 +467,10 @@ grid.arrange(mixed.age,
 
 
 
-```{r, echo=FALSE, fig.width=6, fig.height=8, fig.align="center", fig.cap="Disease Status Distribution for All Outcomes by Time to Event. The x-axis is time to death (DRM, TRM, OS) or relapse (PFS, REL)."}
-library(tidyverse)
-
-library(cowplot)
-
-covs_surv <- covariate.file %>%
-    select(sangerIDs,
-           sample_type,
-           cohort,
-           disease,
-           intxsurv_1Y,
-           intxrel_1Y,
-           dead_1Y,
-           lfs_1Y,
-           rel_1Y,
-           disease_death_1Y,
-           TRM_1Y,
-           GVHD_death_1Y,
-           infection_1Y,
-           OF_1Y)
-
-covs_surv_long <- covs_surv %>%
-    rename(surv_time=intxsurv_1Y,
-           rel_time=intxrel_1Y,
-           lfs_1y=lfs_1Y,
-           rel_1y=rel_1Y) %>%
-    mutate_at(.vars=vars(contains("_1Y", ignore.case = FALSE)), .funs=funs(paste0(., " ", surv_time))) %>%
-    mutate_at(.vars=vars(contains("_1y", ignore.case = FALSE)), .funs=funs(paste0(., " ", rel_time))) %>%
-    select(-surv_time,
-           -rel_time) %>%
-    gather(key, value, -sangerIDs,-sample_type, -cohort, -disease) %>% 
-    separate(value, c("event", "time"), sep=" ") %>%
-    mutate_at(.vars=vars(event, time), .funs=as.double) %>%
-    filter(sample_type=="recipient") %>%
-    mutate(key=str_replace(key, "dead_1Y", "OS"),
-           key=str_replace(key, "disease_death_1Y", "DRM"),
-           key=str_replace(key, "TRM_1Y", "TRM"),
-           key=str_replace(key, "lfs_1y", "PFS"),
-           key=str_replace(key, "rel_1y", "REL"),
-           key=str_replace(key, "GVHD_death_1Y", "GVHD"),
-           key=str_replace(key, "infection_1Y", "INF"),
-           key=str_replace(key, "OF_1Y", "OF")) %>%
-    rename(outcome=key)
-
-mixed <- covs_surv_long %>% 
-    mutate(Disease="Mixed")
-
-amlmds <- covs_surv_long %>% 
-    filter(disease %in% c("AML", "MDS")) %>%
-    mutate(Disease="AML + MDS")
- 
-amlonly <- covs_surv_long %>% 
-    filter(disease %in% c("AML")) %>%
-    mutate(Disease="AML only")   
-
-allonly <- covs_surv_long %>% 
-    filter(disease %in% c("ALL")) %>%
-    mutate(Disease="ALL only")   
-
-covs_surv_long <- rbind(mixed, amlmds, amlonly, allonly)
-    
-covs <- covariate.file %>%
-    select(sangerIDs, distatD, PBlood, CondInt, bmi_cat)
-
-covs <- covs %>% 
-    right_join(covs_surv_long) %>%
-    mutate(death_relapse=ifelse(outcome %in% c("REL", "PFS"), "relapse", "death"))
-
-covs <- covs %>%
-    mutate(Disease=factor(Disease, levels=c("Mixed", "AML + MDS", "AML only", "ALL only")))
+```{r, echo=FALSE}
 
 
-distPlot <- function(dat, outcome, variable, death_relapse,  legend_title){
-    dat <- dat %>%
-    mutate(cohort=ifelse(cohort==1, "Cohort \n 1", "Cohort \n 2"),
-           PBlood=ifelse(PBlood==1, "Peripheral Blood", "Bone Marrow"))
-    if(death_relapse=="death"){
-        switch (outcome,
-                OS = {dat <- dat %>% filter(outcome == "OS", event==1)},
-                TRM = {dat <- dat %>% filter(outcome == "TRM", event==1)},
-                DRM = {dat <- dat %>% filter(outcome == "DRM", event==1)})
-        variable <- enquo(variable)
-        ggplot(dat, aes(x=time, fill=as.factor(!!variable))) +   
-            geom_histogram(alpha = 0.6,  binwidth = 0.25) +
-            facet_grid(cohort~Disease) +
-            guides(fill=guide_legend(title=legend_title)) +
-            ggtitle(outcome) +
-            theme_bw() +
-            ylab("Number of Events") +
-            #xlab("Time to death after transplant (Months)") +
-            #theme(legend.position = c(0.911, 0.87))
-            theme(legend.position="none",
-            plot.margin = unit(c(0, 0, 0, 0), "cm"),
-            axis.title.x=element_blank())
-    } else if(death_relapse=="relapse"){
-        switch (outcome,
-                PFS = {dat <- dat %>% filter(outcome == "PFS", event==1)},
-                REL = {dat <- dat %>% filter(outcome == "REL", event==1)})
-        variable <- enquo(variable)
-        ggplot(dat, aes(x=time, fill=as.factor(!!variable))) +   
-            geom_histogram(alpha = 0.6,  binwidth = 0.25) +
-            facet_grid(cohort~Disease) +
-            guides(fill=guide_legend(title=legend_title)) +
-            ggtitle(outcome) +
-            theme_bw() +
-            ylab("Number of Events") +
-            #xlab("Time to relapse after transplant (Months)") +
-            #theme(legend.position = c(0.911, 0.87))
-            theme(legend.position="none",
-                  plot.margin = unit(c(0, 0, 0, 0), "cm"),
-                  axis.title.x=element_blank())
-    }
-}
-
-d1 <- distPlot(covs, "DRM", distatD, "death",  "Disease Status")
-d2 <- distPlot(covs, "TRM", distatD, "death", "Disease Status")
-d3 <- distPlot(covs, "OS", distatD, "death", "Disease Status")
-d4 <- distPlot(covs, "PFS", distatD, "relapse", "Disease Status")
-d5 <- distPlot(covs, "REL", distatD, "relapse",  "Disease Status")
-
-prow <- plot_grid( d1, d2, d3, d4, d5,
-                   align = 'vh',
-                   labels = c("A", "B", "C", "D", "E"),
-                   hjust = -1,
-                   nrow = 5,
-                   ncol= 1
-)
-
-legend_b <- get_legend(d1 + theme(legend.position="bottom"))
-
-p <- plot_grid( prow, legend_b, ncol = 1, rel_heights = c(5, .1))
-
-p
 ```
-
-
-```{r, echo=FALSE, fig.width=6, fig.height=8, fig.align="center", fig.cap="Graft Source Distribution for All Outcomes by Time to Event. The x-axis is time to death (DRM, TRM, OS) or relapse (PFS, REL)."}
-
-d1 <- distPlot(covs, "DRM", PBlood, "death",  "Graft Source")
-d2 <- distPlot(covs, "TRM", PBlood, "death", "Graft Source")
-d3 <- distPlot(covs, "OS", PBlood, "death", "Graft Source")
-d4 <- distPlot(covs, "PFS", PBlood, "relapse", "Graft Source")
-d5 <- distPlot(covs, "REL", PBlood, "relapse",  "Graft Source")
-
-prow <- plot_grid( d1, d2, d3, d4, d5,
-                   align = 'vh',
-                   labels = c("A", "B", "C", "D", "E"),
-                   hjust = -1,
-                   nrow = 5,
-                   ncol= 1
-)
-
-legend_b <- get_legend(d1 + theme(legend.position="bottom"))
-
-p <- plot_grid( prow, legend_b, ncol = 1, rel_heights = c(5, .1))
-
-p
-```
-
-```{r, echo=FALSE, fig.width=6, fig.height=8, fig.align="center", fig.cap="Body Mass Index (BMI) Distribution for All Outcomes by Time to Event. The x-axis is time to death (DRM, TRM, OS) or relapse (PFS, REL)."}
-
-d1 <- distPlot(covs, "DRM", bmi_cat, "death",  "Body Mass Index (BMI)")
-d2 <- distPlot(covs, "TRM", bmi_cat, "death", "Body Mass Index (BMI)")
-d3 <- distPlot(covs, "OS", bmi_cat, "death", "Body Mass Index (BMI)")
-d4 <- distPlot(covs, "PFS", bmi_cat, "relapse", "Body Mass Index (BMI)")
-d5 <- distPlot(covs, "REL", bmi_cat, "relapse",  "Body Mass Index (BMI)")
-
-prow <- plot_grid( d1, d2, d3, d4, d5,
-                   align = 'vh',
-                   labels = c("A", "B", "C", "D", "E"),
-                   hjust = -1,
-                   nrow = 5,
-                   ncol= 1
-)
-
-legend_b <- get_legend(d1 + theme(legend.position="bottom"))
-
-p <- plot_grid( prow, legend_b, ncol = 1, rel_heights = c(5, .1))
-
-p
-```
-
-
-```{r, echo=FALSE, fig.width=6, fig.height=8, fig.align="center", fig.cap="Conditioning Intensity Distribution for All Outcomes by Time to Event. The x-axis is time to death (DRM, TRM, OS) or relapse (PFS, REL). MA is myeloablative, RIC is reduced intensity conditioning."}
-
-d1 <- distPlot(covs, "DRM", CondInt, "death",  "Conditioning Intensity")
-d2 <- distPlot(covs, "TRM", CondInt, "death", "Conditioning Intensity")
-d3 <- distPlot(covs, "OS", CondInt, "death", "Conditioning Intensity")
-d4 <- distPlot(covs, "PFS", CondInt, "relapse", "Conditioning Intensity")
-d5 <- distPlot(covs, "REL", CondInt, "relapse",  "Conditioning Intensity")
-
-prow <- plot_grid( d1, d2, d3, d4, d5,
-                   align = 'vh',
-                   labels = c("A", "B", "C", "D", "E"),
-                   hjust = -1,
-                   nrow = 5,
-                   ncol= 1
-)
-
-legend_b <- get_legend(d1 + theme(legend.position="bottom"))
-
-p <- plot_grid( prow, legend_b, ncol = 1, rel_heights = c(5, .1))
-
-p
-```
-
 
 
 ## Genotyping and Quality Control
@@ -795,7 +595,9 @@ c1 <- covariate.file %>%
     filter(sample_type=="recipient",
            cohort==1) %>%
     mutate(age_cat = ifelse(age >= 40, 1, 0),
-           intxsurv_1Y_days=intxsurv_1Y*30.4167) # convert to daysc
+           intxsurv_1Y_days=intxsurv_1Y*30.4167) # convert to days
+library(survival)
+library(survminer)
 
 c2 <- covariate.file %>%
     filter(sample_type=="recipient",

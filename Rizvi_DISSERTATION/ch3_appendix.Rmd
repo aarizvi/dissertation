@@ -1,0 +1,18 @@
+---
+title: "chapter 3 appendix"
+author: "Abbas Rizvi"
+date: "9/14/2018"
+output: pdf_document  
+---
+
+```{r ch3app_setup, include=FALSE}
+def.chunk.hook  <- knitr::knit_hooks$get("chunk")
+knitr::knit_hooks$set(chunk = function(x, options) {
+  x <- def.chunk.hook(x, options)
+  ifelse(options$size != "normalsize", paste0("\\", options$size,"\n\n", x, "\n\n \\normalsize"), x)
+})
+
+knitr::opts_chunk$set(echo = TRUE, eval=FALSE, size="scriptsize")
+```
+
+
