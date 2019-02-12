@@ -3,6 +3,8 @@ title: "chapter 3 appendix"
 author: "Abbas Rizvi"
 date: "9/14/2018"
 output: pdf_document  
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r ch3app_setup, include=FALSE}
@@ -16,3 +18,404 @@ knitr::opts_chunk$set(echo = TRUE, eval=FALSE, size="scriptsize")
 ```
 
 
+# Chapter 3
+
+## R Package Files
+
+### DESCRIPTION
+
+### NAMESPACE
+
+
+## Gwasurvivr Functions
+Please refer to GitHub and/or Bioconductor for the gwasurvivr R functions and vignette
+https://github.com/suchestoncampbelllab/gwasurvivr/
+http://bioconductor.org/packages/release/bioc/html/gwasurvivr.html
+http://bioconductor.org/packages/release/bioc/vignettes/gwasurvivr/inst/doc/gwasurvivr_Introduction.html
+
+
+
+
+
+## Manuscript Figures
+### Cox Implementation Figure
+
+```{r, eval=FALSE}
+# load library
+library(gwasurvivr)
+# load phenotype data
+pheno.file <- readRDS("~/Google Drive/OSU_PHD/gwasurvivr_manuscript/supplemental_data/simulated_pheno.rds")
+sample.ids <- pheno.file$ID_2
+# load genotype data
+genotypes <- readRDS("~/Google Drive/OSU_PHD/gwasurvivr_manuscript/supplemental_data/sanger.genotypes.rds")
+
+library(microbenchmark)
+library(survival)
+tm <- microbenchmark(
+    gws_1cov=t(apply(X=genotypes,
+                     MARGIN=1,
+                     FUN=gcoxph_model,
+                     pheno.file=pheno.file, 
+                     time.to.event="time", 
+                     event="event", 
+                     covariates="age", 
+                     sample.ids=sample.ids)),
+    gws_2cov=t(apply(X=genotypes,
+                     MARGIN=1,
+                     FUN=gcoxph_model,
+                     pheno.file=pheno.file, 
+                     time.to.event="time", 
+                     event="event", 
+                     covariates=c("age", "DrugTxYes"), 
+                     sample.ids=sample.ids)),
+    gws_3cov=t(apply(X=genotypes,
+                     MARGIN=1,
+                     FUN=gcoxph_model,
+                     pheno.file=pheno.file, 
+                     time.to.event="time", 
+                     event="event", 
+                     covariates=c("age", "DrugTxYes", "SexFemale"), 
+                     sample.ids=sample.ids)) ,
+    surv_1cov=t(apply(X=genotypes,
+                      MARGIN=1,
+                      FUN=coxph_model,
+                      pheno.file=pheno.file,
+                      time.to.event="time",
+                      event="event",
+                      covariates="age")),
+    surv_2cov=t(apply(X=genotypes,
+                      MARGIN=1,
+                      FUN=coxph_model,
+                      pheno.file=pheno.file,
+                      time.to.event="time",
+                      event="event",
+                      covariates=c("age", "DrugTxYes"))),
+    surv_3cov=t(apply(X=genotypes,
+                      MARGIN=1,
+                      FUN=coxph_model,
+                      pheno.file=pheno.file,
+                      time.to.event="time",
+                      event="event",
+                      covariates=c("age", "DrugTxYes", "SexFemale"))),
+    times=3L,
+    unit = "s"
+)
+tm
+
+df <- read.table(text = "
+      simulation      min       lower_quartile     mean   median       upper_quartile      max 
+                 gws_1cov 27.11076 29.61483 30.90848 32.11891 32.80734 33.49577
+                 gws_2cov 32.38955 33.28182 33.73240 34.17409 34.40383 34.63356
+                 gws_3cov 35.04497 35.97687 36.34055 36.90877 36.98835 37.06793
+                 surv_1cov 44.94886 45.83481 46.15520 46.72077 46.75837 46.79598
+                 surv_2cov 46.87313 47.12968 49.65251 47.38622 51.04220 54.69818
+                 surv_3cov 51.51329 52.32482 53.89750 53.13635 55.08960 57.04286", header=TRUE)
+
+
+
+df2 <- df %>% 
+    separate(simulation, c("simulation", "covs")) %>% 
+    mutate(simulation=recode(simulation, gws="gcoxph (gcoxph_model.R)", surv="coxph (coxph_model.R)"),
+           covs=str_extract(covs, "[[:digit:]]+")) %>% 
+    ggplot(aes(simulation, mean, fill=covs)) + 
+    geom_col(position = position_dodge(), width = 0.5) +
+    geom_errorbar(aes(ymin = min, ymax = max), position = position_dodge(width = 0.5), width = 0.1, size=0.5)+
+    scale_fill_brewer(palette = "Purples") + 
+    theme_bw() +
+    ylab("Mean Seconds") +
+    xlab("Survival Functions Tested") +
+    guides(fill = guide_legend("Number of Covariates")) +
+    theme(plot.title = element_text(hjust = 0.5, size=30),
+          axis.title.y = element_text(size=28),
+          axis.text.y = element_text(size=22),
+          axis.title.x = element_text(size=28),
+          axis.text.x = element_text(size=22),
+          legend.text = element_text(size=30),
+          legend.title = element_text(size=30),
+          legend.position="top") 
+
+df2 %>% ggsave(plot=., filename="~/Desktop/figures/chapter3/convergence_time_sim.png", device="png")
+```
+
+
+Loading the data
+```{r, eval=FALSE}
+library(tidyverse)
+library(glue)
+options(scipen=1000000)
+times <- readRDS("~/Google Drive/OSU_PHD/gwasurvivr_manuscript/benchmark_experiments/results/times/benchmark_experiments_times.rds")
+sv_times %>%
+    group_by(n,m,repnum) %>%
+    summarise(seconds=max(seconds)) %>%
+    ungroup() %>%
+    filter(m==1e5) %>%
+    group_by(n, m) %>%
+    summarise(mean = mean(seconds),
+              sd=sd(seconds)) %>%
+    ungroup() %>%
+    mutate(se= sd/sqrt(3),
+           upperCI=mean+1.96*se,
+           lowerCI=mean-1.96*se,
+           n=as.character(glue("n={n}")),
+           m="m=100000",
+           software = "SurvivalGWAS_SV*")
+```
+
+
+### Figure 3.1 
+Software comparison.
+```{r, eval=FALSE}
+timesPlot <- times %>%
+    filter(software != "SurvivalGWAS_SV") %>%
+    bind_rows(svTimes_df) %>%
+    mutate_at(vars(mean, lowerCI, upperCI), function(x) x/3600) %>%
+    ggplot(aes(x=n, y=mean, group=software, color=software)) +
+    geom_errorbar(aes(ymin = lowerCI, ymax =upperCI),
+                  width = 0.05) +
+    geom_point(size=1.2) +
+    geom_line(size=1) +
+    scale_color_manual(values = plot_cols,
+                      labels=c(" genipe   ",
+                               " GWASTools   ",
+                               " gwasurvivr   ",
+                               " SurvivalGWAS_SV\n(Rate limiting array)   ")) +
+    labs(y="Runtime (hours)", x="Sample Sizes")+
+    theme_bw() +
+    theme(plot.title = element_text(size=28),
+          axis.text.x = element_text(size=28),
+          axis.text.y = element_text(size=28),
+          axis.title.x = element_text(size=30),
+          axis.title.y = element_text(size=30, margin=margin(t=25), vjust=2.5),
+          strip.text.x = element_text(size=24),
+          legend.text = element_text(size=24),
+          legend.position="top",
+          legend.title = element_blank(),
+          legend.background = element_blank()) 
+timesPlot %>%
+    ggsave(plot=., filename = "~/Desktop/figures/chapter3/benchmarking_plot.png")
+
+```
+
+### Figure 3.2
+Covariate comparison.
+```{r, eval=FALSE}
+covs <- readRDS("~/Google Drive/OSU_PHD/gwasurvivr_manuscript/diff_cov_benchmarks/results/times/diff_cov_times.rds")
+sv_covs <- readRDS("~/Google Drive/OSU_PHD/gwasurvivr_manuscript/diff_cov_benchmarks/results/times/sv_covs_expanded.rds")
+
+sv_df <- sv_covs %>%
+    group_by(n, m, covnum) %>%
+    summarise(seconds=max(Seconds)) %>%
+    ungroup() %>%
+    mutate(software = "SurvivalGWAS_SV*")
+
+cov_pl <- covs %>%
+    select(software, n, m, covnum,seconds) %>%
+    filter(software != "SurvivalGWAS_SV") %>%
+    bind_rows(sv_df) %>%
+    mutate(seconds=seconds/3600) 
+
+cov_plot <- cov_pl %>%
+    ggplot(aes(factor(covnum), seconds, fill=software)) +
+    geom_col(position = "dodge") +
+    geom_text(aes(label=round(seconds,2)), size=14, 
+              position=position_dodge(width=0.9), vjust=-0.25) +
+    xlab("Number of covariates included in the model") +
+    ylab("Runtime (hours)") +
+    scale_fill_manual(values = plot_cols,
+                      labels=c(" genipe   ",
+                               " GWASTools   ",
+                               " gwasurvivr   ",
+                               " SurvivalGWAS_SV\n(Rate limiting array)   ")) +
+    theme_bw() +
+    ylim(c(0, 10.5)) +
+    theme(plot.title = element_text(size=28),
+          axis.text.x = element_text(size=24),
+          axis.text.y = element_text(size=24),
+          axis.title.x = element_text(size=26),
+          axis.title.y = element_text(size=26, margin=margin(l=20), vjust=5),
+          legend.text = element_text(size=24),
+          legend.key.size = unit(5, "mm"),
+          strip.text.x = element_text(size=24),
+          legend.position="top",
+          legend.title = element_blank(),
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank())
+
+cov_plot %>% 
+    ggsave(plot=., filename = "~/Desktop/figures/chapter3/cov_plot.png", device="png")
+```
+
+
+
+### Figure 3.3
+
+```{r, eval=FALSE}
+big_N_times <- readRDS("~/Google Drive/OSU_PHD/gwasurvivr_manuscript/largeN_experiments/results/big_N_times.rds")
+bigN_plot <- 
+    big_N_times %>%
+    ggplot(aes(n, times, fill=Type, label=round(times, 2))) +
+    geom_col() +
+    scale_fill_manual(values = plot_cols[3:4]) +
+    geom_text(size = 14, position = position_stack(vjust = 0.5), color="white") +
+    ylab("Time (hours)") +
+    xlab("Sample Sizes") +
+    theme_bw() +
+    theme( plot.title = element_text(size=28),
+           axis.text.x = element_text(size=28),
+           axis.text.y = element_text(size=28),
+           axis.title.x = element_text(size=30),
+           axis.title.y = element_text(size=30, margin=margin(l = 20), vjust=5),
+           legend.text = element_text(size=26),
+           strip.text.x = element_text(size=26),
+           legend.position=c(0.28,0.914),
+           legend.box="vertical",
+           legend.direction = "vertical",
+           legend.title = element_blank(),
+           panel.grid.major = element_blank(),
+           panel.grid.minor = element_blank()) +
+    labs(x="Sample Sizes", y="Runtime (hours)")
+bigN_plot %>% ggsave(plot=., filename = "~/Desktop/figures/chapter3/bigN_plot.png", device="png")
+```
+
+### Figure 3.4
+
+```{r, eval=FALSE}
+gwas_times <- readRDS("~/Google Drive/OSU_PHD/gwasurvivr_manuscript/full_gwas_experiments/results/gwas_times.rds")
+
+gwasTimesPlot <- gwas_times %>%
+    ggplot(aes(n, Time, fill=`Step of Analysis`, label=round(Time, 2))) +
+    geom_col() + 
+    scale_fill_manual(values = plot_cols[3:4]) +
+    geom_text(size = 14, position = position_stack(vjust = 0.5), color="white") +
+    theme_bw() +
+    theme(plot.title = element_text(size=24),
+          axis.text.x = element_text(size=28),
+          axis.text.y = element_text(size=28),
+          axis.title.x = element_text(size=30),
+          axis.title.y = element_text(size=30, margin=margin(l=20), vjust=5),
+          legend.text = element_text(size=26),
+          strip.text.x = element_text(size=26),
+          legend.position=c(0.28,0.914),
+          legend.box="vertical",
+          legend.direction = "vertical",
+          legend.key = element_rect(colour = "transparent", fill = "white"),
+          legend.title = element_blank(),
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank()) +
+    labs(x="Sample Sizes", y="Runtime (hours)")
+
+gwasTimesPlot %>% ggsave(plot=., filename = "~/Desktop/figures/chapter3/gwastimes_plot.png")
+```
+
+### Diagnostic Plots
+Supplementary Figures 2, 3 and 4 below show the correlation of the coefficient estimates, minor allele frequency and p-values, respectively between gwasurvivr and all other software assessed. The correlations show excellent agreement. The R code used to generate supplemental figures 2-4 can be found [here](https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/blob/master/supplemental_data/code/SupplementalFigure2-4.R).
+
+#### Coefficient Estimates
+```{r, cache=TRUE, message=FALSE, fig.width=11, fig.height=6, fig.cap="Correlation of beta coefficient estimates between gwasurvivr and other software. The x-axis are gwasurvivr coefficients and the y-axis are coefficient estimates from the other software. The points are colored to indicate the software being used where red is genipe, green is GWASTools alone, and blue is SurvivalGWAS_SV. Each panel represents different simulations with varying sample sizes (n) and number of SNPs (p) included in the provided imputed genetic dataset. The estimates are near perfectly correlated and thus not all colors are visible in each plot.", echo=FALSE,  dev="png"}
+
+library(tidyverse)
+sim_df_sp <- readRDS("~/Google Drive/OSU_PHD/benchmark_survivr/full_results/simulation_results_all_software.rds")
+
+corr_plots <- sim_df_sp %>%
+    ungroup() %>%
+    mutate(sims=str_replace_all(sims, "p", "m")) %>% 
+    filter(sims=="n=5000, m=100000") %>%
+    gather(key = "software", "value", c(genipe, GWASTools, SurvivalGWAS_SV)) %>% 
+    filter(value > -3, value < 3) %>%
+    mutate(value=ifelse(value<0, abs(value), value),
+           gwasurvivr=ifelse(gwasurvivr<0, abs(gwasurvivr), gwasurvivr),
+           stats=factor(stats, levels=c("COEF", "PVALUE", "MAF"))) %>%  
+    ggplot(aes(x=gwasurvivr, y=value, color=software)) +
+    geom_point(alpha=(1/10)) +
+    facet_wrap(~stats, scales="free") +
+    ggtitle("Correlation between Survival Packages") + 
+    labs(x="gwasurvivr coefficient estimates", y="other software cofficient estimates") +
+    guides(color = guide_legend(override.aes = list(alpha = 1))) +
+    theme_bw() +
+    theme(plot.title = element_text(hjust = 0.5),
+          legend.position="top") 
+corr_plots %>% 
+    ggsave(plot=., filename="~/Desktop/figures/chapter3/correlation_stats.png", device="png")
+
+
+```
+## Computational Experiments:
+Simulating Phenotypes and Genotypes:
+The following genotypes and phenotypes were simulated:   
+**Simulations 1 and 2.** Subset of chromosome 18 for $100,000$ SNPs 1) varying N and 3 covariates done in triplicate and 2) with 4, 8 and 12 covariates
+
+\begin{itemize}
+  \item \href{https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/blob/master/hapgen2/code/generate_chr18_subsets_geno.sh}{genotype code}
+  \item \href{https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/blob/master/benchmark_experiments/code/simulate_phenotypes_benchmark.R}{phenotype code}  
+  \item \href{https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/blob/master/diff_cov_benchmarks/code/add_pcs_covariates.R}{PCs phenotype code}
+\end{itemize}
+
+**Simulation 3.** chromosome 22 ($\approx 117,000$ SNPs) for larger sample sizes ($n=15000 \text{ to } 25000$)  
+
+\begin{itemize}
+  \item \href{https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/blob/master/hapgen2/code/generate_largeN_geno.sh}{genotype code}
+\end{itemize}
+
+**Simulation 4.** Full GWAS for $n=9000$ (the smaller subsets were just parsed from the data during analyses)  
+
+\begin{itemize}
+  \item \href{https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/blob/master/hapgen2/code/generate_gwas_geno.sh}{genotype code}   
+  \item \href{https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/blob/master/full_gwas_experiments/code/phenotype_sim.R}{phenotype code}
+  \item \href{https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/blob/master/full_gwas_experiments/code/simulate_gwas_sample_ids.R}{simulate sample ids code}  
+\end{itemize}
+
+[Simulated Principal components (PCs)](https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/blob/master/diff_cov_benchmarks/code/add_pcs_covariates.R)
+
+[HAPGENv2 Simulations](https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/tree/master/hapgen2/code) for all HAPGENv2 simulations are available on our GitHub.
+
+### gwasurvivr
+The following scripts were used to run gwasurvivr using `impute2CoxSurv`. These R scripts are run using a shell script (SLURM script) that pass the system variables into R (facilitated by the R package `batch` [@batch]).   
+
+$N=100$, 1000 and 5000 with $M=100,000$ SNPs + 3 non-genetic covariates in triplicate:  
+- [`run_gwasurvivr.R`](https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/blob/master/benchmark_experiments/code/run_gwasurvivr.R)  
+- [`create_gwasurvivr_scripts.sh`](https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/blob/master/benchmark_experiments/code/create_gwasurvivr_scripts.sh)   
+
+N=5,000 and M=100K with 4, 8 and 12 covariates:  
+- [`run_gwasurvivr_covs.R`](https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/blob/master/diff_cov_benchmarks/code/run_gwasurvivr_covs.R)  
+- [`gwasurvivr_cov4.sh`](https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/blob/master/diff_cov_benchmarks/code/gwasurvivr_cov4.sh)  
+- [`gwasurvivr_cov8.sh`](https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/blob/master/diff_cov_benchmarks/code/gwasurvivr_cov8.sh)  
+- [`gwasurvivr_cov12.sh`](https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/blob/master/diff_cov_benchmarks/code/gwasurvivr_cov12.sh)  
+
+### genipe
+For genipe, the shell scripts was used to generate SLURM scripts for genipe and each sample and SNP set. We used specific settings for OPENBLAS that are suggested on [genipe's website](http://pgxcentre.github.io/genipe/execution_time.html) to ensure that computational efficiency was maximized.  
+
+varying sample sizes + 3 non-genetic covariates:   
+- [`create_genipe_scripts.sh`](https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/blob/master/benchmark_experiments/code/create_genipe_scripts.sh)   
+
+additional covariates:  
+- [`genipe_cov4.sh`](https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/blob/master/diff_cov_benchmarks/code/genipe_cov4.sh)  
+- [`genipe_cov8.sh`](https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/blob/master/diff_cov_benchmarks/code/genipe_cov8.sh)  
+- [`genipe_cov12.sh`](https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/blob/master/diff_cov_benchmarks/code/genipe_cov12.sh)   
+
+
+### SurvivalGWAS_SV
+$n=100$, $n=1000$ and $n=5000$ with M=100K SNPs + 3 non-genetic covariates in triplicate:  
+- [`create_sv_scripts.sh`](https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/blob/master/benchmark_experiments/code/create_sv_scripts.sh)  
+
+N=5,000 and M=100K with 4, 8 and 12 covariates:  
+- [`sv_cov4.sh`](https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/blob/master/diff_cov_benchmarks/code/sv_cov4.sh)  
+- [`sv_cov8.sh`](https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/blob/master/diff_cov_benchmarks/code/sv_cov8.sh)  
+- [`sv_cov12.sh`](https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/blob/master/diff_cov_benchmarks/code/sv_cov12.sh)  
+
+### GWASTools
+For GWASTools, the files are converted to GDS format and survival is run using `GWASTools::assocCoxPH` within  [`gwastools_survival.R`](https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/blob/master/benchmark_experiments/code/gwastools_survival.R). The R script was passed to the SLURM scripts using the script [`create_gwastools_scripts.sh`](https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/blob/master/benchmark_experiments/code/create_gwastools_scripts.sh). GWASTools does not run in parallel across multiple cores on a single computing processor internally, however experienced users could code this themselves.
+
+$N=100$, 1000 and 5000 with $M=100,000$ SNPs + 3 non-genetic covariates in triplicate:  
+- [`gwastools_survival.R`](https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/blob/master/benchmark_experiments/code/gwastools_survival.R)  
+- [`create_gwastools_scripts.sh`](https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/blob/master/benchmark_experiments/code/create_gwastools_scripts.sh)  
+N=5,000 and M=100K with 4, 8 and 12 covariates:  
+- [`gwastools_survival_covs.R`](https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/blob/master/diff_cov_benchmarks/code/gwastools_survival_covs.R)  
+- [`gwastools_cov4.sh`](https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/blob/master/diff_cov_benchmarks/code/gwastools_cov4.sh)  
+- [`gwastools_cov8.sh`](https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/blob/master/diff_cov_benchmarks/code/gwastools_cov8.sh)  
+- [`gwastools_cov12.sh`](https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/blob/master/diff_cov_benchmarks/code/gwastools_cov12.sh)  
+
+## Runtime large N chromosomes to test size limitations
+We tested chromosome 22 with different sample sizes of N=15,000; N=20,000; N=25,000 using `gwasurvivr::impute2CoxSurv`. The code for all of the runs can be found [here](https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/tree/master/largeN_experiments/code). The R script called from the shell scripts to run these analyses is labeled [`run_bigNs.R`](https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/tree/master/largeN_experiments/code). 
+
+## Runtime GWAS with different sample sizes
+We performed three GWAS (chromosome 1-chromosome 22) with different sample sizes ($n=3000$; $n=6000$; $n=9000$) using `gwasurvivr::impute2CoxSurv`. The code to simulate the GWAS is available on our repository. The R script used to run these analyses is [`run_fullgwas.R`](https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/tree/master/full_gwas_experiments/code). The shell script run these scripts on SLURM can be found [here](https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/blob/master/full_gwas_experiments/code/submit_fullgwas.sh).

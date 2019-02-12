@@ -248,11 +248,13 @@ Required commands:
     -m        path to the manifest file
     -e        e-mail address for messaging
     -w        walltime in format 00:00:00
-    -rscript  /projects/rpci/lsuchest/lsuchest/DBMT_metaPipeline/\
-               run_gwasurvivr.R (or path to another user defined R script)
+    -rscript  /projects/rpci/lsuchest/lsuchest/DBMT_metaPipeline/ \
+              run_gwasurvivr.R 
+    # (or path to another user defined R script)
 ```
 
 \doublespacing
+
 ## Manifest file
 
 ## Output Folders

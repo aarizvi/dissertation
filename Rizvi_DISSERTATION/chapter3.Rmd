@@ -1,48 +1,80 @@
 ---
-title: "Gwasurvivr: Benchmarking survival models"
+title: 'Gwasurvivr: Benchmarking survival analyses'
 author: "Abbas Rizvi"
 date: "11/11/2018"
-output: pdf_document  
+output:
+  pdf_document: default
+editor_options:
+  chunk_output_type: console
 ---
 
 ```{r ch3_setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, eval=FALSE)
+knitr::opts_chunk$set(echo = TRUE)
+library(knitr)
+library(kableExtra)
+library(tidyverse)
 ```
 
 
-# Introduction
-Genome-wide association studies (GWAS) are population-level experiments that investigate genetic variation in individuals to observe single nucleotide polymorphism (SNP) associations with a phenotype. Genetic variants tested for association are genotyped on an array and imputed from a reference panel of sequenced genomes using 1000 Genomes Project or Haplotype Reference Consortium (HRC) [@michigan_imputation; @1000genomes]. Imputation increases genome coverage from hundreds of thousands or a few million to upwards of 30 million SNPs, improves power to detect genetic associations, and/or homogenizes variant sets for meta-analyses [@michigan_imputation]. Imputed SNPs can be tested for association with binary outcomes (case/control) and quantitative outcomes (i.e. height) using a range of available software packages including SNPTEST [@snptest] or PLINK [@plink]. 
+# Abstract
+Summary: To address the limited software options for performing survival analyses with millions of SNPs, we developed gwasurvivr, an R/Bioconductor package with a simple interface for conducting genome-wide survival analyses using VCF (outputted from Michigan or Sanger imputation servers), IMPUTE2 or PLINK files. To decrease the number of iterations needed for convergence when optimizing the parameter estimates in the Cox model, we modified the R package survival; covariates in the model are first fit without the SNP, and those parameter estimates are used as initial points. We benchmarked gwasurvivr with other software capable of conducting genome-wide survival analysis (genipe, SurvivalGWAS_SV and GWASTools). gwasurvivr is significantly faster and shows better scalability as sample size, number of SNPs and number of covariates increases.  
 
-However, existing software options for performing survival analyses, genipe [@genipe], SurvivalGWAS_SV [@survivalgwas_sv], or GWASTools [@gwastools], across millions of imputed SNPs either require user interaction with raw output, were not initially designed for survival and/or have other limitations that could deter more introductory users developed an R/Bioconductor package, gwasurvivr, for genome wide survival analyses of imputed data in multiple formats with flexible analysis and output options [@Rizvi_2018]. 
+Availability and implementation: gwasurvivr, including source code, documentation and vignette are available at: http://bioconductor.org/packages/gwasurvivr.
+
+# Introduction
+Genome-wide association studies (GWAS) are population-level experiments that investigate genetic variation in individuals to observe single nucleotide polymorphism (SNP) associations with a phenotype. Genetic variants tested for association are genotyped on an array and imputed from a reference panel of sequenced genomes using 1000 Genomes Project or Haplotype Reference Consortium (HRC) [@michigan_imputation; @1000genomes]. Imputation increases genome coverage from hundreds of thousands or a few million to upwards of 30 million SNPs, improves power to detect genetic associations, and/or homogenizes variant sets for meta-analyses [@michigan_imputation]. Imputed SNPs can be tested for association with binary outcomes (case/control) and quantitative outcomes (i.e. height) using a range of available software packages including SNPTEST [@snptest] or PLINK [@plink]. Typically imputed SNPs are used in association testing for large studies.     
+
+As we learned from our candidate gene replication/validation project, researchers (including our lab) often opt to write custom survival analysis scripts using the survival package in R. This hinders reproducibility of results as unintentional errors may incur and propagate without effectively testing and/or reviewing the custom scripts. A solution to this would be a well-developed, flexible, and tested open source software package that performs survival analysis on GWAS data. Software options for performing survival analyses do indeed exist, such as, genipe [@genipe], SurvivalGWAS_SV [@survivalgwas_sv], or GWASTools [@gwastools]. These software are able to analyze millions of imputed SNPs but either require user interaction with raw output, were not initially designed for survival and/or have other limitations that could deter more introductory users (i.e. mapping patient meta data with the genetic data). To address these needs, we developed an R/Bioconductor package, gwasurvivr, for genome wide survival analyses of imputed data in multiple formats with flexible analysis and output options [@Rizvi_2018]. This package uses output from the most popular imputation software and/or services as input, and unlike other packages, no additional data wrangling or file format conversion is needed. And then we wanted to test our package and compare it to the other packages.  
 
 # Methods
+We detail our the methodology and computational experiments conducted in the development of gwasurvivr. This also includes generation of the simulated data, survival analysis benchmarking and diagnostics. All of the code that was published can be found in the [gwasurvivr manuscript repository](https://github.com/suchestoncampbelllab/gwasurvivr_manuscript). [GitHub Large File Storage (LFS)](https://git-lfs.github.com/) is on GitHub Large File Storage (LFS) or in the Appendix.
+
+The repository can be cloned by invoking the following command:     
+
+\singlespacing
+
+```
+git lfs clone \    
+    https://github.com/suchestoncampbelllab/gwasurvivr_manuscript.git
+```
+
+\doublespacing
 
 ## Data Structure
-Gwasurvivr can analyze data in IMPUTE2 format [@Howie_2009], in VCF files derived from Michigan [@michigan_imputation] or Sanger imputation servers [@hrc], and directly genotyped PLINK format [@plink]. Data from each are prepared in gwasurvivr by leveraging existing Bioconductor packages GWASTools [@gwastools] or VariantAnnotation [@variantannotation] depending on the imputation file format.
+In a typical GWAS pipeline, raw genotyping data ('typed' data) is pre-processed with standard quality control (QC)/quality assurance (QA) and then delivered in PLINK [@plink] formatted files (`.bed`, `.bim`, and `.fam` files). The primary representation of the genotype calls are the `.bed` files. `Bim` files are a text file with no header containing more information about the variant (chromosome, identified, position, base pair, and allele1 and allele2). The `.fam` file contains information about the samples (family ID, within-family ID, father ID, mother ID, sex code, and additional phenotype information). PLINK does not do survival analysis to test for association on its own and separate packages are needed. `Gwasurvivr` was designed to take PLINK ready files directly using `plinkCoxSurv`. For all survival analyses implemented in `gwasurvivr`, in addition to the genetic data, a phenotype file is needed, which contains survival time, survival status and additional covariates, both files are indexed by sample ID. Potential data wrangling that the user may have to do, however, is that they must convert categorical variable need to be convert to indicator (or dummy) variables and be class numeric (or integer).  
 
-IMPUTE2 Format: IMPUTE2 [@Howie_2009] format is a standard genotype (.gen) file which store genotype probabilities (GP). We utilized GWASTools in R to compress files into genomic data structure (GDS) format [@gwastools]. This allows for efficient, iterative access to subsets of the data, while simultaneously converting GP into dosages (DS) for use in survival analyses.
+Most GWAS, including DISCOVeRY-BMT, impute the typed data to obtain a greater number of SNPs for association testing. In preparation for imputation, PLINK files need to be converted into an appropriate format (genotype (`.gen`) format for IMPUTE2 or VCF for Sanger and Michigan imputation servers). The output format from these imputation programs is the same as the input format (i.e. VCF input, VCF output). After imputation, the VCF files contain both sample IDs and imputation quality metrics (INFO score [Sanger] or $r^2$ [Michigan]), while IMPUTE2 [@Howie_2009] come in separate files (`.gen`, `.sample`, and `.info`). Data from each format are prepared in `gwasurvivr` by leveraging existing Bioconductor packages GWASTools [@gwastools], VariantAnnotation [@variantannotation], or SNPRelate [@snprelate] depending on the imputation/typed data file format. 
 
-VCF Format: VCF files generated from these Michigan or Sanger servers include a DS field and server-specific meta-fields (INFO score [Sanger] or $r^2$ [Michigan], as well as reference panel allele frequencies) that are iteratively read in by VariantAnnotation [@variantannotation].
+IMPUTE2 [@Howie_2009] format is a standard genotype (`.gen`) file which store genotype probabilities (GP). We utilized GWASTools in R to compress files into genomic data structure (GDS) format [@gwastools]. This allows for efficient, iterative access to subsets of the data, while simultaneously converting GP into dosages (DS) for use in survival analyses. The INFO score for IMPUTE2 [@Howie_2009] results are not calculated in `gwasurvivr` internally, instead we use the INFO scores that are provided in a separate file after performing imputation (`.info` file). Users select SNPs from the `.info` file to remove based on preferred criterion (i.e. INFO < 0.8) these are then used in the argument `exclude.snps` in `impute2CoxSurv` to filter out the SNPs prior to analysis. VCF files generated from these Michigan or Sanger servers include a DS field and server-specific meta-fields (INFO score [Sanger] or $r^2$ [Michigan], as well as reference panel allele frequencies) that are iteratively read in by VariantAnnotation [@variantannotation]. For the Michigan imputation server, imputation is performed using the minimac3 algorithm [@michigan_imputation]. minimac3 computes and outputs an imputation quality metric known as $R^2$. $R^2$ is the estimated value of the squared correlation between imputed genotypes and true, unobserved genotypes [@michigan_imputation]. The $R^2$ value is extracted directly from the Michigan imputation output VCF in `michiganCoxSurv`. For the Sanger imputation server, we extract the INFO field directly from the VCF file in `sangerCoxSurv`. The INFO field is the IMPUTE2 [@Howie_2009] score as calculated by from posterior genotype probabilities using bcftools + impute-info plugin [@hrc].  
 
-PLINK Format: Plink bed files contain genotype information encoded in binary format. Fam and bim files include the information of phenotype and marker location, respectively [@plink].
+The `gwasurvivr` functions for IMPUTE2 (`impute2CoxSurv` or `gdsCoxSurv`) and VCF (`michiganCoxSurv` or `sangerCoxSurv`) include arguments for the survival model (event of interest, time to event, and covariates) and arguments for quality control that filter on minor allele frequency (MAF) or imputation quality (michiganCoxSurv and sangerCoxSurv only). INFO score filtering using `impute2CoxSurv` can be performed by accessing the `.info` file from IMPUTE2 results and subsequently providing the list of SNPs to `exclude.snps` argument to gwasurvivr. Users can also provide a list of sample IDs for gwasurvivr to internally subset the data. `Gwasurvivr` outputs two files:      
+(1) `.snps_removed` file, listing all SNPs that failed QC parameters    
+(2) `.coxph` file with the results from the analyses, including parameter estimates, p-values, MAF, the number of events and total sample $N$ for each SNP.    
 
-gwasurvivr implements a Cox proportional hazards regression model [@cox1972] to test each SNP with an outcome with options for including covariates and/or SNP-covariate interactions. To decrease the number of iterations needed for convergence when optimizing the parameter estimates in the Cox model we modified the R package survival [@therneau2013]. Covariates in the model are first fit without the SNP, and those parameter estimates are used as initial points for analyses with each SNP. If no additional covariates are added to the model, the parameter estimation optimization begins with null initial value. (**Figure 3.1**).
+Users can keep compressed GDS files after the initial run by setting `keepGDS=TRUE` when using `impute2CoxSurv`. On subsequent runs, `gdsCoxSurv` can then be used instead of `impute2CoxSurv` to avoid compressing the data on each GWAS run. This allows users to easily perform association testing on different subsets of data as well.
 
-# gwasurvivr calculations	
-## Minor Allele Frequency (MAF)
-For a given SNP with alleles $A$ and $B$, where $n_{AB}$ and  $n_{BB}$ are the number of individuals with $AB$ and $BB$ genotype respectively, and $N$ is the sample size, the expected allele frequency of allele $B$ ($freq_B$) be can be calculated as:
+## MAF Calculation
+After imputation, many SNPs will have low allele frequencies, as newer imputation methods are able to impute SNPs with MAFs around 0.1% [@hrc]. As rare variant analysis is beyond the scope of `gwasurvivr` and its usage is only meant for common variant (MAF > 0.1%) association testing. `Gwasurvivr` allows users to filter out SNPs with low MAFs. As such, we found it useful to calculate a MAF for each SNP specifically for the samples that are being analyzed, and that calculation is described below:   
 
-$$freq_B = \frac{ n_{AB} + 2n_{BB}}{2N}$$
+For a given SNP with alleles $A$ and $B$, where $n_{AB}$ and $n_{BB}$ are the number of individuals with $AB$ and $BB$ genotype respectively, and $N$ is the sample size, the expected allele frequency of allele $B$ ($freq_B$) be can be calculated as:
+
+\begin{equation} \label{1}
+freq_B =  \frac{ n_{AB} + 2n_{BB}}{2N}
+\end{equation}
 
 \noindent For individual $i$, the allele dosage of SNP $j$ ($D_{ij}$) with alleles $A$ and $B$,  where allele $B$ is the effect allele and $p_{AB}$ and $p_{BB}$ are the posterior genotype probabilities as computed by the imputation, is calculated as:  
 
-$$ D_{ij} = p_{AB_{ij}} + 2 \cdot p_{BB_{ij}} $$
+\begin{equation} \label{2}
+D_{ij} = p_{AB_{ij}} + 2 \cdot p_{BB_{ij}}
+\end{equation}
 
 \noindent For SNP $j$ The estimated allele frequency of an effect allele $B$ ($\theta_{B_j}$) can therefore be calculated as:
 
-$$\theta_{B_j} = \frac{\sum_{i=1}^{N} D_{ij} }{2N}$$
+\begin{equation} \label{3}
+\theta_{B_j} = \frac{\sum_{i=1}^{N} D_{ij} }{2N}
+\end{equation}
 
-\noindent In R, the genotypes are represented as a matrix allele dosages, where each column is a sample and each row is a SNP. The R code is shown below:  
+\noindent In R, the genotypes are represented as a matrix allele dosages, where each column is a sample and each row is a SNP. The R code is shown below:   
 
 \singlespacing
 ```{r, eval=FALSE}
@@ -55,152 +87,10 @@ MAF <- ifelse(exp_freq_A1 > 0.5,
 
 \doublespacing 
 
-## Imputation quality metric
-### Michigan Imputation Server
-For the Michigan imputation server, imputation is performed using the minimac3 algorithm [@michigan_imputation]. minimac3 computes and outputs an imputation quality metric known as $R^2$. $R^2$ is the estimated value of the squared correlation betwen imputed genotypes and true, unobserved genotypes [@michigan_imputation]. The $R^2$ value is extracted directly from the Michigan imputation output VCF in `gwasurvivr::michiganCoxSurv`
+## Modifying survival package
+`Gwasurvivr` implements a Cox proportional hazards regression model [@cox1972] to test each SNP with an outcome with options for including covariates and/or SNP-covariate interactions. As an early proof of principal in the development of `gwasurvivr`, we assessed if we could speed up the survival package during the parameter estimation step of the Cox model by providing initial estimates covariates. Using the survival function as implemented in the survival package improves computational time, we tested a dataset of 500 individuals at 7255 SNPs with 1, 2, or 3 covariates. These data were simulated using HAPGENv2 [@hapgen2] and described in a subsequent subsection "Simulating Genotypes and Phenotypes".
 
-### Sanger Imputation Server 
-For the Sanger imputation server, we grab the `INFO` field directly from the VCF file in `gwasurvivr::sangerCoxSurv`. The INFO field is the IMPUTE2 [@Howie_2009] score as calculated by the `bcftools + impute-info` plugin from posterior genotype probabilities [@hrc].  
-
-### IMPUTE2 Imputation
-The INFO score for IMPUTE2 [@Howie_2009] results are not calculated in `gwasurvivr` internally, instead we use the INFO scores that are provided in a separate file after performing imputation (`.info` file). Users select SNPs from the `.info` file to remove based on preferred criterion (ie INFO < .8) these are then used in the argument `exclude.snps` in `impute2CoxSurv` to filter out the SNPs prior to analysis.
-
-
-## Survival Analysis
-Survival analyses are run using genetic data in either VCF or IMPUTE2 [@Howie_2009] formats and a phenotype file, which contains survival time, survival status and additional covariates, both files are indexed by sample ID. In addition to genomic data, the VCF files contain both sample IDs and imputation quality metrics (INFO score or $r^2$), while IMPUTE2 [@Howie_2009] come in separate files (.gen, .sample, and .info). Gwasurvivr functions for IMPUTE2 (impute2CoxSurv or gdsCoxSurv) and VCF (michiganCoxSurv or sangerCoxSurv) include arguments for the survival model (event of interest, time to event, and covariates) and arguments for quality control that filter on minor allele frequency (MAF) or imputation quality (michiganCoxSurv and sangerCoxSurv only). INFO score filtering using impute2CoxSurv can be performed by accessing the .info file from IMPUTE2 results and subsequently providing the list of SNPs to ‘exclude.snps’ argument to gwasurvivr. Users can also provide a list of sample IDs for gwasurvivr to internally subset the data. gwasurvivr outputs two files:    
-
-(1) `.snps_removed` file, listing all SNPs that failed QC parameters    
-(2) `.coxph` file with the results from the analyses, including parameter estimates, p-values, MAF, the number of events and total sample N for each SNP.    
-
-\noindent gwasurvivr also allows the number of cores used during computation on Windows and Linux to be specified. Users can keep compressed GDS files after the initial run by setting keepGDS argument to TRUE when analyzing IMPUTE2 data [@Howie_2009]. On successive runs, gdsCoxSurv can then be used instead of impute2CoxSurv to avoid compressing the data on each GWAS run. 
-
-# Computational Experiments
-We used the University at Buffalo Computational Center for Research (UB CCR) academic cluster for our benchmarking analyses. Each analysis was run exclusively on node [CPU-L5520](https://www.buffalo.edu/ccr/support/research_facilities/general_compute.html) with the same system specifications, controlling the computational resources for each run. The UB CCR uses Simple Linux Utility for Resource Management (SLURM) scheduling for jobs. SLURM scripts to run the analyses were generated using shell scripts below. Benchmarking was performed using identical CPU constraints, 1 node (2.27 GHz Clock Rate) and 8 cores with 24 GB of RAM, on the University at Buffalo Center for Computational Research supercomputer. With the exception of the larger sample size tests, these were run using the same node but 12 CPUs. genipe [@genipe], SurvivalGWAS_SV [@survivalgwas_sv], and GWASTools [@gwastools] were performed as specified by the authors on available online documentation.  
-
-\noindent We performed the following benchmarking runtime experiments either against existing software or against time with varying N and SNP numbers that were performed:   
-Simulation 1. Compare gwasurvivr against genipe, GWASTools and SurvivalGWAS_SV - varying sample sizes (n=100, n=1000, n=5000) and 100,000 SNPs (m=100000) and 3 non-genetic covariates  
-Simulation 2. Comparison of gwasurvivr, genipe, GWASTools and SurvivalGWAS_SV with N=5,000 and 100,000 SNPs (m=100,000) with 4 covariates (age, drug treatment, sex and 1 PC), 8 covariates (age, drug treatment, sex and 5 PCs) and 12 covariates (age, drug treatment, sex and 9 PCs)  
-Simulation 3. Increasingly larger sample sizes (N=15K, 20K and 25K) tested on Chromosome 22   
-Simulation 4. Full autosomal GWAS with varying sample sizes (N=3K, 6K and 9K)   
-
-## Simulating Genotypes and Phenotypes
-
-### Genotypes
-[HAPGENv2](http://mathgen.stats.ox.ac.uk/genetics_software/hapgen/hapgen2.html) [@hapgen2] was used to generate simulated genetic datasets from [1000 Genomes Project CEU data](https://mathgen.stats.ox.ac.uk/impute/impute_v1.html#Using_IMPUTE_with_the_HapMap_Data) (NCBI Build 36) for all benchmarking experiments. To replicate simulations the 1000 Genomes Project CEU data should be downloaded in its entirety (only a subset is available on our GitHub repo). The [code](https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/tree/master/hapgen2/code) for all HAPGENv2 simulations are available on our GitHub.
-
-### Phenotypes
-For each sample size tested, survival events (alive/dead) were simulated as two separate datasets. For the dead dataset, time to event and covariates were simulated using a normal distribution. For the alive dataset, time was simulated by randomly sampling weighted probabilities for times to simulate few samples being censored, covariates were simulated from a normal distribution. [Principal components (PCs)](https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/blob/master/diff_cov_benchmarks/code/add_pcs_covariates.R) were simulated using random normal distributions with decreasing variance for each additional PC. Furthermore, the `.sample` file from IMPUTE2 includes 4 columns (ID_1, ID_2, missing, and sex) which link individuals with their respective genotypes. For SurvivalGWAS_SV and GWASTools, the simulated phenotypes were appended to column 5 onward in the `.sample` file.
-
-The following genotypes and phenotypes were simulated:   
-**Simulations 1 and 2.** Subset of chromosome 18 for 100,000 SNPs 1) varying N and 3 covariates done in triplicate and 2) with 4, 8 and 12 covariates
-
-\begin{itemize}
-  \item \href{https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/blob/master/hapgen2/code/generate_chr18_subsets_geno.sh}{genotype code}
-  \item \href{https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/blob/master/benchmark_experiments/code/simulate_phenotypes_benchmark.R}{phenotype code}  
-  \item \href{https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/blob/master/diff_cov_benchmarks/code/add_pcs_covariates.R}{PCs phenotype code}
-\end{itemize}
-
-**Simulation 3.** chromosome 22 (~117,000 SNPs) for larger sample sizes (N=15000-25000)  
-
-\begin{itemize}
-  \item \href{https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/blob/master/hapgen2/code/generate_largeN_geno.sh}{genotype code}
-\end{itemize}
-
-**Simulation 4.** Full GWAS for N=9000 (the smaller subsets were just parsed from the data during analyses)  
-
-\begin{itemize}
-  \item \href{https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/blob/master/hapgen2/code/generate_gwas_geno.sh}{genotype code}   
-  \item \href{https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/blob/master/full_gwas_experiments/code/phenotype_sim.R}{phenotype code}
-  \item \href{https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/blob/master/full_gwas_experiments/code/simulate_gwas_sample_ids.R}{simulate sample ids code}  
-\end{itemize}
-
-  
-## Benchmarking with other software capable of GWAS coxph survival analysis
-We benchmarked `gwasurvivr` with GWAS survival analysis software, genipe, SurvivalGWAS_SV and GWASTools using simulated phenotype and genotype data. Genetic data were formatted as output from IMPUTE2 software (.GEN). Genipe, SurvivalGWAS_SV, and GWASTools do not directly take VCF data output from Sanger or Michigan imputation servers. SurvivalGWAS_SV does accept VCF files as an input but uncompressed and not explicity the same format that Sanger and Michigan imputation servers output, rendering additional steps to be taken. The benchmarking with IMPUTE2 was done for (1) varying sample sizes and (2) varying additional non-genetic covariates. Both are described here.  
-
-### gwasurvivr
-The following scripts were used to run gwasurvivr using `impute2CoxSurv`. These R scripts are run using a shell script (SLURM script) that pass the system variables into R (facilitated by the R package `batch`).   
-
-N=100, 1000 and 5000 with M=100K SNPs + 3 non-genetic covariates in triplicate:  
-- [`run_gwasurvivr.R`](https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/blob/master/benchmark_experiments/code/run_gwasurvivr.R)  
-- [`create_gwasurvivr_scripts.sh`](https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/blob/master/benchmark_experiments/code/create_gwasurvivr_scripts.sh)   
-
-N=5,000 and M=100K with 4, 8 and 12 covariates:  
-- [`run_gwasurvivr_covs.R`](https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/blob/master/diff_cov_benchmarks/code/run_gwasurvivr_covs.R)  
-- [`gwasurvivr_cov4.sh`](https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/blob/master/diff_cov_benchmarks/code/gwasurvivr_cov4.sh)  
-- [`gwasurvivr_cov8.sh`](https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/blob/master/diff_cov_benchmarks/code/gwasurvivr_cov8.sh)  
-- [`gwasurvivr_cov12.sh`](https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/blob/master/diff_cov_benchmarks/code/gwasurvivr_cov12.sh)  
-
-### genipe
-For genipe, the shell scripts was used to generate SLURM scripts for genipe and each sample and SNP set. We used specific settings for OPENBLAS that are suggested on [genipe's website](http://pgxcentre.github.io/genipe/execution_time.html) to ensure that computational efficiency was maximized.  
-
-varying sample sizes + 3 non-genetic covariates:   
-- [`create_genipe_scripts.sh`](https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/blob/master/benchmark_experiments/code/create_genipe_scripts.sh)   
-
-additional covariates:  
-- [`genipe_cov4.sh`](https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/blob/master/diff_cov_benchmarks/code/genipe_cov4.sh)  
-- [`genipe_cov8.sh`](https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/blob/master/diff_cov_benchmarks/code/genipe_cov8.sh)  
-- [`genipe_cov12.sh`](https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/blob/master/diff_cov_benchmarks/code/genipe_cov12.sh)   
-
-### SurvivalGWAS_SV
-To maximize the performance of SurvivalGWAS_SV, these jobs were run using “array” jobs as recommended by the authors. An [example batch script](https://www.liverpool.ac.uk/media/livacuk/instituteoftranslationalmedicine/biostats/batchexample.sh), provided in the SurvivalGWAS_SV documentation, was converted from PBS to SLURM. 24GB of ram was not needed on all runs, however was used to ensure each run remained uniform. The jobs were split into array sets of 1000 SNPs for m=100,000, totaling 100 batched jobs in a single array. We define rate-limiting array as the array index that had the longest runtime. In the main manuscript, we report SurvivalGWAS_SV runtimes as the rate-limiting array runtime. This is an important caveat and bears consideration when using SurvivalGWAS_SV. Depending on availability on the computing cluster, the analyses could be completed as quickly as the longest individual array job (which is shown in Figure 1), or potentially the entire runtime could be equal to the summation runtime of all of the array indices if these cannot be run simultaneously (or if there are failures with any of the array indices). The shell script below was used to generate SLURM scripts for SurvivalGWAS_SV for each sample and SNP set.   
-
-N=100, 1000 and 5000 with M=100K SNPs + 3 non-genetic covariates in triplicate:  
-- [`create_sv_scripts.sh`](https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/blob/master/benchmark_experiments/code/create_sv_scripts.sh)  
-
-N=5,000 and M=100K with 4, 8 and 12 covariates:  
-- [`sv_cov4.sh`](https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/blob/master/diff_cov_benchmarks/code/sv_cov4.sh)  
-- [`sv_cov8.sh`](https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/blob/master/diff_cov_benchmarks/code/sv_cov8.sh)  
-- [`sv_cov12.sh`](https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/blob/master/diff_cov_benchmarks/code/sv_cov12.sh)  
-
-### GWASTools
-For GWASTools, the files are converted to GDS format and survival is run using `GWASTools::assocCoxPH` within  [`gwastools_survival.R`](https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/blob/master/benchmark_experiments/code/gwastools_survival.R). The R script was passed to the SLURM scripts using the script [`create_gwastools_scripts.sh`](https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/blob/master/benchmark_experiments/code/create_gwastools_scripts.sh). GWASTools does not run in parallel across multiple cores on a single computing processor internally, however experienced users could code this themselves.
-
-N=100, 1000 and 5000 with M=100K SNPs + 3 non-genetic covariates in triplicate:  
-- [`gwastools_survival.R`](https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/blob/master/benchmark_experiments/code/gwastools_survival.R)  
-- [`create_gwastools_scripts.sh`](https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/blob/master/benchmark_experiments/code/create_gwastools_scripts.sh)   
-
-N=5,000 and M=100K with 4, 8 and 12 covariates:  
-- [`gwastools_survival_covs.R`](https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/blob/master/diff_cov_benchmarks/code/gwastools_survival_covs.R)  
-- [`gwastools_cov4.sh`](https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/blob/master/diff_cov_benchmarks/code/gwastools_cov4.sh)  
-- [`gwastools_cov8.sh`](https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/blob/master/diff_cov_benchmarks/code/gwastools_cov8.sh)  
-- [`gwastools_cov12.sh`](https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/blob/master/diff_cov_benchmarks/code/gwastools_cov12.sh)  
-
-## Runtime large N chromosomes to test size limitations
-We tested chr22 with different sample sizes of N=15,000; N=20,000; N=25,000 using `gwasurvivr::impute2CoxSurv`. The code for all of the runs can be found [here](https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/tree/master/largeN_experiments/code). The R script called from the shell scripts to run these analyses is labeled [`run_bigNs.R`](https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/tree/master/largeN_experiments/code). 
-
-## Runtime GWAS with different sample sizes
-We performed three GWAS (chr1-chr22) with different sample sizes (n=3000; n=6000; n=9000) using `gwasurvivr::impute2CoxSurv`. The code to simulate the GWAS is available on our repository. The R script used to run these analyses is [`run_fullgwas.R`](https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/tree/master/full_gwas_experiments/code). The shell script run these scripts on SLURM can be found [here](https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/blob/master/full_gwas_experiments/code/submit_fullgwas.sh).
-
-## Simulations and Benchmarking
-Computational runtimes for gwasurvivr were benchmarked against existing software comparing varying sample sizes and SNP numbers, with 4, 8 or 12 covariates and for a single chromosome with 15,000-25,000 individuals. In addition, we evaluated time for gwasurvivr for a GWAS (~6 million SNPS) for 3000, 6000 and 9000 samples. All benchmarking experiments were performed using IMPUTE2 format (comparison packages do not take VCF from either imputation servers). 
-
-Descriptions of simulated genotype and phenotype data are in the Supplementary Data. 
-
-## Developing an R package
-
-# Results
-gwasurvivr was faster than genipe [@genipe], SurvivalGWAS_SV [@survivalgwas_sv], and GWASTools [@gwastools] for 100,000 SNPs at N=100, and 5000, with the exception of SurvivalGWAS_SV at N=1000 (Figure 1A). Similarly, increasing the number of covariates for gwasurvivr has minimal effects on runtime versus other software (Figure 1B). Gwasurvivr computes for large sample sizes, however, compression time increases with increasing sample size, and likely will be limited by available RAM on a machine or cluster (Figure 1C). The keepGDS argument helps address this and results in reduced run times (Figures 1C and 1D), i.e. < 3 hours for a GWAS of N=9,000. A ~6 million SNP GWAS can be run in < 10 hours for 9000 samples when using separately scheduled jobs on a supercomputer (Figure 1D). However, gwasurvivr overcomes memory limitations often attributed to R by processing subsets of the entire data, and thus it is possible to conduct genome-wide survival analyses on a typical laptop computer.
-
-gwasurvivr is a fast, efficient, and flexible program well suited for multi-core processors and easily run in a computing cluster environment. 
-
-`gwasurvivr` is an R package that can be used to conduct survival analysis (Cox proportional hazards model) on imputed GWAS data from either IMPUTE2 [@Howie_2009] or VCF files from the Michigan and/or Sanger imputation servers. `gwasurvivr` can also be used on directly typed data in plink format (`.bed`, `.bim` and `.fam` files).
-
-Herein, we detail our implementation of the Cox model, generation of the simulated data and survival benchmarking and graphically report the correlation of `gwasurvivr` beta coefficient estimates, minor allele frequencies (MAF) and p-values with those produced from SurvivalGWAS_SV, genipe, and GWASTools.
-
-To reproduce the data and create Figure 1 and Supplementary Figures 2-4, the data is available on the [gwasurvivr manuscript repository](https://github.com/suchestoncampbelllab/gwasurvivr_manuscript). [GitHub Large File Storage (LFS)](https://git-lfs.github.com/). 
-
-To clone the whole repository:    
-
-```
-git lfs clone \
-    https://github.com/suchestoncampbelllab/ \
-        gwasurvivr_manuscript.git
-```
-
-# Implementation of Survival Model in gwasurvivr 
-## Modifying coxph
-We decrease computation time by decreasing the number of Newton-Raphson iterations used to optimize the partial likelihood function in the Cox proportional hazard models. To do this, a survival model was fit using only non-genetic covariates (i.e. the SNP is not included and only covariates are fit); `survival::coxph` [@therneau2013] is modified such that gwasurvivr manually creates the objects found in the helper function (`survival::coxph.fit`) that fits the Cox model.
+The helper function `gwasurvivr:::coxParam`, adjusted for this demonstration in this document is labeled `gcoxph`. In [`gcoxph_model.R`](https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/blob/master/supplemental_data/code/gcoxph_model.R) we fit the model without the SNP and the parameter estimates are then used as initial points for all subsequent models and applied over all SNPs in the dataset (See manuscript GitHub, links in Appendix). To decrease the number of iterations needed for convergence when optimizing the parameter estimates in the Cox model we modified the R package survival and function `survival::coxph.fit` [@therneau2013]. Covariates in the model are first fit without the SNP, and those parameter estimates are used as initial points for analyses with each SNP. If no additional covariates are added to the model, the parameter estimation optimization begins with null initial value. This is implemented in gwasurvivr by manually creating the objects found in the helper function (`survival::coxph.fit`) that fits the Cox model. These R objects and object descriptions can be see in (Table 3.1). These variables are then passed to `survival::coxph.fit` (essentially the purpose of `gwasurvivr:::coxParam` function).
 
 ```{r, echo=FALSE}
 args.eg <- data.frame(variables=c("X",
@@ -221,215 +111,94 @@ args.eg <- data.frame(variables=c("X",
                                     "vector of weights that we set to NULL",
                                     "efron method used for handling ties",
                                     "rownames that we set to NULL"))
-k <- kable(args.eg, caption="Description of arguments that are built manually in gwasurvivr and passed directly to survival::coxph.fit, bypassing the main survival::coxph function")
-kable_styling(k, position="center")
+k <- knitr::kable(args.eg, caption="Description of arguments that are built manually in gwasurvivr and passed directly to survival::coxph.fit, bypassing the main survival::coxph function")
+kableExtra::kable_styling(k, position="center")
 ```
 
-These variables are then passed to `survival::coxph.fit`. 
+The function [`coxph_model.R`](https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/blob/master/supplemental_data/code/coxph_model.R) implements a `survival` model [survival package, @therneau2013] without using the optimization starting point obtained from including covariates in the model. To test the package runtime over a pre-specified number of iterations and including 1, 2, or 3 covariates the `microbenchmark` package [@microbenchmark] in R was used. 
 
-## Benchmarking with survival package
-To assess if providing initial estimates from covariates versus using the survival function as implemented in the survival package improves computational time, we tested a dataset of 500 individuals at 7255 SNPs with 1, 2, or 3 covariates. These data are a subset of the simulated data described in detail below.
+In order to maximize compute, `parallel::parApply` [@r_core] was used instead of `base::apply` [@r_core]. The number of cores used during computation on Windows and Linux can be specified by the user. 
 
-The helper function `gwasurvivr:::coxParam`, adjusted for this Supplementary documentation is labeled `gcoxph`. In [`gcoxph_model.R`](https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/blob/master/supplemental_data/code/gcoxph_model.R) we fit the model without the SNP and the parameter estimates are then used as initial points for all subsequent models and applied over all SNPs in the dataset. If there were no covariates, the initial estimates would be null. The function [`coxph_model.R`](https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/blob/master/supplemental_data/code/coxph_model.R) implements a `survival` model [survival package, @therneau2013] without using the optimization starting point obtained from including covariates in the model.
+\doublespacing 
 
-To test the package runtime over a pre-specified number of iterations and including 1, 2, or 3 covariates the `microbenchmark` package in R was used. The code for [Supplementary Figure 1](https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/blob/master/supplemental_data/code/SupplementalFigure1.R)) is available.
-```{r, cache=TRUE, eval=FALSE, warning=FALSE, echo=FALSE}
-source("/code/gcoxph_model.R")
-source("/code/coxph_model.R")
-# load phenotype data
-pheno.file <- readRDS("/gwasurvivr_manuscript/supplemental_data/simulated_pheno.rds")
-sample.ids <- pheno.file$ID_2
-# load genotype data
-genotypes <- readRDS("/gwasurvivr_manuscript/supplemental_data/sanger.genotypes.rds")
-library(microbenchmark)
-tm <- microbenchmark(
-    gws_1cov=t(apply(X=genotypes,
-                    MARGIN=1,
-                    FUN=gcoxph_model,
-                    pheno.file=pheno.file, 
-                    time.to.event="time", 
-                    event="event", 
-                    covariates="age", 
-                    sample.ids=sample.ids)),
-    gws_2cov=t(apply(X=genotypes,
-                    MARGIN=1,
-                    FUN=gcoxph_model,
-                    pheno.file=pheno.file, 
-                    time.to.event="time", 
-                    event="event", 
-                    covariates=c("age", "DrugTxYes"), 
-                    sample.ids=sample.ids)),
-    gws_3cov=t(apply(X=genotypes,
-                    MARGIN=1,
-                    FUN=gcoxph_model,
-                    pheno.file=pheno.file, 
-                    time.to.event="time", 
-                    event="event", 
-                    covariates=c("age", "DrugTxYes", "SexFemale"), 
-                    sample.ids=sample.ids)) ,
-    surv_1cov=t(apply(X=genotypes,
-                     MARGIN=1,
-                     FUN=coxph_model,
-                     pheno.file=pheno.file,
-                     time.to.event="time",
-                     event="event",
-                     covariates="age")),
-    surv_2cov=t(apply(X=genotypes,
-                     MARGIN=1,
-                     FUN=coxph_model,
-                     pheno.file=pheno.file,
-                     time.to.event="time",
-                     event="event",
-                     covariates=c("age", "DrugTxYes"))),
-    surv_3cov=t(apply(X=genotypes,
-                     McARGIN=1,
-                     FUN=coxph_model,
-                     pheno.file=pheno.file,
-                     time.to.event="time",
-                     event="event",
-                     covariates=c("age", "DrugTxYes", "SexFemale"))),
-    times=3L,
-    unit = "s"
-)
-```
+## Computational Experiments
+Upon completion of `gwasurvivr`, we wanted to compare functionality and runtime with other available GWAS survival packages, specifically GWASTools, SurvivalGWAS_SV and genipe. None of these other packages directly take VCF data output from Sanger or Michigan imputation servers. SurvivalGWAS_SV does accept VCF files as an input but uncompressed and not explicity the same format that Sanger and Michigan imputation servers output, rendering additional steps to be taken. Thus, the computational experiments comprised simulated genetic data were formatted as output from IMPUTE2 software (`.gen`). Computational runtimes for gwasurvivr were benchmarked against existing software comparing varying sample sizes and SNP numbers, increasing covariates, for a single chromosome with ranging 15,000-25,000 individuals. In addition, we evaluated time for `gwasurvivr` for a complete GWAS (~6 million SNPS) for 3000, 6000 and 9000 samples. 
 
-```{r, echo=FALSE, fig.cap="**Supplementary Figure 1:** The x-axis are the survival functions tests, coxph and gcoxph. The y-axis are mean seconds from three iterations of each function. The error bars represent the maximum and minimum run time from three iterations with the barplots showing the mean runtimes of either coxph or gcoxph for 1, 2, or 3 covariates. gcoxph, which fits initial points based on parameter estimates from covariates alone, runs on average faster than the traditional coxph model for 1, 2, and 3 non-genetic covariates and shows a decreasing min to max range as the number of covariates increase.", message=FALSE, warning=FALSE, fig.width=10, fig.height=5, dev="png"}
-df <- read.table(text = "
-      simulation      min       lower_quartile     mean   median       upper_quartile      max 
-  gws_1cov 27.11076 29.61483 30.90848 32.11891 32.80734 33.49577
-  gws_2cov 32.38955 33.28182 33.73240 34.17409 34.40383 34.63356
-  gws_3cov 35.04497 35.97687 36.34055 36.90877 36.98835 37.06793
- surv_1cov 44.94886 45.83481 46.15520 46.72077 46.75837 46.79598
- surv_2cov 46.87313 47.12968 49.65251 47.38622 51.04220 54.69818
- surv_3cov 51.51329 52.32482 53.89750 53.13635 55.08960 57.04286", header=TRUE)
+### Simulating Genotypes and Phenotypes
 
+[HAPGENv2](http://mathgen.stats.ox.ac.uk/genet dics_software/hapgen/hapgen2.html) [@hapgen2] was used to generate simulated genotype datasets from [1000 Genomes Project CEU data](https://mathgen.stats.ox.ac.uk/impute/impute_v1.html#Using_IMPUTE_with_the_HapMap_Data) (NCBI Build 36) [@1000genomes] for all benchmarking experiments. To replicate simulations the 1000 Genomes Project CEU data should be downloaded in its entirety.   
 
-df %>% 
-    separate(simulation, c("simulation", "covs")) %>% 
-    mutate(simulation=recode(simulation, gws="gcoxph (gcoxph_model.R)", surv="coxph (coxph_model.R)"),
-           covs=str_extract(covs, "[[:digit:]]+")) %>% 
-    ggplot(aes(simulation, mean, fill=covs)) + 
-    geom_col(position = position_dodge(), width = 0.5) +
-    geom_errorbar(aes(ymin = min, ymax = max), position = position_dodge(width = 0.5), width = 0.1, size=0.5)+
-    scale_fill_brewer(palette = "Purples") + theme_bw() +
-    ylab("Mean Seconds") +
-    xlab("Survival Functions Tested") +
-    guides(fill = guide_legend("Number of\nCovariates")) +
-    ggtitle("Runtime comparison using gcoxph models and \n standard coxph models considering 1, 2 and 3 covariates") +
-    theme(plot.title = element_text(hjust = 0.5)) 
+For each sample size tested, survival events (alive/dead) were simulated as two separate datasets. For the dead dataset, time to event and covariates were simulated using a normal distribution. For the alive dataset, time was simulated by randomly sampling weighted probabilities for times to simulate few samples being censored, covariates were simulated from a normal distribution. Principal components [@snprelate] were simulated using random normal distributions with decreasing variance for each additional PC. Furthermore, the `.sample` file from IMPUTE2 includes 4 columns (ID_1, ID_2, missing, and sex) which link individuals with their respective genotypes. For SurvivalGWAS_SV and GWASTools, the simulated phenotypes were appended to column 5 onward in the `.sample` file. The code for all of these analyses is available (or linked to) in the appendix or from the manuscript GitHub.   
 
-```
+### Running analysis
+We used the University at Buffalo Computational Center for Research (UB CCR) academic cluster for our benchmarking analyses. Each analysis was run exclusively on node [CPU-L5520](https://www.buffalo.edu/ccr/support/research_facilities/general_compute.html) with the same system specifications, controlling the computational resources for each run. The UB CCR uses Simple Linux Utility for Resource Management (SLURM) scheduling for jobs. SLURM scripts to run the analyses were generated using shell scripts below. Benchmarking was performed using identical CPU constraints, 1 node (2.27 GHz Clock Rate) and 8 cores with 24 GB of RAM, on the University at Buffalo Center for Computational Research supercomputer. With the exception of the larger sample size tests, these were run using the same node but 12 CPUs. genipe [@genipe], SurvivalGWAS_SV [@survivalgwas_sv], and GWASTools [@gwastools] were performed as specified by the authors on available online documentation.    
 
-By leveraging an initalization point from the analyses with covariates `gwasurvivr` (gcoxph) is several seconds faster than the survival analyses function as implemented in `survival` (coxph, Therneau and Grambsch, 2000) in R (**Supplementary Figure 1**). While this is a small test dataset, in practice this would be an appreciable difference when testing across several thousands of samples and millions of SNPS. In the `gwasurvivr` package, we opted to use `parallel::parApply` instead of `base::apply` as shown above to compute across multiple cores.
+We performed the following benchmarking simulations with varying sample sizes ($n$) and SNP numbers ($m$):       
+\noindent \textbf{Simulation 1.} Compare `gwasurvivr` against genipe, GWASTools and SurvivalGWAS_SV - varying sample sizes ($n=100$, $n=1000$, $n=5000$) and $100,000$ SNPs ($m=100,000$ from chromosome 18) and 3 non-genetic covariates.        
+\noindent \textbf{Simulation 2.} Comparison of `gwasurvivr`, genipe, GWASTools and SurvivalGWAS_SV with $n=5,000$ and  $100,000$ SNPs ($m=100,000$) with 4 covariates (age, drug treatment, sex and 1 PC), 8 covariates (age, drug treatment, sex and 5 PCs) and 12 covariates (age, drug treatment, sex and 9 PCs).     
+\noindent \textbf{Simulation 3.} `gwasurvivr` runtime for increasingly larger sample sizes ($n=15,000$, $20,000$ and $25,000$) tested on chromosome 22.      
+\noindent \textbf{Simulation 4.} Full autosomal GWAS with varying sample sizes using `gwasurvivr` ($n=3,000$, $n=6,000$ and $n=9,000$).     
 
+Additionally, to maximize the performance of SurvivalGWAS_SV, these jobs were run using "array" jobs as recommended by the authors. An [example batch script](https://www.liverpool.ac.uk/media/livacuk/instituteoftranslationalmedicine/biostats/batchexample.sh), provided in the SurvivalGWAS_SV documentation, was converted from PBS to SLURM. 24GB of ram was not needed on all runs, however was used to ensure each run remained uniform. The jobs were split into array sets of 1000 SNPs for $m=100,000$, totaling 100 batched jobs in a single array. Thus, we define *rate-limiting array* as the array index that had the longest runtime. This is an important caveat and bears consideration when using SurvivalGWAS_SV. Depending on availability on the computing cluster, the analyses could be completed as quickly as the longest individual array job, or potentially the entire runtime could be equal to the summation runtime of all of the array indices if these cannot be run simultaneously (or if there are failures with any of the array indices).    
 
-# Time Plots
+Custom scripts were written in R or bash to streamline the analyses. For `gwasurvivr` and GWASTools, a 'run' script was used that involved passing variables that were assigned in bash into R variables and passing them into `gwasurvivr` or GWASTools within an R session. Both genipe and SurvivalGWAS_SV can be invoked directly from the command line, so bash scripts were written to automate these processes for the different experiments. Please see the Appendix or manuscript GitHub for the code.   
 
-## Figure 1
-To generate Figure 1 times from the computation runtime were pulled from SLURM log files and collected using the perl scripts, which can be found in each of the log folders on our manuscript GitHub repository, compiled and Figure 1 was generated using the R code shown [here](https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/blob/master/code/timePlots.R).
+# Results
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth, height=4in]{~/Desktop/figures/chapter3/convergence_time_sim.png}
+    \caption[Time to convergence of original R survival package implementation vs. modified implementation using simulated data.]{Time to convergence of original R survival package implementation vs modified implementation using simulated data. The x-axis are the survival functions tests, coxph and gcoxph. The y-axis are mean seconds from three iterations of each function. The error bars represent the maximum and minimum run time from three iterations with the barplots showing the mean runtimes of either coxph or gcoxph for 1, 2, or 3 covariates. gcoxph, which fits initial points based on parameter estimates from covariates alone, runs on average faster than the traditional coxph model for 1, 2, and 3 non-genetic covariates and shows a decreasing min to max range as the number of covariates increase.}  
+    \label{fig:conv_plot}  
+\end{figure}
 
-# Diagnostic Plots
-Supplementary Figures 2, 3 and 4 below show the correlation of the coefficient estimates, minor allele frequency and p-values, respectively between gwasurvivr and all other software assessed. The correlations show excellent agreement. The R code used to generate supplemental figures 2-4 can be found [here](https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/blob/master/supplemental_data/code/SupplementalFigure2-4.R).
+Speeding up the original Cox model implemented in the survival package. By leveraging an initalization point from the analyses with covariates `gwasurvivr` (gcoxph) is several seconds faster than the survival analyses function as implemented in `survival` (coxph, @therneau2013) in R (Figure \ref{fig:conv_plot}). While this is a small test dataset, in practice this would be an appreciable difference when testing across several thousands of samples and millions of SNPS. 
 
-## Coefficient Estimates
-```{r, cache=TRUE, message=FALSE, fig.width=11, fig.height=6, fig.cap="**Supplementary Figure 2.** Correlation of beta coefficient estimates between gwasurvivr and other software. The x-axis are gwasurvivr coefficients and the y-axis are coefficient estimates from the other software. The points are colored to indicate the software being used where red is genipe, green is GWASTools alone, and blue is SurvivalGWAS_SV. Each panel represents different simulations with varying sample sizes (n) and number of SNPs (p) included in the provided imputed genetic dataset. The estimates are near perfectly correlated and thus not all colors are visible in each plot.", echo=FALSE,  dev="png"}
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth, height=2.5in]{~/Desktop/figures/chapter3/correlation_stats.png}
+    \caption[Correlation of parameter estimates and minor allele frequency across survival analysis packages.]{Correlation of parameter estimates and minor allele frequency across survival analysis packages. Shown here are $n=5000$ and $m=100,000$. The x-axes (from left-to-right) are gwasurvivr coefficient estimates, pvalues, and minor allele frequency (MAF). The y-axes  (from left-to-right) are coefficient estimates, pvalues, and minor allele frequency (MAF) from the other software, respectively. The points are colored to indicate the software being used where red is genipe, green is GWASTools alone, and blue is SurvivalGWAS\_SV. The estimates are near perfectly correlated and thus not all colors are visible in each plot.}  
+    \label{fig:corr_plot}  
+\end{figure}
 
-library(tidyverse)
-sim_df_sp <- readRDS("~/Google Drive/OSU_PHD/benchmark_survivr/full_results/simulation_results_all_software.rds")
+The computational benchmarking experiments comparing `gwasurvivr` with genipe, GWASTools, and SurvivalGWAS_SV were done using a sample size of $n=5,000$ and $m=100,000$ SNPs. The coefficient estimates from the Cox model and p-values are perfectly correlated between the packages (Figure \ref{fig:corr_plot}, left and center panels). The `gwasurvivr` sample MAF calculation (Equation \ref{3}) is perfectly correlated with the MAFs calculated from the other software (Figure \ref{fig:corr_plot}, right panel). 
 
-coef <- sim_df_sp %>%
-    filter(stats=="COEF") %>%
-    gather(key = "analysis", "value", c(genipe, GWASTools, SurvivalGWAS_SV)) %>% 
-    filter(value > -3, value < 3) %>%
-    mutate(value=ifelse(value<0, abs(value), value),
-           gwasurvivr=ifelse(gwasurvivr<0, abs(gwasurvivr), gwasurvivr)) %>%  
-    ggplot(aes(x=gwasurvivr, y=value, color=analysis)) +
-    geom_point(alpha=(1/10)) +
-    facet_wrap(~sims, scales="free") +
-    ggtitle("Coefficients") + 
-    labs(x="gwasurvivr coefficient estimates", y="other software cofficient estimates") +
-    guides(color = guide_legend(override.aes = list(alpha = 1))) +
-    theme_bw() +
-    theme(plot.title = element_text(hjust = 0.5)) 
-coef
-```
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth, height=3in]{~/Desktop/figures/chapter3/benchmarking_plot.png}
+    \caption[Runtime for survival analyses between survival software.]{Runtime for survival analyses between different survival software. The x-axis shows the three sample sizes with 100,000 SNPs. The y-axis is the total runtime in hours. Mean and $95\%$ confidence intervals (CI) are show for genipe (yellow), GWASTools (light green), SurvivalGWAS\_SV (dark blue) and gwasurvivr (dark green). Confidence intervals were calculated for 3 simulations for each $n$ and $m$ combination.}  
+    \label{fig:gwsfig1}  
+\end{figure}
 
-## Minor Allele Frequency (MAF)
-```{r, cache=TRUE, message=FALSE, fig.width=11, fig.height=6, fig.cap="**Supplementary Figure 3.** Correlation of estimated minor allele frequency (MAF) between gwasurvivr and other GWAS survival analysis software. The x-axis are gwasurvivr MAFs and the y-axis are MAFs from the other software. The points are colored to indicate the software being used where red is genipe, green is GWASTools alone, and blue is SurvivalGWAS_SV. Each panel represents a different simulation with varying sample sizes (n) and number of SNPs (p) included in the provided imputed genetic dataset. The estimates are near perfectly correlated and thus not all colors are visible in each plot.", echo=FALSE,  dev="png"}
+Scalability is a key component in software design, particularly in contemporary times with growth of data. As such, we wanted to benchmark how well `gwasurvivr` (and the other software) scaled as sample size increased from $n=100$, $n=1000$, and $n=5000$. `gwasurvivr` was faster than genipe [@genipe], SurvivalGWAS_SV [@survivalgwas_sv], and GWASTools [@gwastools] for $m=100,000$ SNPs at $n=100$, and $n=5000$, with the exception of SurvivalGWAS_SV at $n=1000$ (Figure \ref{fig:gwsfig1}). To reiterate, the reported time is the rate-limiting of SurvivalGWAS_SV (the shortest runtime for 1 of 10 arrays), meaning this may not necessarily reflect on how quickly the analysis will complete, as it could vary between one to all arrays. `Gwasurvivr` is orders of magnitudes faster than the other software when the sample size is $n=5000$ (Figure \ref{fig:gwsfig1}). 
 
-maf <- sim_df_sp %>%
-    filter(stats=="MAF") %>%
-    gather(key = "analysis", "value", c(genipe, GWASTools, SurvivalGWAS_SV)) %>% 
-    ggplot(aes(x=gwasurvivr, y=value, color=analysis)) +
-    geom_point(alpha=(1/10)) +
-    theme(plot.title = element_text(hjust = 0.5), legend.position="none") +
-    facet_wrap(~sims, scales="free") +
-    ggtitle("Minor Allele Frequency (MAF)") +
-    labs(x="gwasurvivr MAFs", y="Other software MAF") +
-    guides(color = guide_legend(override.aes = list(alpha = 1))) +
-    theme_bw() +
-    theme(plot.title = element_text(hjust = 0.5)) 
-maf    
-```
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth, height=3in]{~/Desktop/figures/chapter3/bigN_plot.png}
+    \caption[Runtimes for survival analyses with on chromosome 22 with increasing sample size.]{Runtimes for survival analyses with on chromosome 22 with increasing sample size. Gwasurvivr was run on IMPUTE2 data simulated from chromosome 22 ($m \approx 117,000$ SNPs) for $n=15,000$, $n=20,000$ and $n=25,000$. The dark blue is elapsed time for compressing to GDS format and dark green is the computational time to run the survival analysis alone.}
+    \label{fig:gwsfig2}  
+\end{figure}
 
-## P-value Estimates
-```{r, cache=TRUE, message=FALSE, fig.width=11, fig.height=6, fig.cap="**Supplementary Figure 4.**  Correlation of p-values between gwasurvivr and other GWAS survival analysis software. The x-axis are gwasurvivr p-values and the y-axis are p-values from the other software. The points are colored to indicate the software being used where red is genipe, green is GWASTools alone, and blue is SurvivalGWAS_SV. Each panel represents different simulations with varying sample sizes (n) and number of SNPs (p) included in the provided imputed genetic dataset. The estimates are near perfectly correlated and thus not all colors are visible in each plot.", echo=FALSE,  dev="png"}
-pval <- sim_df_sp %>%
-    filter(stats=="PVALUE") %>%
-    gather(key = "analysis", "value", c(genipe, GWASTools, SurvivalGWAS_SV)) %>% 
-    ggplot(aes(x=gwasurvivr, y=value, color=analysis)) +
-    geom_point(alpha=(1/10)) +
-    facet_wrap(~sims, scales="free") +
-    ggtitle("P-values") +
-    labs(x="gwasurvivr P-values", y="Other software P-values") +
-    guides(color = guide_legend(override.aes = list(alpha = 1))) +
-    theme_bw() +
-    theme(plot.title = element_text(hjust = 0.5)) 
-pval
-```
+As a single GWAS may include tens of thousands of individuals, the next question was to what extent could the sample size be increased. We tested `gwasurvivr` on the smallest chromosome (chromosome 2) available in our simulated dataset. `Gwasurvivr` is able to handle large sample sizes up to $n=25,000$, however, compression time increases with increasing sample size, and likely will be limited by available RAM on a machine or cluster (Figure \ref{fig:gwsfig2}).
 
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth, height=3in]{~/Desktop/figures/chapter3/cov_plot.png}
+    \caption[Runtime for survival analyses with increasing number of covariates.]{Runtime for survival analyses with increasing number of covariates. Genipe (yellow), GWASTools (light green), SurvivalGWAS\_SV (dark blue) and gwasurvivr (dark green) run with 4, 8 and 12 covariates ($n = 5000$, $m=100,000$).}  
+    \label{fig:gwsfig3}  
+\end{figure}
 
-## Full GWAS Runtimes
-```{r, cache=TRUE, message=FALSE, fig.width=11, fig.height=8, fig.cap="**Supplementary Figure 5.**  Full GWAS run times for all chromosomes using gwasurvivr impute2CoxSurv. The three panels represent different sample sizes of N=3000 (top), N=6000 (middle) and N=9000 (bottom). The dark blue shaded area is elapsed time for compressing IMPUTE2 to GDS format and the dark green shaded areas are the computational time to run the survival analysis alone. On a computing cluster, each chromosome can be scheduled to run as individual jobs for best performance. Each GWAS was run on the UB CCR supercomputer with on the same node with 24 GB of RAM and 4 CPUs per node.", echo=FALSE,  dev="png"}
-library(tidyverse)
+We were then interested in how well each software scaled as the number of additional covariates increased and if a substantial increase in runtime would occur. Increasing the number of covariates for gwasurvivr has minimal effects on runtime versus other software (Figure \ref{fig:gwsfig3}). 
 
-all_chr_gwas <- readRDS("~/Google Drive/OSU_PHD/gwasurvivr_manuscript/full_gwas_experiments/results/all_chr_times.rds")
-plot_cols <- c("#21313E","#20726E","#67B675","#EFEE69")[4:1]
-all_chr_gwas %>%
-    mutate(Atime = Total_Time-User_Time) %>%
-    dplyr::select(Ctime= User_Time,
-           Atime,
-           n=`Sample Size`,
-           chr) %>%
-    gather(`Step of Analysis`, Time, Atime, Ctime) %>%
-    mutate(`Step of Analysis`=recode(`Step of Analysis`,
-                                     Atime= "Survival Analysis",
-                                     Ctime= "IMPUTE2 to GDS Compression"),
-           Time=Time/3600) %>%
-    ggplot(aes(chr, Time, fill=`Step of Analysis`, label=round(Time, 2))) +
-    geom_col() +
-    # ggtitle("Time for full GWAS to complete: gwasurvivr") +
-    ggtitle("gwasurvivr Runtimes for full GWAS across chromosomes") +
-    scale_fill_manual(values = plot_cols[3:4]) +
-    geom_text(size = 3, position = position_stack(vjust = 0.5), color="white") +
-    theme_bw() +
-    facet_grid(n~.) +
-    scale_x_continuous(breaks=1:22) +
-    theme(plot.title = element_text(size=18),
-          axis.text.x = element_text(size=14),
-          axis.text.y = element_text(size=14),
-          axis.title.x = element_text(size=16),
-          axis.title.y = element_text(size=16),
-          legend.text = element_text(size=12),
-          strip.text.x = element_text(size=14),
-          legend.position="top",
-          legend.title = element_blank(),
-          panel.grid.major = element_blank(),
-          panel.grid.minor = element_blank()
-    ) +
-    labs(x="Chromosome", y="Runtime (hours)") -> suppFig5
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth, height=6in]{~/Desktop/figures/chapter3/fullgwas_allchrs.png}
+    \caption[Runtime for survival analyses for full GWAS with increasing sample size. ]{Runtime for survival analyses for full GWAS with increasing sample size using gwasurvivr impute2CoxSurv. The three panels represent different sample sizes of $n=3000$ (top), $n=6000$ (middle) and $n=9000$ (bottom). The dark blue shaded area is elapsed time for compressing IMPUTE2 to GDS format and the dark green shaded areas are the computational time to run the survival analysis alone. On a computing cluster, each chromosome can be scheduled to run as individual jobs for best performance. Each GWAS was run on the UB CCR supercomputer with on the same node with 24 GB of RAM and 4 CPUs per node.}
+    \label{fig:gwsfig4}  
+\end{figure}
 
-suppFig5
-```
+And the final and most practical question to answer was to determine the run time for a complete GWAS. A ~6 million SNP GWAS can be run in < 10 hours for 9000 samples when using separately scheduled jobs on a supercomputer (Figure \ref{fig:gwsfig4}). The `keepGDS` argument helps address this and results in reduced run times (Figures \ref{fig:gwsfig2} and \ref{fig:gwsfig4}), i.e. < 3 hours for a GWAS of $n=9,000$. 
+
+# Discussion
+Large-scale GWAS that study phenotypes that result in death are becoming prevalent, particularly in the field of pharmacogenomics. Research should not be disrupted due to lack of workflows and software that permit error-free. To put this in persepective, we ran hundreds of survival analyses in our lab on GWAS data. Often, we would need to double check analyses before presenting findings at a conference or in a publication. We lacked reliable software that would enable straightforward reproducibility, and assumed other labs were experiencing this as well. While other software already existed with the intent of addressing these needs, we developed `gwasurvivr` be in the R/Bioconductor ecosystem and be flexible such that it can be easily integrated into workflows and pipelines, as well as being easily adjusted for advanced users. 
 
 
