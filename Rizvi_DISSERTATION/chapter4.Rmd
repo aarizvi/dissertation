@@ -3,6 +3,8 @@ title: "Application and Implementation"
 author: "Abbas Rizvi"
 date: "11/21/2018"
 output: pdf_document  
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r ch4_setup, include=FALSE}
@@ -10,17 +12,104 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 # Introduction
-
-Does this say anything? Maybe this is the problem.
+Automation of large scale studies is essential to the reproducibility of analyses. Robust workflows that have minimal user interaction decrease the possibility of continual, unnoticed errors from propagating. When modeling and analyzing DISCOVeRY-BMT, we often have to compute hundreds of analyses, i.e. for three genomes (donor, recipient and mismatch), different disease stratification, two cohorts, and different survival outcomes. The effects of both cohorts are combined using meta-analyses. In order to overcome this potentially cumbersome process, we developed an automated pipeline that uses imputed genotype data from the Sanger imputation server as input, runs user specified Cox regression models using gwasurvivr, performs a meta-analysis, and subsequently reshapes the data into a clean format. Here we show an overview of the pipeline (known as DISCOVeRY-BMT Meta-analysis Pipeline) we created and the analyses that were performed after re-imputing DISCOVeRY-BMT using the Sanger Imputation Server. 
 
 # Methodology
 
-## Schematic of pipeline
+## Data
+1. Genetic Data (Imputation Results)  
+DISCOVeRY-BMT was first imputed using IMPUTE2 [@Howie_2009] and 1000 Genomes Project (1kGP) Phase 3 [@1000genomes] reference panel. Although new reference panels are Genome Reference Consorstium Human Build 37 (GRCh37; same as 1kGP), as new reference panels continue to be released, we decided that it would be appropriate to update DISCOVeRY-BMT GWAS data. As mentioned in Chapter 1 and Chapter 3, several imputation software and servers exist. Two imputation web services are publicly available, Michigan imputation server [@michigan_imputation] from University of Michigan and Sanger imputation server from Wellcome Sanger Institute [@hrc]. The largest, non-subtle, differences between the servers are related to the imputation algorithms used. Michigan imputation server uses minimac3 [@michigan_imputation]. Sanger imputation server using the position Burrows-Wheeler transform (PBWT) algorithm [@durbin_2014]. Both imputation services offer user friendly platforms and offer the most up to date reference panels, including HRC release 1.1. HRC reference panel combines data from over 20 different studies. The majority of samples in HRC are low coverage sequencing data and predominantly European ancestry, and HRC includes 1kGP Phase 3 as well. HRC has $\approx 65,000$ haplotypes and $\approx 40$ million SNPs. We decided to go with Sanger imputation because ... **nothing written here**. Prior to imputation, it is common practice it is common practice to pre-phase (haplotype estimation) before imputation, as previous studies have demonstrated estimating haplotypes prior to imputation substantially speeds up the imputation process [@OConnell_2016]. EAGLE2 [@eagle2] or SHAPEIT2 [@shapeit2] are commonly used pre-phasing algorithms. SHAPEIT2 pre-phasing and PBWT imputation were used for DISCOVeRY-BMT, returning unphased, imputed genotypes. 
 
-## Reimputation with HRC
+2. Phenotype file   
+DISCOVeRY-BMT has clinical characteristics and survival times/events corresponding to recipients and donors provided by NMDP and CIBMTR. The survival times and events are for recipients only. Characteristics are shown in Table 1.  
+
+```{r, echo=FALSE}
+dons <- c("Donor","age, sex, race group, blood type (ABO)")
+recs <- c("Recipient","age, sex, race group, blood type (ABO), graft source, causes of death (levels 1-7), conditioning regimen and intensity, disease type, disease progression, cytogenetics status, time to death, time to relapse, AML type, transplant year, HLA match (8/8 or 10/10)")
+
+knitr::kable(setNames(data.frame(rbind(dons, recs), row.names = NULL), c("Genome", "Description")), 
+             caption="Broad Overview of DISCOVeRY-BMT Clinical Characteristics", booktabs=TRUE) %>%
+    kableExtra::kable_styling(latex_options = "striped") %>%
+    kableExtra::column_spec(2, width="24em")
+```
+
+\singlespacing
+
+```{r, echo=FALSE, eval=FALSE}
+library(tidyverse)
+pheno_data <- read_tsv("~/Google Drive/OSU_PHD/DBMT_100d/DBMT_PhenoData_EA_long_allVar_20181206.txt")
+pheno_data <- pheno_data %>%
+    select(updated.EA_IID, pair_id, FID, age, dnrage, htpr, wtpr, bmi, yeartx,
+           intxrel_overall:racegp, dnrracegp, disease, gvhdgp, atgcampathgp, rel_overall:dead_overall, 
+           sexMM, graftype, abod, abor, cpcod1gen:death7, dthprim, alstatpr, amstatpr, mdstatpr, MyeloReg1, ATG, TBI,
+           DxCytogen:AMLtype, PriorDx, TxRelExposure, dead_1Y:infection_1Y, cmprisk, sample_type, sangerIDs)
+head(pheno_data)
+```
+
+\doublespacing
+
+Many of the clinical values have been recoded into dummy/indicator variables or stratified into joint groupings.   
+
+## Manifest file
+The imputed files can be directly passed to gwasurvivr. Manifest files are defined as a file that contains columns (for this pipeline, manifest files are tab-separated) that describe specific arguments that are passed to other functions (i.e. the `run_gwasurvivr.R`, or to the SLURM scripts). Manifest file fields can be found in Table 2.
+
+```{r, echo=FALSE}
+cols <- c("path_to_vcf_file", "output_name", "patient_subset", "genome", "outcome", "memory")
+desc <- c("Chromosomes 1-22 VCF files (include full directory)",
+          "Output file name",
+          "Patient subset - i.e. ALL only, AML only, mixed",
+          "Donor, recipient, or mismatch",
+          "Outcome - i.e. DRM, TRM, OS, PFS, INF, OF, REL",
+          "Random access memory (RAM) in megabytes (MB) allocated to the job")
+
+x <- data.frame(cbind(cols, desc), row.names = NULL)
+
+colnames(x) <- c("Column name", "Description")
 
 
-## Imputed data location
+knitr::kable(x, caption="Manifest file column descriptions", booktabs=TRUE) %>%
+kableExtra::kable_styling(latex_options = "striped") %>%
+kableExtra::column_spec(2, width="24em")
+
+```
+
+
+
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth, height=3in]{~/Desktop/figures/chapter4/chapter4_flowdiagram_v2.png}
+    \caption[Process diagram of automated survival meta-analysis pipeline.]{Process diagram of automated survival meta-analysis pipeline DISCOVeRY-BMT. The pipeline is written in DBMT\_metaPipeline.pl. It submits three jobs on UB CCR SLURM, job 1 (cohort 1 survival analysis), job 2 (cohort 2 survival analysis), and job3 (meta-analysis) which waits for (dependency) job 1 and 2 to complete before starting. To elaborate, a manifest file passed to DBMT\_Pipeline.pl as input that defines the VCF file (chromosome), outcome, patient subset, and memory allocation. run\_gwasurvivr.R captures the command line Rscript that is invoked in the perl script and prepares the data. run\_gwasurvivr.R uses the outcome and patient subset from the manifest file and defines these outcomes and affiliated covariates and runs gwasurvivr survival analysis. After both cohort 1 and cohort 2 are complete, meta-analysis is performed. After meta-analysis is complete, spread\_metal.R, filters out heterogeneous SNPs between cohorts, statistics are computed, and data is reformatted such that cohort 1, cohort 2, and meta-analysis are all shown in a single line corresponding to a single variant. The output it then used for annotation to further characterize associations.}
+    \label{fig:flow}  
+\end{figure}
+
+
+## Execution of script
+
+\noindent `perl /projects/rpci/lsuchest/lsuchest/DBMT_metaPipeline/Meta_pipeline.pl`
+
+Required commands:  
+
+\singlespacing
+
+```
+    -m        path to the manifest file
+    -e        e-mail address for messaging
+    -w        walltime in format 00:00:00
+    -rscript  /projects/rpci/lsuchest/lsuchest/DBMT_metaPipeline/ \
+              run_gwasurvivr.R 
+    # (or path to another user defined R script)
+```
+
+
+## Analyses Run
+
+```{r}
+
+
+```
+
+
 
 ## perl script
 
@@ -236,22 +325,6 @@ while(<MANIFEST>) {
 
 \doublespacing
 
-## Execution of script
-
-\noindent `perl /projects/rpci/lsuchest/lsuchest/DBMT_metaPipeline/Meta_pipeline.pl`
-
-Required commands:  
-
-\singlespacing
-
-```
-    -m        path to the manifest file
-    -e        e-mail address for messaging
-    -w        walltime in format 00:00:00
-    -rscript  /projects/rpci/lsuchest/lsuchest/DBMT_metaPipeline/ \
-              run_gwasurvivr.R 
-    # (or path to another user defined R script)
-```
 
 \doublespacing
 
@@ -262,4 +335,4 @@ Required commands:
 
 # Utilization and purpose
 
-# Conclusion
+# Discussion
