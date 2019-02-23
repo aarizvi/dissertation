@@ -182,7 +182,7 @@ df <- setNames(data.frame(
                  time_var, 
                  covariates,
                  stringsAsFactors = FALSE),
-               c("Survival Outcomes", "Time Interval", "Covariates")
+               c("Survival Outcomes", "Time Interval", "Covariates"))
 
 knitr::kable(df, caption="Survival Models Analyzed", booktabs=TRUE) %>%
     kableExtra::kable_styling(latex_options="striped") %>%
