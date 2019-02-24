@@ -110,7 +110,7 @@ perl /projects/rpci/lsuchest/lsuchest/DBMT_metaPipeline/\
     -m D_AMLonly_DRM.manifest \
     -e rizvi.33@osu.edu \
     -w 08:00:00 \
-    -rscript /projects/rpci/lsuchest/lsuchest/D\BMT_metaPipeline/\
+    -rscript /projects/rpci/lsuchest/lsuchest/DBMT_metaPipeline/\
         run_gwasurvivr.R 
 ```
 
@@ -406,6 +406,15 @@ while(<MANIFEST>) {
 ```
 
 \doublespacing
+
+# Results
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth, height=5in]{~/Desktop/figures/chapter4/drm_mixed_run_times.png}
+    \caption[Runtime diagnostics of full GWAS using DBMT Meta analysis Pipeline.]{Runtime diagnostics of full GWAS using DBMT Meta analysis Pipeline. Shown here is just one example of all analyses run. This example is donor genotypes in mixed diseases (AML + ALL + MDS) recipients, testing for TRM. The y-axis is chromosomes 1-22 and the x-axis is computational runtime in hours. Each chromosome was run separately and all began at the same time, such that the total time for this GWAS was equivalent to chromosome 2 in cohort 1 runtime (4.66 hours). The white text inside each bar is the file size of the chromosomes after gwasurvivr survival analysis. The SNPs were filtered for MAF > 0.005 and INFO > 0.8.}
+    \label{fig:run_times}  
+\end{figure}
 
 
 \doublespacing
