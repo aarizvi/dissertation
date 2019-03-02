@@ -1,16 +1,85 @@
 ---
-title: "Conclusion and Future Work"
+title: "Early Death Acute Lymphoblastic Leukemia"
 author: "Abbas Rizvi"
 date: "11/11/2018"
-output: pdf_document  
+output: pdf_document2
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r ch6_setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# +100 Days Schematic of Pipeline
-Wow maybe the problem is that it didn't say anything.
+# Introduction
+Here we do 100+ Days.
+
+# Methods
+Please refer to Chapter 4 "Application and Pipeline" for a detailed description of the pipeline that was undertaken.  
+
+# Results
+
+```{r gwas_hits_100d, echo=FALSE}
+gwas_hits <- readRDS("~/Google Drive/OSU_PHD/DBMT_ALLonly/hits/20190228_gwas_hits.rds")
+gwas_hits %>%
+    filter(str_detect(analysis, "100d")) %>%
+    separate(analysis, c("genome", "disease", "outcome", "interval"), sep="_") %>%
+    select(-interval, -disease, -query_snp_rsid) %>%
+    mutate(genome=ifelse(genome=="D", "Donor", "Recipent")) %>%
+    unite(analysis, c("genome", "outcome"), sep="\n") %>%
+    rename(RSID=rsid,
+           PMID=pmid,
+           `GWAS Trait`=gwas_trait,
+           `GWAS P-value`=gwas_pvalue,
+           Analysis=analysis) %>%
+    select(Analysis, everything()) %>%
+    kable(caption="\\label{tab:gwas_hits_100d} Previously Published GWAS Traits from GWAS Catalog Reproduced in DISCOVeRY-BMT 100+ Days ALL Analysis.", digits=60) %>%
+    kableExtra::kable_styling(latex_options="striped") %>%
+    kableExtra::column_spec(1, width="4em") %>%
+    kableExtra::column_spec(2, width="5em") %>%
+    kableExtra::column_spec(3, width="4em") %>%
+    kableExtra::column_spec(4, width="8em") %>%
+    kableExtra::column_spec(5, width="4em") %>%
+    footnote(general_title="",
+             general="SNPs shown here are either the query SNP or in LD (r2 > 0.8) with the query SNP.",
+             footnote_as_chunk = TRUE,
+             threeparttable = TRUE)
+
+```
+
+Table \ref{tab:gwas_hits_100d} works.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth, height=5in]{~/Desktop/figures/chapter6/R_ALLonly_OS_100d.jpeg}
+    \caption[Recipient OS 100+ Days GWAS Manhattan Plot]{Recipient OS 100+ Days GWAS Manhattan Plot. Red line GWAS significance at 5e-08. Blue line is suggestive significance at 5e-06.}
+    \label{fig:r_os_100d_manplot}  
+\end{figure}
+
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth, height=5in]{~/Desktop/figures/chapter6/r_os_100d_chr11_1a.png}
+    \caption[Recipient OS 100+ Days.]{Recipient OS 100+ Days. Chromosome 11. rs489591 (Imputed) sentinel SNP is shown in blue. RegulomeDB 1A. In LD with typed SNP (1B). Likely to affect binding and linked to expression of a gene target. Mention number of SNPs in this region.}
+    \label{fig:r_os_100d_1a}  
+\end{figure}
+
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth, height=5in]{~/Desktop/figures/chapter6/rs7111341_diabetes_gwas_region_chr11.png}
+    \caption[Recipient OS 100+ Days Reproduces Reported GWAS]{Recipient OS 100+ Days Reproduces Reported GWAS. Sentinel SNP (rs7111341) is the blue dot. Typed SNP}
+    \label{fig:r_os_100d_t1d_gwas}  
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth, height=5in]{~/Desktop/figures/chapter6/D_ALLonly_PFS_100d.jpeg}
+    \caption[Donor PFS 100+ Days Manhattan Plot]{Donor PFS 100+ Days Manhattan Plot}
+    \label{fig:d_pfs_100d_manplot}  
+\end{figure}
+
+
 # Future Work
 
 # Conclusion

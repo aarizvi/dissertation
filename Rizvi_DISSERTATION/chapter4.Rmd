@@ -133,7 +133,8 @@ clean_df <- full_df %>%
                  patient_subset %in% c("Mixed", "AML", "AML + MDS", "B-ALL", "T-ALL") |
              cens_time == "3 years" & genome == "Mismatch" |
              cens_time == "3 years" & outcomes %in% c("DRM", "TRM", "PFS")),
-           !(cens_time == "100 days" & patient_subset %in% c("B-ALL", "T-ALL"))) %>% 
+           !(cens_time == "100 days" & patient_subset %in% c("B-ALL", "T-ALL")),
+           !(cens_time == "1 year" & genome == "Mismatch" & patient_subset=="ALL")) %>% 
     group_by(patient_subset, cens_time) %>%
     summarize(genomes=toString(unique(genome)), 
               outcomes=toString(unique(outcomes))) %>%
@@ -151,7 +152,7 @@ clean_df <- full_df %>%
 colnames(clean_df) <- c("Genomes", "Patient Subset", "Survival Outcomes", "Censoring Time", "Analyses Run")
 
 rbind(clean_df, c("Total", "", "", "", sum(clean_df$`Analyses Run`))) %>% 
-    knitr::kable(caption="DISCOVeRY-BMT Analyses Run Using DBMT metaPipeline.", booktabs=TRUE) %>%
+    knitr::kable(caption="DISCOVeRY-BMT Analyses Run Using DBMT metaPipeline." ,booktabs=TRUE) %>%
     kableExtra::kable_styling(latex_options="striped") %>%
     kableExtra::column_spec(1, width="6em") %>%
     kableExtra::column_spec(2, width="4em") %>%
@@ -411,7 +412,7 @@ while(<MANIFEST>) {
 
 \begin{figure}
     \centering
-    \includegraphics[width=\linewidth, height=5in]{~/Desktop/figures/chapter4/drm_mixed_run_times.png}
+    \includegraphics[width=\linewidth, height=5in]{~/Desktop/figures/chapter4/trm_mixed_run_times.png}
     \caption[Runtime diagnostics of full GWAS using DBMT Meta analysis Pipeline.]{Runtime diagnostics of full GWAS using DBMT Meta analysis Pipeline. Shown here is just one example of all analyses run. This example is donor genotypes in mixed diseases (AML + ALL + MDS) recipients, testing for TRM. The y-axis is chromosomes 1-22 and the x-axis is computational runtime in hours. Each chromosome was run separately and all began at the same time, such that the total time for this GWAS was equivalent to chromosome 2 in cohort 1 runtime (4.66 hours). The white text inside each bar is the file size of the chromosomes after gwasurvivr survival analysis. The SNPs were filtered for MAF > 0.005 and INFO > 0.8.}
     \label{fig:run_times}  
 \end{figure}
@@ -422,9 +423,6 @@ while(<MANIFEST>) {
 ## Manifest file
 
 ## Output Folders
-
-
-# Utilization and purpose
 
 # Discussion
 

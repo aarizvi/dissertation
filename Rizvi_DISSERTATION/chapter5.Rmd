@@ -9,15 +9,102 @@ output: pdf_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# ALL: Schematic of Pipeline
-It doesn't say anything at the beginning. Could this be the problem
+# Introduction
 
-# ALL stuff
+# Results
 
-# Run ALL only and B-ALL only
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth, height=5in]{~/Desktop/figures/chapter5/R_ALLonly_DRM.jpeg}
+    \caption[Manhattan Plot of Recipient ALL DRM GWAS.]{Manhattan Plot of Recipient ALL DRM GWAS. Each dot is a SNP.}
+    \label{fig:r_drm_1y}  
+\end{figure}
 
-# Discovery
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth, height=5in]{~/Desktop/figures/chapter5/R_ALLonly_TRM.jpeg}
+    \caption[Recipient TRM 1 Year Manhattan Plot]{Recipient TRM 1 Year Manhattan Plot}
+    \label{fig:r_trm_1y}  
+\end{figure}
 
-# Interpretation
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth, height=5in]{~/Desktop/figures/chapter5/r_of_1y_gwas_hit.png}
+    \caption[Recipient OF Region Chromosome 6.]{Recipient OF Region Chromosome 6. Sentinal SNP is rs6915410. Previous GWAS hit rs7744392 for trait contracts in type 2 diabetes. In perfect LD with rs13362808 which is cis eQTL in blood tissue.}
+    \label{fig:r_of_1y}  
+\end{figure}
+
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth, height=5in]{~/Desktop/figures/chapter5/R_ALLonly_OS.jpeg}
+    \caption[Recipient OS 1 Year Manhattan Plot]{Recipient OS 1 Year Manhattan Plot}
+    \label{fig:r_os_1y}  
+\end{figure}
+
+
+
+```{r gwas_hits_1y, echo=FALSE}
+gwas_hits <- readRDS("~/Google Drive/OSU_PHD/DBMT_ALLonly/hits/20190228_gwas_hits.rds")
+gwas_hits %>%
+    filter(str_detect(analysis, "1y")) %>%
+    separate(analysis, c("genome", "disease", "outcome", "interval"), sep="_") %>%
+    select(-interval, -disease, -query_snp_rsid) %>%
+    mutate(genome=ifelse(genome=="D", "Donor", "Recipent")) %>%
+    unite(analysis, c("genome", "outcome"), sep="\n") %>%
+    rename(RSID=rsid,
+           PMID=pmid,
+           `GWAS Trait`=gwas_trait,
+           `GWAS P-value`=gwas_pvalue,
+           Analysis=analysis) %>%
+    select(Analysis, everything()) %>%
+    kable(caption="\\label{tab:gwas_hits_1y} Previously Published GWAS Traits from GWAS Catalog Reproduced in DISCOVeRY-BMT 1 Year ALL Analysis.", digits=60) %>%
+    kableExtra::kable_styling(latex_options="striped") %>%
+    kableExtra::column_spec(1, width="4em") %>%
+    kableExtra::column_spec(2, width="5em") %>%
+    kableExtra::column_spec(3, width="4em") %>%
+    kableExtra::column_spec(4, width="8em") %>%
+    kableExtra::column_spec(5, width="4em") %>%
+    footnote(general_title="",
+             general="SNPs shown here are either the query SNP or in LD (r2 > 0.8) with the query SNP.",
+             footnote_as_chunk = TRUE,
+             threeparttable = TRUE)
+
+
+```
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth, height=5in]{~/Desktop/figures/chapter5/D_ALLonly_OS.jpeg}
+    \caption[Manhattan Plot of Donor ALL OS GWAS.]{Manhattan Plot of Donor ALL OS GWAS. Each dot is a SNP. Green box is ...}
+    \label{fig:d_os_1y}  
+\end{figure}
+
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth, height=5in]{~/Desktop/figures/chapter5/D_ALLonly_TRM.jpeg}
+    \caption[Manhattan Plot of Donor ALL TRM GWAS.]{Manhattan Plot of Donor ALL TRM GWAS. Each dot is a SNP. This is here to talk about GVHD.}
+    \label{fig:d_trm_1y}  
+\end{figure}
+
+
+For donor OS 1 year GWAS. rs12533724 imputed ($P = 1.51\text{e}^{-06}$; HR: 1.78, 95% CI 1.41-2.26).
+
+
+rs62465751 (2b), rs7785755 (2b), rs10235334 (2c), rs62465735 (2b), rs28590087 (3a). This SNP is in LD with ..
+
+
+
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth, height=5in]{~/Desktop/figures/chapter5/rs9783053_1_D_ALLonly_GVHD.png}
+    \caption[Donor GVHD Region Chromosome 1.]{Donor GVHD Region Chromosome 1. Sentinal SNP is rs9783053. RegulomeDB 1A. Typed SNP}
+    \label{fig:d_gvhd_1y}  
+\end{figure}
+
+
+
 
 # Discussion
