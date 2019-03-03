@@ -3,6 +3,8 @@ title: "Acute Lymphobastic Leukemia (ALL) GWAS"
 author: "Abbas Rizvi"
 date: "11/11/2018"
 output: pdf_document  
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r ch5_setup, include=FALSE}
@@ -10,15 +12,142 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 # Introduction
+Acute lymphoblastic leukemia (ALL) is the second most common disease of which patients will undergo HLA-matched unrelated donor hematopoeitic stem cell transplantation (MUD-HSCT)  [@DSouza_2017]. The number of transplants has steadily been increasing yearly. As recently as 2017, approximately 1500 ALL patients underwent MUD-HSCT [@DSouza_2017]. Nearly 60% of adult ($>= 18$ years old) patients with advanced disease die within the first year after transplant [@DSouza_2017]. ALL has slightly better prognosis in children ($<= 18$ years old) -- with 40% of advanced disease patients dying in the first year [@DSouza_2017], similar to trends that were discussed in Chapter 1 regarding survival after transplant. ALL has known risk factors certain genes are mutated at the somatic level. Numerous childhood (pediatric) ALL studies have been performed, however most are at the case/control or pharmacogenomics level. Very few studies have looked at adult ALL, which is the most deadly. No studies before DISCOVeRY-BMT have investigated genetic variation and its contribution to survival outcomes in ALL patients (and donors) and after MUD-HSCT. ALL can involve either B-cell or T-cell lineages and can occur at any stage of hematopoeisis (determined by immunophenotyping). Transplant after reaching CR. Disease status (risk stratification) determined by ... clinical, immunological and cytogenetic characteristics. Common survival send points are 100+ days, 1 year, and 3 year. Most adults are high risk as a consequence of their age. 
+
+# Methods
+Refer to Chapter 4 "Application and Pipeline" for an in depth description on the methodology that was undertaken. Survival analyses were performed using the DBMT meta-analysis pipeline. Cox regression survival analyses that were tested included: overall survival (OS), disease related mortality (DRM), transplant related mortality (TRM), relapse (REL), progression-free survival (PFS) and TRM subtypes [graft versus host disease (GVHD), infection (INF), and organ failure (OF)]. Refer to Chapter 1 for details on survival outcome definitions. All analyses were performed on one SNP (donors or recipients dosage across all patients) at a time, adjusted for clinically and statistically (bidirectional stepwise regression) relevant covariates. For SNPs to be considered 'hits', they must be below the field standard genome-wide significance threshold of $P < 5e^{-08}$. Meta-analysis was done using a fixed effects model via METAL software [@metal]. Additional QC was performed on the SNPs (i.e. INFO score > 0.8, MAF > 0.05 in both cohorts, required to be same direction between cohorts and heterogeneous SNPs were filtered out).  
+
+Post-GWAS annotations were performed by leveraging publicly available databases including HaploReg v4.1 [@haploreg], RegulomeDB [@Boyle_2012], and single nucleotide polymorphisms annotator (SNiPA) [@snipa].
 
 # Results
 
+## DISCOVeRY-BMT ALL Summary
+
+
+```{r, echo=FALSE}
+library(tidyverse)
+covariate.file <- read_tsv("~/Google Drive/OSU_PHD/DBMT_100d/DBMT_PhenoData_EA_long_allVar_20190223.txt")
+
+covariate.file <- covariate.file %>%
+    filter(sample_type=="recipient",
+           ALLdummy==1) %>%
+    select(cohort, age, intxsurv_1Y, intxrel_1Y, dnrsex, sex, racegp,
+           distatD,ncmvc, graftype, bmi_cat, abomatch, alstatpr,
+           disease_death_1Y, TRM_1Y, dead_1Y, lfs_1Y,
+           rel_1Y, GVHD_death_1Y, infection_1Y, OF_1Y) 
+
+outcome_ct <- function(...) {
+    covariate.file %>%
+        group_by(cohort) %>%
+        count(...) %>%
+        mutate(freq=paste0("(", round(n/sum(n),3), ")"),
+               desc=paste0(n, "/", sum(n))) %>%
+        unite(freq, c("desc", "freq"), sep=" ") %>%
+        select(-n) %>%
+        gather(key, value, ...) %>%
+        spread(cohort, freq) %>%
+        filter(value==1)
+}   
+
+covs <- vars(disease_death_1Y, TRM_1Y, dead_1Y,
+             lfs_1Y, rel_1Y, GVHD_death_1Y, 
+             infection_1Y, OF_1Y)
+
+all_stats <- map_dfr(covs, outcome_ct) %>%
+    rename(`Cohort 1`=`1`,
+           `Cohort 2`=`2`,
+           Outcome=key,
+           Status=value) %>%
+    select(-Status) %>%
+    mutate(Outcome=c("DRM", "TRM", "OS", "PFS", "REL", "GVHD", "INF", "OF")) 
+
+all_stats %>%
+    knitr:: kable(caption="\\label{tab:all_event_props} Proportion of Events at 1-year in DISCOVeRy-BMT ALL Cohorts", booktabs=TRUE, align="c") %>%
+    kableExtra::kable_styling(latex_options="striped") %>%
+    footnote(general_title="",
+             general="Proportion of Events (Death or Relapse) are displayed as the sample size of event (Nevent) divided by the total number of patients in the ALL cohort. Overlapping events are not shown here.",
+             footnote_as_chunk = TRUE,
+             threeparttable = TRUE)
+
+```
+
+DISCOVeRY-BMT has 483 patients in cohort 1 and 94 patients in cohort 2 (Table \ref{tab:all_event_props}). The proportion of patients that die within the first year (overall survival) is on average 41.35% between both cohorts (Table \ref{tab:all_event_props}). Slightly more patients die from TRM than from DRM at 21.85% and 19.5% between both cohorts, respectively (Table \ref{tab:all_event_props}). About 27% of patients experience relapse after transplant and between 5-7% of patients are dying from TRM subtypes (Table \ref{tab:all_event_props}).
+
+
+```{r, echo=FALSE}
+age_prop_table <- covariate.file %>% 
+    mutate(age_cat=case_when(age<=18 ~ "Pediatric",
+                             age>=40 ~ "Adult",
+                             age>=18 & age<40 ~ "AYA")) %>%
+    group_by(cohort) %>%
+    count(age_cat) %>%
+    mutate(prop=n/sum(n)) %>%
+    gather(key, value, age_cat) %>%
+    select(-n, -key) %>%
+    spread(cohort, prop) %>%
+    rename(`Age Category`=value,
+           `Cohort 1`=`1`,
+           `Cohort 2`=`2`)
+
+age_prop_table %>%
+    knitr:: kable(caption="\\label{tab:all_ages} Distribution of ALL Patient Age Stratified by DISCOVeRY-BMT Cohorts", booktabs=TRUE, align="c") %>%
+    kableExtra::kable_styling(latex_options="striped") %>%
+        footnote(general_title="",
+             general="Adult: > 40 years old; Adolescent or Young Adult (AYA): > 18 and < 40; Pediatric < 18",
+             footnote_as_chunk = TRUE,
+             threeparttable = TRUE)
+```
+
+Age is adjusted as a continuous variable in our Cox regression model, however, for characterization purposes we looked at the age distribution by standard clinical stratification. Those groups include adult ($>= 40$ years old), adolescent and young adults (AYA; $>= 18$ and $< 40$ years old), and children ($<18$ years old) (Table \ref{tab:all_ages}). Pediatric ALL comprises nearly 25% of cohort 1 and 20% of cohort 2. AYA and adults comprise about 43%  and 35% of the cohorts, respectively (Table \ref{tab:all_ages}). 
+
+## Genome-wide Analysis of ALL in Recipients 
 \begin{figure}
     \centering
     \includegraphics[width=\linewidth, height=5in]{~/Desktop/figures/chapter5/R_ALLonly_DRM.jpeg}
-    \caption[Manhattan Plot of Recipient ALL DRM GWAS.]{Manhattan Plot of Recipient ALL DRM GWAS. Each dot is a SNP.}
+    \caption[Manhattan Plot of Recipient ALL DRM GWAS.]{Manhattan Plot of Recipient ALL DRM GWAS. The x-axis are chromosomes 1-22 and the y-axis is the -log10(Pvalue). Each dot is a SNP. The red line is genome wide significance at P < 5e-08. The blue line is suggestive significance at P < 5e-05. The labeled SNPs are genome wide significant hits.}
     \label{fig:r_drm_1y}  
 \end{figure}
+
+```{r gwas_hits_1y, echo=FALSE}
+gwas_hits <- readRDS("~/Google Drive/OSU_PHD/DBMT_ALLonly/hits/20190228_gwas_hits.rds")
+gwas_hits %>%
+    filter(str_detect(analysis, "1y")) %>%
+    separate(analysis, c("genome", "disease", "outcome", "interval"), sep="_") %>%
+    select(-interval, -disease, -query_snp_rsid) %>%
+    mutate(genome=ifelse(genome=="D", "Donor", "Recipent")) %>%
+    unite(analysis, c("genome", "outcome"), sep="\n") %>%
+    rename(RSID=rsid,
+           PMID=pmid,
+           `GWAS Trait`=gwas_trait,
+           `GWAS P-value`=gwas_pvalue,
+           Analysis=analysis) %>%
+    select(Analysis, everything()) %>%
+    kable(caption="\\label{tab:gwas_hits_1y} Previously Published GWAS Traits from GWAS Catalog Reproduced in DISCOVeRY-BMT 1 Year ALL Analysis.", digits=60, align='c') %>%
+    kableExtra::kable_styling(latex_options="striped") %>%
+    kableExtra::column_spec(1, width="4em") %>%
+    kableExtra::column_spec(2, width="5em") %>%
+    kableExtra::column_spec(3, width="4em") %>%
+    kableExtra::column_spec(4, width="8em") %>%
+    kableExtra::column_spec(5, width="6em") %>%
+    footnote(general_title="",
+             general="SNPs shown here are either the query SNP or in LD (r2 > 0.8) with the query SNP.",
+             footnote_as_chunk = TRUE,
+             threeparttable = TRUE)
+```
+
+GWAS were run for DRM, TRM, OS, PFS, REL, and TRM subtypes. The first annotations that were performed were using HaploReg v4.1. We lowered our threshold to marginally significant ($P < 5e^{-06}$) SNPs, while still maintaining the level of quality (stringent QC). HaploReg reports previously published hits from GWAS Catalog (EMBL-EBI). We cross-referenced all marginally significant regions from DISCOVeRY-BMT with GWAS catalog to determine if any SNPs have been reported genome wide significant in independent studies (Table \ref{tab:gwas_hits_1y}), yielding four regions that had previously been reported upon. 
+
+The GWAS trait blood metabolite levels [rs10022462; @shin_2014] was reproduced from rs10516806 ($r^{2} = 0.82$; $P=1.6e^{-07}$; HR: 0.474 [0.359-0.627] for T allele) that was just below genome wide significance. This SNP is in perfect LD ($r^2$) with rs2869930 which is protein bound for *Foxa1* (in liver cell line Hep G2) and *Eralpha* (in T-47D human breast cancer cells). *Foxa1* is a transcription factor that belongs to the *Fox* family -- of which another member of this family, *Foxp1*, when downregulated is associated with deficient B-cells  [@hu_2006; @Wlodarska_2005]. This may be contributing to the patient dying from their original disease. 
+
+
+Associations ($P < 5e^{-08}$) were found in recipient genome for disease related mortality (DRM) on chromosomes 2, 11, and 17 (Figure \ref{fig:r_drm_1y}). The chromosome 17 region includes SNPs that are intronic for *CDRT1*.  
+
+
+
+
+
+
+
 
 \begin{figure}
     \centering
@@ -44,34 +173,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 
 
-```{r gwas_hits_1y, echo=FALSE}
-gwas_hits <- readRDS("~/Google Drive/OSU_PHD/DBMT_ALLonly/hits/20190228_gwas_hits.rds")
-gwas_hits %>%
-    filter(str_detect(analysis, "1y")) %>%
-    separate(analysis, c("genome", "disease", "outcome", "interval"), sep="_") %>%
-    select(-interval, -disease, -query_snp_rsid) %>%
-    mutate(genome=ifelse(genome=="D", "Donor", "Recipent")) %>%
-    unite(analysis, c("genome", "outcome"), sep="\n") %>%
-    rename(RSID=rsid,
-           PMID=pmid,
-           `GWAS Trait`=gwas_trait,
-           `GWAS P-value`=gwas_pvalue,
-           Analysis=analysis) %>%
-    select(Analysis, everything()) %>%
-    kable(caption="\\label{tab:gwas_hits_1y} Previously Published GWAS Traits from GWAS Catalog Reproduced in DISCOVeRY-BMT 1 Year ALL Analysis.", digits=60) %>%
-    kableExtra::kable_styling(latex_options="striped") %>%
-    kableExtra::column_spec(1, width="4em") %>%
-    kableExtra::column_spec(2, width="5em") %>%
-    kableExtra::column_spec(3, width="4em") %>%
-    kableExtra::column_spec(4, width="8em") %>%
-    kableExtra::column_spec(5, width="4em") %>%
-    footnote(general_title="",
-             general="SNPs shown here are either the query SNP or in LD (r2 > 0.8) with the query SNP.",
-             footnote_as_chunk = TRUE,
-             threeparttable = TRUE)
 
-
-```
 
 \begin{figure}
     \centering
@@ -95,8 +197,6 @@ For donor OS 1 year GWAS. rs12533724 imputed ($P = 1.51\text{e}^{-06}$; HR: 1.78
 rs62465751 (2b), rs7785755 (2b), rs10235334 (2c), rs62465735 (2b), rs28590087 (3a). This SNP is in LD with ..
 
 
-
-
 \begin{figure}
     \centering
     \includegraphics[width=\linewidth, height=5in]{~/Desktop/figures/chapter5/rs9783053_1_D_ALLonly_GVHD.png}
@@ -105,6 +205,14 @@ rs62465751 (2b), rs7785755 (2b), rs10235334 (2c), rs62465735 (2b), rs28590087 (3
 \end{figure}
 
 
-
-
 # Discussion
+
+ALL and environment -- incidence higher in industralized countries.
+
+ALL and upregulation of oncogenes and loss of tumor suppressor genes. 
+
+Most ALL lack identifiable or environment causes.
+
+Familial inheritance with twins .. maybe environmental because twins pass it to other twin (intrauterine).
+
+

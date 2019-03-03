@@ -33,7 +33,7 @@ gwas_hits %>%
            `GWAS P-value`=gwas_pvalue,
            Analysis=analysis) %>%
     select(Analysis, everything()) %>%
-    kable(caption="\\label{tab:gwas_hits_100d} Previously Published GWAS Traits from GWAS Catalog Reproduced in DISCOVeRY-BMT 100+ Days ALL Analysis.", digits=60) %>%
+    kable(caption="\\label{tab:gwas_hits_100d} Previously Published GWAS Traits from GWAS Catalog Reproduced in DISCOVeRY-BMT 100+ Days ALL Analysis.", digits=60, align='c') %>%
     kableExtra::kable_styling(latex_options="striped") %>%
     kableExtra::column_spec(1, width="4em") %>%
     kableExtra::column_spec(2, width="5em") %>%

@@ -166,7 +166,6 @@ rbind(clean_df, c("Total", "", "", "", sum(clean_df$`Analyses Run`))) %>%
 
 The models that we ran:  
 
-
 ```{r, echo=FALSE}
 outcomes <- c("TRM", "DRM", "OS", 
               "PFS", "REL", "GVHD", 
