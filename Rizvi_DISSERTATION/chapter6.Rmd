@@ -12,12 +12,15 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 # Introduction
-In Chapter 5 we investigated non-HLA genetics in donor and recipients and how genetic variation may contribute to survival outcomes within the first year after transplant. in this chapter, a parallel analysis was conducted, this time censoring the patient at the 100+ day endpoint. Early death after MUD-HSCT is fairly common and the genetics contributing to have not been well characterized and may be quite different than those identified at a later time point (at 1-year). As shown in Chapter 1 (Figure 1.1), death in the first year shifts from being driven by transplant related causes for the majority of the first year to being driven by the disease towards the end of the year. 
+In Chapter 5 we investigated non-HLA genetics in donor and recipients and how genetic variation may contribute to survival outcomes within the first year after transplant. in this chapter, a parallel analysis was conducted, this time censoring the patient at the 100+ day endpoint. Early death after MUD-HSCT is fairly common and the genetics contributing to have not been well characterized and may be quite different than those identified at a later time point (at 1-year). As shown in Chapter 1 (Figure 1.1), death in the first year shifts from being driven by transplant related causes for the majority of the first year to being driven by the disease towards the end of the year. Furthermore, those who die early may have susceptibility to more immune related pathways as it is likely that they are dying from issues from the transplant. 
 
 # Methods
-Please refer to Chapter 4 "Application and Pipeline" for a detailed description of the pipeline that was undertaken.   
+Please refer to Chapter 4 "Application and Pipeline" for a detailed description of the pipeline that was undertaken. All SNPs were filtered for high quality imputation at INFO > 0.8, MAF > 0.01 and for heterogeneity post meta-analysis. Post-GWAS functional annotation was conducted by leveraging publicly available datasets RegulomeDB [@Boyle_2012], HaploReg v4.1 [@haploreg], and SNiPA [@snipa].
 
 # Results
+
+## DISCOVeRY-BMT Survival Outcomes of ALL patients within 100+ Days
+
 
 ```{r, echo=FALSE}
 library(tidyverse)
@@ -44,9 +47,8 @@ outcome_ct <- function(...) {
         filter(value==1)
 }   
 
-covs <- vars(disease_death_1Y, TRM_1Y, dead_1Y,
-             lfs_1Y, rel_1Y, GVHD_death_1Y, 
-             infection_1Y, OF_1Y)
+covs <- vars(drm_100d, trm_100d, dead_100d, lfs_100d,
+           rel_100d, gvhd_100d, inf_100d, of_100d)
 
 all_stats <- map_dfr(covs, outcome_ct) %>%
     rename(`Cohort 1`=`1`,
@@ -57,7 +59,7 @@ all_stats <- map_dfr(covs, outcome_ct) %>%
     mutate(Outcome=c("DRM", "TRM", "OS", "PFS", "REL", "GVHD", "INF", "OF")) 
 
 all_stats %>%
-    knitr:: kable(caption="\\label{tab:all_event_props} Proportion of Events at 1-year in DISCOVeRY-BMT ALL Cohorts", 
+    knitr:: kable(caption="\\label{tab:100d_event_props} Proportion of Events at 100+ days in DISCOVeRY-BMT ALL Cohorts", 
                   booktabs=TRUE, 
                   align="c") %>%
     kableExtra::kable_styling(latex_options="striped", 
@@ -68,8 +70,15 @@ all_stats %>%
              footnote_as_chunk = TRUE,
              threeparttable = TRUE, 
              escape=FALSE)
-
 ```
+
+
+
+Overall survival within the first 100 days after transplant ranges for cohort 1 is 15.7% and for cohort 2 is 19.1% (Table \ref{tab:100d_event_props}). Patients who succumb to transplant-related death (TRM) is proportional between DISCOVeRY-BMT cohorts at approximately 12% (Table \ref{tab:100d_event_props}). Disease related moratlity is relatively low at an average of approximately 5% (Table \ref{tab:100d_event_props}). Death by TRM subtypes each hover around 3% for both cohorts. 
+
+Genome-wide associations were identified in recipient OS and donor PFS. All other outcomes did not have genome-wide associations. 
+
+## Previously reported GWAS associations in regions identified from 100+ Days GWAS
 
 ```{r gwas_hits_100d, echo=FALSE}
 gwas_hits <- readRDS("~/Google Drive/OSU_PHD/DBMT_ALLonly/hits/20190228_gwas_hits.rds")
@@ -100,30 +109,433 @@ gwas_hits %>%
 
 ```
 
-Table \ref{tab:gwas_hits_100d} works.
+Three regions had that were at least marginally associated in DISCOVeRY-BMT had been previously reported as genome wide significant in independent GWAS (Table \ref{tab:gwas_hits_100d}). While the traits that were identified are not necessarily related to leukemia or survival, they may still provide some insight on regions worth investigating, particularly if they are immune related (i.e. type 1 diabetes; Table \ref{tab:gwas_hits_100d}). First we will describe the genome wide associations that were identified and subsequently we will report on these previous GWAS hits in light of DISCOVeRY-BMT at 100+ days. 
 
+## Recipient associations with overall survival at 100+ Days
 \begin{figure}
     \centering
-    \includegraphics[width=\linewidth, height=3.5in]{~/Desktop/figures/chapter6/R_ALLonly_OS_100d.jpeg}
-    \caption[Recipient OS 100+ Days GWAS Manhattan Plot]{Recipient OS 100+ Days GWAS Manhattan Plot. Red line GWAS significance at 5e-08. Blue line is suggestive significance at 5e-06.}
+    \includegraphics[width=\linewidth, height=3.5in]{~/Desktop/figures/chapter6/R_ALLonly_OS_100d.png}
+    \caption[Manhattan Plot of Recipient OS 100+ Days]{Manhattan Plot of Recipient OS 100+ Days. The x-axis is chromosome 1-22 and the y-axis is the $-\log_{10}$(P-value). Each dot is a SNP. The red line is genome wide significance at P < $5e^{-08}$. The blue line is suggestive significance at P < $5e^{-05}$. Labeled SNPs are associated hits that have passed genome-wide threshold.}
     \label{fig:r_os_100d_manplot}  
 \end{figure}
 
 
+
+
+```{r, echo=FALSE}
+library(tidytext)
+library(glue)
+library(tidyverse)
+haplo_sig <- readRDS("~/Google Drive/OSU_PHD/DBMT_ALLonly/hits/haplo_results.rds")
+
+joint_res <- readRDS("~/Google Drive/OSU_PHD/DBMT_ALLonly/hits/joint_res.rds")
+
+
+e_codes <- read_tsv("~/Google Drive/OSU_PHD/DBMT_ALLonly/hits/ecode_epigenome.txt")
+e_codes <- e_codes %>%
+    mutate(`Standardised epigenome name`=str_replace_all(`Standardised epigenome name`, "\xca", " ")) %>%
+    mutate_all(tolower) %>%
+    mutate_all(trimws)
+e_codes_vec <- e_codes$`Standardised epigenome name`
+names(e_codes_vec) <- e_codes$EID
+
+explore_haplo <- function(donor, disease, outcome, interval, haplo_col){
+    df <- joint_res_split %>%
+        filter(donor==!!donor,
+               disease==!!disease,
+               outcome==!!outcome,
+               interval==!!interval) 
+    haplo_df <- haplo_sig %>% 
+        filter(query_snp_rsid %in% df$RSID)
+    
+    switch(haplo_col,
+       motifs={
+           haplo_df %>%
+               filter(Motifs != ".") %>%
+               unnest_tokens(motifs, Motifs, token="regex", pattern = ";") %>% 
+               na.omit() %>% 
+               mutate_all(trimws) %>%
+               count(motifs) %>%
+               arrange(desc(n))
+        },
+        proteins={
+            haplo_df %>%
+                filter(Proteins != ".") %>%
+                select(query_snp_rsid, rsid, Proteins) %>%
+                unnest_tokens(proteins, Proteins, token="regex", pattern = ";") %>%
+                na.omit() %>% 
+                separate(proteins, c('cell lines', 'proteins', 'group', 'treatment'), sep=",") %>%
+                unite(cell_line_protein, c('cell lines', "proteins"), sep=";") %>%
+                mutate_all(trimws) %>%
+                count(cell_line_protein) %>%
+                arrange(desc(n)) %>%
+                separate(cell_line_protein, c("cell_line", "protein"), sep=";")
+        },
+        chromatin_marks={
+            haplo_df %>%
+                select(query_snp_rsid, rsid, Chromatin_Marks) %>%
+                unnest_tokens(chromatin_marks, Chromatin_Marks, token="regex", pattern = ";") %>%
+                na.omit() %>%
+                mutate_all(trimws) %>%
+                count(chromatin_marks) %>%
+                filter(!(chromatin_marks == "none"),
+                       (chromatin_marks!= ".")) %>%
+                arrange(desc(n)) %>%
+                separate(chromatin_marks, c("eid", "chromatin_mark"), sep=",") %>%
+                mutate(eid=e_codes_vec[eid])
+        },
+        promoter={
+            haplo_df %>%
+                select(query_snp_rsid, 
+                       rsid,
+                       Promoter_histone_marks) %>%
+                unnest_tokens(promoter_histone_marks, 
+                              Promoter_histone_marks, token="regex", 
+                              pattern = ";") %>%
+                na.omit() %>%
+                unnest_tokens(Promoter_histone_marks,
+                              promoter_histone_marks, token="regex",
+                              pattern = ",|\\n") %>%
+                mutate_all(trimws) %>%
+                count(Promoter_histone_marks) %>%
+                filter(!(Promoter_histone_marks == "none"),
+                       (Promoter_histone_marks != ".")) %>%
+                arrange(desc(n))
+        },
+        enhancer={
+            haplo_df %>%
+                select(query_snp_rsid, 
+                       rsid,
+                       Enhancer_histone_marks) %>%
+                unnest_tokens(enhancer_histone_marks,
+                              Enhancer_histone_marks, 
+                              token="regex", 
+                              pattern = ";") %>%
+                na.omit() %>%
+                unnest_tokens(Enhancer_histone_marks,
+                              enhancer_histone_marks,
+                              token="regex",
+                              pattern = ",|\\n") %>%
+                mutate_all(trimws) %>%
+                count(Enhancer_histone_marks) %>%
+                filter(!(Enhancer_histone_marks == "none"),
+                       (Enhancer_histone_marks != ".")) %>%
+                arrange(desc(n)) 
+        },
+       eqtl={
+           haplo_df %>%
+               select(query_snp_rsid, rsid, eQTL) %>%
+               unnest_tokens(eqtl, eQTL, token="regex", pattern = ";") %>%
+               filter(eqtl != ".") %>%
+               na.omit() %>%
+               separate(eqtl, c("gtex", "cell_lines", "gene", "pvalue"), sep=",") %>%
+               select(-rsid, -pvalue, -gtex) %>%
+               distinct() %>%
+               group_by(cell_lines, gene) %>%
+               summarize(n=n()) %>%
+               ungroup() %>%
+               arrange(desc(n))
+       },
+       gwas={
+               haplo_df %>%
+                   filter(gwas != ".") %>%
+                   select(query_snp_rsid, r2, rsid, gwas)     
+           },
+       grasp={
+           haplo_df %>%
+               filter(grasp != ".") %>%
+               select(query_snp_rsid, r2, rsid, grasp) %>% 
+               mutate(grasp=ifelse(str_detect(grasp, ";"), grasp, paste0(grasp, ";"))) %>%
+               unnest_tokens(Grasp, grasp, token="regex", pattern=";") %>%
+               separate(Grasp, c("pmid", "grasp_trait", "grasp_pvalue"), sep=",") %>%
+               mutate_at(vars(grasp_pvalue), as.double) %>%
+               group_by(rsid, pmid, grasp_trait, grasp_pvalue) %>%
+               summarize(query_snp_rsids=toString(query_snp_rsid)) %>%
+               ungroup() %>%
+               arrange(grasp_pvalue)
+       }
+    )
+}
+
+
+joint_res %>%
+    filter(pt_subset=="R_ALLonly_OS_100d", PVALUE_M < 5e-08, PVALUE_c1 < 5e-05, PVALUE_c2 < 1e-1) %>%
+    arrange(CHR, PVALUE_M) %>%
+    unite(`CHR:POS`, c("CHR", "POS"), sep=":") %>% 
+    mutate_at(.vars=vars(HR_ADJ, HR_lower_ADJ, HR_upper_ADJ), 
+              .funs=funs(round(., 2))) %>%
+    mutate_at(.vars=vars(RefPanelAF, SAMP_MAF_c1, SAMP_MAF_c2), 
+              .funs=funs(round(., 4))) %>%
+    mutate(HR=glue_data(., "{HR_ADJ} ({HR_lower_ADJ}-{HR_upper_ADJ})")) %>% 
+    select(-PVALUE_c1:-PVALUE_c2, 
+           -regdb_score,-TYPED, 
+           -HR_ADJ:-INFO,
+           -pt_subset) %>% 
+    unite(`Ref. Panel/Cohort 1/ Cohort 2 MAF`, c("RefPanelAF", "SAMP_MAF_c1", "SAMP_MAF_c2"),
+          sep="/") %>% 
+    rename(`HR (95% CI)`=HR,
+           `REF/ ALT`=REF_ALT,
+           `P-value`=PVALUE_M) %>%  
+        kable(caption="\\label{tab:r_os_100d} DISCOVeRY-BMT Recipient Overall Survival Associations at 100+ Days", 
+              digits=60, 
+              align='c') %>%
+    kableExtra::kable_styling(latex_options="striped",
+                              font_size=9, 
+                              position='center') %>%
+    kableExtra::column_spec(1, width="5em") %>%
+    kableExtra::column_spec(2, width="5.5em") %>%
+    kableExtra::column_spec(3, width="2em") %>%
+    kableExtra::column_spec(4, width="10.5em") %>%
+    kableExtra::column_spec(5, width="4.8em") %>%
+    kableExtra::column_spec(6, width="8em") %>%
+    footnote(general_title="",
+             general="All SNPs shown here are imputed. Genomic positions are GRCh37 reference genome. The effect allele is labeled as ALT.",
+             footnote_as_chunk = TRUE,
+             threeparttable = TRUE)
+```
+
+
+```{r, echo=FALSE}
+joint_res_split <- joint_res %>% 
+    filter(PVALUE_M < 1e-06, PVALUE_c1 < 0.05 , PVALUE_c2 < 0.05, RSID=="rs183339088") %>%
+    mutate(pt_subset=str_replace(pt_subset, "ALLsubtype_Bcell", "BALL")) %>%  
+    separate(pt_subset, c("genome", "disease", "outcome", "interval"), sep="_")
+
+explore_haplo("R", "ALLonly", "OS", "100d", "motifs") %>%
+    mutate(motifs=str_replace_all(motifs, "_[:alnum:]+", "")) %>% 
+    select(-n) %>%
+    count(motifs) %>%
+    group_by(n) %>%
+    mutate(motifs=toupper(motifs)) %>%
+    summarize(motifs=toString(motifs)) %>%
+    arrange(-n) %>%
+    select(motifs, n) %>% 
+    rename(`Motifs`=motifs,
+           `Number of SNPs`=n) %>% 
+    knitr::kable(caption="\\label{tab:r_os_100d_motifs} Regulatory Motifs Altered in Recipient 100+ Day OS rs183339088 Region.",
+                 booktabs=TRUE,
+                 align='c',
+                 digits=20) %>%
+    kableExtra::kable_styling(latex_options="striped",
+                              font_size=9,
+                              position='center') %>%
+    kableExtra::column_spec(1, width="30em") %>%
+    kableExtra::column_spec(2, width="10em") %>%
+    footnote(general_title="",
+             general="All SNPs in this region are minimum $r^2 \\\\geq 0.8$ with rs183339088.",
+             footnote_as_chunk = TRUE,
+             threeparttable = TRUE,
+             escape=FALSE)
+
+```
+
+The most promising assoication to OS at 100+ days in recipients is on chromosome 1. The variant rs183339088 passed the genome-wide threshold (Table \ref{tab:r_os_100d}). The SNP nearby *KHDRBS1* and is in perfect LD ($r^{2}=1$) with SNPs that are intronic. This protein coding gene is involved in cellular processes (i.e. alternative splicing, cell cycle regulation, signal transduction). *KHDRBS1* has been reported to be a key player in tumorigenesis by regulating NF$\kappa$B activation [@fu_2016]. Experimental ChIP-seq studies have shown proteins binding with rs183339088 loci in lymphoid (Pol2 amd Pol24h8) and myeloid (Pol24h8) dervied cell lines [@encode_2012]. Pol2 encodes DNA polymerase II, which is a key player in DNA replication. HaploReg revealed two histone marks on enhancer regions in blood tissue [@encode_2012]. rs183339088 alters some familiar leukemia related motifs such as *E2A* (Table \ref{tab:r_os_100d_motifs}). The remaining genome wide hits on chromosomes 3, 6, and 8 have minimal annotation available in regards to anything functional [@haploreg]. 
+
 \begin{figure}
     \centering
     \includegraphics[width=\linewidth, height=3.5in]{~/Desktop/figures/chapter6/r_os_100d_chr11_1a.png}
-    \caption[Recipient OS 100+ Days.]{Recipient OS 100+ Days. Chromosome 11. rs489591 (Imputed) sentinel SNP is shown in blue. RegulomeDB 1A. In LD with typed SNP (1B). Likely to affect binding and linked to expression of a gene target. Mention number of SNPs in this region.}
+    \caption[Recipient OS 100+ Days.]{Recipient OS 100+ Days. Chromosome 11. rs489591 (Imputed) sentinel SNP is shown in blue. The region comprises +/- 250 kb window from the sentinel SNP. The red-yellow color gradient represents LD strength. Shapes represent different effects that the SNP has been reported to have in this region from independent studies.}
     \label{fig:r_os_100d_1a}  
 \end{figure}
+
+
+
+```{r, echo=FALSE}
+joint_res_split <- joint_res %>%
+    filter(pt_subset=="R_ALLonly_OS_100d",
+           CHR==11,
+           POS>=94323376,
+           POS<=94339088) %>%
+    arrange(POS) %>% 
+    separate(pt_subset, c("genome", "disease", "outcome", "interval"), sep="_")
+
+```
+
+
+```{r, echo=FALSE}
+explore_haplo("R", "ALLonly", "OS", "100d", "proteins") %>%
+    select(-n) %>% 
+    mutate(protein=toupper(protein)) %>%
+    group_by(protein) %>%
+    summarize(cell_line=toString(cell_line)) %>%
+    rename(`Protein Bound`=protein,
+           `Cell Lines`=cell_line) %>% 
+    knitr::kable(caption="\\label{tab:rs489591_proteins} Proteins with Binding Evidence in rs489591 Region.", 
+                 booktabs=TRUE,
+                 align='c') %>%
+    kableExtra::kable_styling(latex_options="striped",
+                              font_size=9,
+                              position='center') %>%
+    kableExtra::column_spec(1, width="10em") %>%
+    kableExtra::column_spec(2, width="30em") %>%
+    footnote(general_title="",
+         general="All SNPs in this region are minimum $r^2 \\\\geq 0.9$ with rs489591",
+         footnote_as_chunk = TRUE,
+         threeparttable = TRUE, 
+         escape=FALSE)
+
+```
+
+```{r, echo=FALSE}
+explore_haplo("R", "ALLonly", "OS", "100d", "eqtl") %>% 
+    filter(!str_detect(gene, "ensg")) %>%
+    select(-n) %>%
+    mutate(gene=toupper(gene)) %>%
+    group_by(gene) %>%
+    summarize(cell_lines=toString(cell_lines)) %>%
+    rename(Gene=gene,
+           `Cell Lines`=cell_lines) %>% 
+    knitr::kable(caption="\\label{tab:rs489591_eqtl} Recipent OS 100+ Day Expression Quantitative Loci in rs489591 Region", booktabs=TRUE, align='c', digits=20) %>%
+    kableExtra::kable_styling(latex_options="striped",
+                              font_size=9,
+                              position='center') %>%
+    kableExtra::column_spec(1, width="5em") %>%
+    kableExtra::column_spec(2, width="25em") %>%
+    footnote(general_title="",
+             general="All SNPs in this region are minimum $r^2 \\\\geq 0.9$ with rs489591",
+             footnote_as_chunk = TRUE,
+             threeparttable = TRUE, 
+             escape=FALSE)
+```
+
+
+```{r, echo=FALSE}
+explore_haplo("R", "ALLonly", "OS", "100d", "grasp") %>% 
+    arrange(grasp_pvalue) %>%
+    rename(PMID=pmid,
+           `GRASP Trait`=grasp_trait,
+           `GRASP P-value`=grasp_pvalue) %>% 
+    select(-query_snp_rsids) %>% 
+    knitr::kable(caption="\\label{tab:rs489591_grasp} GRASP hits for rs489591",
+                 booktabs=TRUE, 
+                 align='c', 
+                 digits = 20) %>%
+    kableExtra::kable_styling(latex_options="striped",
+                              font_size=9,
+                              position='center') %>% 
+    kableExtra::column_spec(1, width="5em") %>%
+    kableExtra::column_spec(2, width="5em") %>%
+    kableExtra::column_spec(3, width="20em") %>%
+    kableExtra::column_spec(4, width="7em") %>%
+    footnote(general_title="",
+         general="All SNPs in this region are minimum $r^2 \\\\geq 0.9$ with rs489591",
+         footnote_as_chunk = TRUE,
+         threeparttable = TRUE,
+         escape=FALSE)
+```
+
+
+
+```{r, echo=FALSE}
+explore_haplo("R", "ALLonly", "OS", "100d", "motifs") %>%
+    mutate(motifs=str_replace_all(motifs, "_[:alnum:]+", "")) %>% 
+    select(-n) %>%
+    count(motifs) %>%
+    group_by(n) %>%
+    mutate(motifs=toupper(motifs)) %>%
+    summarize(motifs=toString(motifs)) %>%
+    arrange(-n) %>%
+    select(motifs, n) %>% 
+    rename(`Motifs`=motifs,
+           `Number of SNPs`=n) %>% 
+    knitr::kable(caption="\\label{tab:rs489591_motifs} Regulatory Motifs Altered in Recipient 100+ Day OS rs489591 Region.",
+                 booktabs=TRUE,
+                 align='c',
+                 digits=20) %>%
+    kableExtra::kable_styling(latex_options="striped",
+                              font_size=9,
+                              position='center') %>%
+    kableExtra::column_spec(1, width="30em") %>%
+    kableExtra::column_spec(2, width="10em") %>%
+    footnote(general_title="",
+             general="All SNPs in this region are minimum $r^2 \\\\geq 0.9$ with rs489591. Number of SNPs in this region that have been reported to alter motif a specific motif.",
+             footnote_as_chunk = TRUE,
+             threeparttable = TRUE,
+             escape=FALSE)
+```
+
+
+We identified two regions on chromosome 11 that have functional effects. Neither of these regions reached genome-wide significance but did meet the suggestive significance threshold ($P < 5e^{-05}$). The imputed variant rs489591 ($P = 1.21e^{-06}$; HR: 2.10 [1.56-2.84]; C effect allele) was identified by looking at RegulomeDB scores and we found a SNP that was 1A (highly likely to affect transcription factor binding) \ref{fig:r_os_100d_1a}. Rs489591 is in perfect LD with typed SNP rs608972 (RegulomeDB 1B) and synonymous SNP rs593690. This region encodes for *PIWIL4* which functions in development and maintenance of germline stem cells [@Sasaki_2003]. *PIWIL4* has been found to play roles in breast cancer [@wang_2016] and associated with poor survival in renal cell carcinoma patients [@iliev2016]. HaploReg reveals that this region has been seen to have histone marks on enhancers in embryonic stem cell derived cell lines and promoter regions in blood cell lines [@haploreg]. Experimental work shows evidence of proteins produced from leukemia and cancer target genes binding to this region (Table \ref{tab:rs489591_proteins}). Expression quantiative loci are reported in lymphoblastoid derived, blood, and lymphovcyte cell lines (Table \ref{tab:rs489591_eqtl}). GRASP hits were reported reporting these SNPs alter exon expression for *PIWIL4* and gene expression of *HIWI2* in lymphoblastoid cell lines (Table \ref{tab:rs489591_grasp}). All these annotations taken together, suggests regulatory motifs alterations likely have functional modifications (Table \ref{tab:rs489591_motifs}).
 
 
 \begin{figure}
     \centering
     \includegraphics[width=\linewidth, height=3.5in]{~/Desktop/figures/chapter6/rs7111341_diabetes_gwas_region_chr11.png}
-    \caption[Recipient OS 100+ Days Reproduces Reported GWAS]{Recipient OS 100+ Days Reproduces Reported GWAS. Sentinel SNP (rs7111341) is the blue dot. Typed SNP}
+    \caption[Recipient OS 100+ Days Reproduces Reported GWAS]{Recipient OS 100+ Days Reproduces Reported GWAS. Sentinel SNP (rs7111341; typed) is the blue dot. The region comprises +/- 250 kb window from the sentinel SNP. The red-yellow color gradient represents LD strength. Shapes represent different effects that the SNP has been reported to have in this region from independent studies.}
     \label{fig:r_os_100d_t1d_gwas}  
 \end{figure}
+
+```{r, echo=FALSE}
+joint_res_split <- 
+    joint_res %>%
+    filter(pt_subset=="R_ALLonly_OS_100d",
+           CHR==11,
+           POS>=2212448,
+           POS<=2214811) %>%
+    arrange(POS) %>% 
+    separate(pt_subset, c("genome", "disease", "outcome", "interval"), sep="_")
+```
+
+
+
+
+```{r, echo=FALSE}
+explore_haplo("R", "ALLonly", "OS", "100d", "proteins") %>%
+    select(-n) %>% 
+    mutate(protein=toupper(protein)) %>%
+    group_by(protein) %>%
+    summarize(cell_line=toString(cell_line)) %>%
+    rename(`Protein Bound`=protein,
+           `Cell Lines`=cell_line) %>% 
+    knitr::kable(caption="\\label{tab:rs7111341_proteins} Proteins with Binding Evidence in rs7111341 Region.", 
+                 booktabs=TRUE,
+                 align='c') %>%
+    kableExtra::kable_styling(latex_options="striped",
+                              font_size=9,
+                              position='center') %>%
+    kableExtra::column_spec(1, width="10em") %>%
+    kableExtra::column_spec(2, width="30em") %>%
+    footnote(general_title="",
+         general="All SNPs in this region are minimum $r^2 \\\\geq 0.8$ with rs7111341",
+         footnote_as_chunk = TRUE,
+         threeparttable = TRUE, 
+         escape=FALSE)
+
+```
+
+
+```{r, echo=FALSE}
+explore_haplo("R", "ALLonly", "OS", "100d", "motifs") %>%
+    mutate(motifs=str_replace_all(motifs, "_[:alnum:]+", "")) %>% 
+    select(-n) %>%
+    count(motifs) %>%
+    group_by(n) %>%
+    mutate(motifs=toupper(motifs)) %>%
+    summarize(motifs=toString(motifs)) %>%
+    arrange(-n) %>%
+    select(motifs, n) %>% 
+    rename(`Motifs`=motifs,
+           `Number of SNPs`=n) %>% 
+    knitr::kable(caption="\\label{tab:rs7111341_motifs} Regulatory Motifs Altered in Recipient 100+ Day OS rs7111341 Region.",
+                 booktabs=TRUE,
+                 align='c',
+                 digits=20) %>%
+    kableExtra::kable_styling(latex_options="striped",
+                              font_size=9,
+                              position='center') %>%
+    kableExtra::column_spec(1, width="30em") %>%
+    kableExtra::column_spec(2, width="10em") %>%
+    footnote(general_title="",
+             general="All SNPs in this region are minimum $r^2 \\\\geq 0.8$ with rs7111341. Number of SNPs in this region that have been reported to alter motif a specific motif.",
+             footnote_as_chunk = TRUE,
+             threeparttable = TRUE,
+             escape=FALSE)
+```
+
+
+The other region, SNPs in LD with typed SNP rs7111341 ($P = 4.2e^{-06}$, HR: 2.03 [1.5-2.75], T effect allele), on chromosome 11, that did not reach genome-wide significance but SNP that had previously reported associated with type 1 diabetes (Table \ref{tab:gwas_hits_100d}). Inspection of the region (Figure \ref{fig:r_os_100d_t1d_gwas}) has revealed many SNPs in this region as having direct regulatory effects, as well as being associated with effects on transcription. HaploReg revealed another region with a large number of interactions. RegulomeDB revealed that 5 of 15 SNPs in this region has scores between 2b-3b). Several SNPs in perfect LD with rs7111341 have histone markers on promoter and enhancer regions of genes in blood tissue [@encode_2012]. It is bound to a number of leukemia related proteins such as Gata2, C-myc and Stat1 (Table \ref{tab:rs7111341_proteins}). A GRASP hit reports gene expression at a probe centered in chromosome 20 in blood cells [@Fehrmann_2011]. These variants are eQTL for *TSPAN32* in blood and alter regulatory motifs in many leukemia (i.e. *PAX* and *FOX* families, \textit{NF$\kappa$B}, *E2F*, *PDX1*, *RXRA*) and cancer related target genes (i.e. *GR*, *MYC*, *SMAD3*) (Table \ref{tab:rs7111341_motifs}).
+
+# Donor Associations with Progression Free Survival
 
 \begin{figure}
     \centering
@@ -133,7 +545,78 @@ Table \ref{tab:gwas_hits_100d} works.
 \end{figure}
 
 
-# Future Work
+```{r, echo=FALSE}
+joint_res %>%
+    filter(pt_subset=="D_ALLonly_PFS_100d", PVALUE_M < 5e-08, PVALUE_c1 < 5e-05, PVALUE_c2 < 1e-1) %>%
+    arrange(CHR, PVALUE_M) %>%
+    unite(`CHR:POS`, c("CHR", "POS"), sep=":") %>% 
+    mutate_at(.vars=vars(HR_ADJ, HR_lower_ADJ, HR_upper_ADJ), 
+              .funs=funs(round(., 2))) %>%
+    mutate_at(.vars=vars(RefPanelAF, SAMP_MAF_c1, SAMP_MAF_c2), 
+              .funs=funs(round(., 4))) %>%
+    mutate(HR=glue_data(., "{HR_ADJ} ({HR_lower_ADJ}-{HR_upper_ADJ})")) %>% 
+    select(-PVALUE_c1:-PVALUE_c2, 
+           -regdb_score,-TYPED, 
+           -HR_ADJ:-INFO,
+           -pt_subset) %>% 
+    unite(`Ref. Panel/Cohort 1/ Cohort 2 MAF`, c("RefPanelAF", "SAMP_MAF_c1", "SAMP_MAF_c2"),
+          sep="/") %>% 
+    rename(`HR (95% CI)`=HR,
+           `REF/ ALT`=REF_ALT,
+           `P-value`=PVALUE_M) %>%  
+        kable(caption="\\label{tab:d_pfs_100d} DISCOVeRY-BMT Donor Progression Free Survival Associations at 100+ Days", 
+              digits=60, 
+              align='c') %>%
+    kableExtra::kable_styling(latex_options="striped",
+                              font_size=9, 
+                              position='center') %>%
+    kableExtra::column_spec(1, width="5em") %>%
+    kableExtra::column_spec(2, width="5.5em") %>%
+    kableExtra::column_spec(3, width="2em") %>%
+    kableExtra::column_spec(4, width="10.5em") %>%
+    kableExtra::column_spec(5, width="4.8em") %>%
+    kableExtra::column_spec(6, width="8em") %>%
+    footnote(general_title="",
+             general="All SNPs shown here are imputed. Genomic positions are GRCh37 reference genome. The effect allele is labeled as ALT.",
+             footnote_as_chunk = TRUE,
+             threeparttable = TRUE)
+```
 
-# Conclusion
-Stuff is written here ...
+```{r, echo=FALSE}
+joint_res_split <- joint_res %>%
+    filter(pt_subset=="D_ALLonly_PFS_100d",
+           CHR==2) %>%
+    arrange(POS) %>% 
+    separate(pt_subset, c("genome", "disease", "outcome", "interval"), sep="_")
+
+explore_haplo("D", "ALLonly", "PFS", "100d", "motifs") %>%
+    mutate(motifs=str_replace_all(motifs, "_[:alnum:]+", "")) %>% 
+    select(-n) %>%
+    count(motifs) %>%
+    group_by(n) %>%
+    mutate(motifs=toupper(motifs)) %>%
+    summarize(motifs=toString(motifs)) %>%
+    arrange(-n) %>%
+    select(motifs, n) %>% 
+    rename(`Motifs`=motifs,
+           `Number of SNPs`=n) %>% 
+    knitr::kable(caption="\\label{tab:rs151127058_motifs} Regulatory Motifs Altered in Recipient 100+ Day OS rs151127058 Region.",
+                 booktabs=TRUE,
+                 align='c',
+                 digits=20) %>%
+    kableExtra::kable_styling(latex_options="striped",
+                              font_size=9,
+                              position='center') %>%
+    kableExtra::column_spec(1, width="30em") %>%
+    kableExtra::column_spec(2, width="10em") %>%
+    footnote(general_title="",
+             general="All SNPs in this region are minimum $r^2 \\\\geq 0.8$ with rs151127058 Number of SNPs in this region that have been reported to alter motif a specific motif.",
+             footnote_as_chunk = TRUE,
+             threeparttable = TRUE,
+             escape=FALSE)
+```
+
+Donor genomes were shown to be associated with PFS in 3 regions - chromosome 2, 6, and 18. Chromosome 2 variant rs151127058 is in LD ($r^2 = 0.77$) with a GWAS hit rs7234531 associated with elevated blood pressure from smoking [@sung_2015] (Tables \ref{tab:gwas_hits_100d} and \ref{tab:d_pfs_100d}). Rs151127058 is in LD with a SNP that has a GRASP hit with serum ratio of liver enzymes [@Suhre_2011]. The chromosome 2 region shows no protein binding or eQTls from HaploReg. Many regulatory motifs are altered in this region, however, they may not have any functional implications due to no associations being found that alter gene expression or gene products (Table \ref{tab:rs151127058_motifs}). However, it is interesting that many of the altered motifs again are genes that we have reported on in this chapter and in Chapter 5. The associated loci on chromosomes 6 and 18 did not have any meaningful annotation from publicly available data. 
+
+# Discussion
+In this Chapter we sought out to identify and characterize regions that were associated with survival outcomes in donors and recipients at the 100+ day end point. We were able to identify two interesting regions on chromosome 11 for recipients that likely affect transcription. Further validation studies investigating *PIWIL4* and recipient overall survival are warranted given the activity in that region. *TSPAN32* has previously been identified as a susceptibility gene in chronic lymophocytic leukemia (CLL) [@slager_2013]. Loci in this gene may have functional implications in cells arising from lymphoid lineages. The donor PFS hits were not as interesting as the recipient OS hits, because there was no evidence of eQTLs or protein binding sites. Sample size was likely a major limiting factor for the 100+ day endpoint. 

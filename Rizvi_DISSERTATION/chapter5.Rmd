@@ -19,7 +19,7 @@ Since younger children are much less exposed to environmental risk factors compa
 DISCOVeRY-BMT is the first genome-wide association study that  investigates genetic variation and its contribution to survival outcomes in ALL patients (and their HLA-matched donors) after MUD-HSCT. Common survival end points are 100+ days, 1 year, and 3 year. Most adults are high risk as a consequence of their age. The 1-year end point will be discussed in this chapter.
 
 # Methods
-Refer to Chapter 4 "Application and Pipeline" for an in depth description on the methodology that was undertaken. Survival analyses were performed using the DBMT meta-analysis pipeline. Cox regression survival analyses that were tested included: overall survival (OS), disease related mortality (DRM), transplant related mortality (TRM), relapse (REL), progression-free survival (PFS) and TRM subtypes [graft versus host disease (GVHD), infection (INF), and organ failure (OF)]. Refer to Chapter 1 for details on survival outcome definitions. All analyses were performed on one SNP (donors or recipients dosage across all patients) at a time, adjusted for clinically and statistically (bidirectional stepwise regression) relevant covariates. For SNPs to be considered 'hits', they must be below the field standard genome-wide significance threshold of $P < 5e^{-08}$. Meta-analysis was done using a fixed effects model via METAL software [@metal]. Additional QC was performed on the SNPs (i.e. INFO score > 0.8, MAF > 0.05 in both cohorts, required to be same direction between cohorts and heterogeneous SNPs were filtered out).  
+Refer to Chapter 4 "Application and Pipeline" for an in depth description on the methodology that was undertaken, Survival analyses were performed using the DBMT meta-analysis pipeline. Cox regression survival analyses that were tested included: overall survival (OS), disease related mortality (DRM), transplant related mortality (TRM), relapse (REL), progression-free survival (PFS) and TRM subtypes [graft versus host disease (GVHD), infection (INF), and organ failure (OF)]. Refer to Chapter 1 for details on survival outcome definitions. Please refer to chapter 4 for the clinical covariates that are included in the model. All analyses were performed on one SNP (donors or recipients dosage across all patients) at a time, adjusted for clinically and statistically (bidirectional stepwise regression) relevant covariates. For SNPs to be considered 'hits', they must be below the field standard genome-wide significance threshold of $P < 5e^{-08}$. Meta-analysis was done using a fixed effects model via METAL software [@metal]. Additional QC was performed on the SNPs (i.e. INFO score > 0.8, MAF > 0.05 in both cohorts, required to be same direction between cohorts and heterogeneous SNPs were filtered out).  
 
 Post-GWAS annotations were performed by leveraging publicly available databases including HaploReg v4.1 [@haploreg], RegulomeDB [@Boyle_2012], and single nucleotide polymorphisms annotator (SNiPA) [@snipa].
 
@@ -382,7 +382,7 @@ rs10516806 and SNPs that are in LD ($r^2$ > 0.82) have enhancer and promoter his
 joint_res_split <- joint_res %>% 
     filter(PVALUE_M < 5e-06, PVALUE_c1 < 0.05 , PVALUE_c2 < 0.05) %>%
     mutate(pt_subset=str_replace(pt_subset, "ALLsubtype_Bcell", "BALL")) %>%  
-    separate(pt_subset, c("donor", "disease", "outcome", "interval"), sep="_")
+    separate(pt_subset, c("genome", "disease", "outcome", "interval"), sep="_")
 
 explore_haplo("R", "ALLonly", "OF", "1y", "proteins") %>%
     select(-n) %>% 
@@ -580,7 +580,10 @@ explore_haplo("D", "ALLonly", "GVHD", "1y", "motifs") %>%
     select(motifs, n) %>%
     rename(`Motifs`=motifs,
            `Number of SNPs`=n) %>%
-    knitr::kable(caption="\\label{tab:d_gvhd_motifs} Regulatory Motifs Altered in Recipient Organ Failure rs6915410 Region.", booktabs=TRUE, align='c') %>%
+    knitr::kable(caption="\\label{tab:d_gvhd_motifs} Regulatory Motifs Altered in Recipient Organ Failure rs6915410 Region.", 
+                 booktabs=TRUE, 
+                 align='c',
+                 digits=20) %>%
     kableExtra::kable_styling(latex_options="striped",
                               font_size=9,
                               position='center') %>%
@@ -604,7 +607,7 @@ explore_haplo("D", "ALLonly", "GVHD", "1y", "eqtl") %>%
     summarize(cell_lines=toString(cell_lines)) %>%
     rename(Gene=gene,
            `Cell Lines`=cell_lines) %>%
-        knitr::kable(caption="\\label{tab:d_gvhd_eqtl} eQTLs in Donor GVHD rs9783053.", booktabs=TRUE, align='c') %>%
+        knitr::kable(caption="\\label{tab:d_gvhd_eqtl} eQTLs in Donor GVHD rs9783053.", booktabs=TRUE, align='c', digits=20) %>%
     kableExtra::kable_styling(latex_options="striped",
                               font_size=9,
                               position='center') %>%
@@ -624,7 +627,7 @@ explore_haplo("D", "ALLonly", "GVHD", "1y", "grasp") %>%
        `GRASP Trait`=grasp_trait,
        `GRASP P-value`=grasp_pvalue) %>%
     unite(`RSID/ Query SNP`, c("rsid", "query_snp_rsids"), sep="/ ")  %>%
-    knitr::kable(caption="\\label{tab:d_gvhd_grasp} GRASP hits for rs9783053.", booktabs=TRUE, align='c') %>%
+    knitr::kable(caption="\\label{tab:d_gvhd_grasp} GRASP hits for rs9783053.", booktabs=TRUE, align='c', digits = 20) %>%
     kableExtra::kable_styling(latex_options="striped",
                               font_size=9,
                               position='center') %>%
@@ -641,4 +644,4 @@ Marginally associated loci ($P < 5e^{-06}$) were scanned using RegulomeDB for re
 
 Preivously the relationship between survival outcomes and non-HLA donor-recipient genetics after MUD-HSCT had not been studied at the genome-wide level. Here we presented the first GWAS investigating this objective. Germline genetics have not been well characterized in adult ALL. The cohorts of DISCOVeRY-BMT comprise a comprehrensive age range of patients, including pediatrics, adolescent and young adults, and adults. Genome-wide associations to survival outcomes after 1-year post-transplant were identified in both recipient and donor genomes. Specifically, recipient death due to disease (DRM), transplant (TRM and OF), and overall survival (OS). Functional annotations using publicly available databases revealed that the genome-wide associations had evidence of leukemia related target genes. Unfortunately this region had no previous experimental evidence of directly affecting transcription. This suggests that these associations would not necessarily be beneficial to improving survival for MUD-HSCT recipients. However, a marginally associated region (P < $5e^{-06}$) on chromosome 6 (rs6915410) had interactions that may affect transcription for recipients dying from OF. And because it affects transcription, it may alter protein products of these genes, offering a potential target. As this region was not genome-wide significant, it requires replication in an independent study. 
 
-Similarly, genome-wide regions were identified for donor genetics for OS and TRM. And like recipients, the associated SNPs in these regions had evidence of altering motifs but did not necessarily have any evidence of altering gene expression or transcription. As an exploratory measure, we looked for SNPs that specifically had evidence of altering transcription factor binding using RegulomeDB. A marginally associated locus (rs9783053) for donor genetics driven GVHD was identified. This region had many eQTLs that alter transcription regulation in *UBE4B*. *UBE4B* encodes a ubiqutin ligase that is involved in the degradation mechanism of the tumor supresssor gene *TP53* [@zhang_2014]. Previous studies have shown that low expression of *UBE4B* is associated with survival in neuroblastoma patients [@zage2013ube4b]. As this marginally associated region was found in donor GVHD, targeting *UBE4B* in recipients who have this variant may reduce risk of death due to GVHD. 
+Similarly, genome-wide regions were identified for donor genetics for OS and TRM. And like recipients, the associated SNPs in these regions had evidence of altering motifs but did not necessarily have any evidence of altering gene expression or transcription. As an exploratory measure, we looked for SNPs that specifically had evidence of altering transcription factor binding using RegulomeDB. A marginally associated locus (rs9783053) for donor genetics driven GVHD was identified. This region had many eQTLs that alter transcription regulation in *UBE4B*. *UBE4B* encodes a ubiqutin ligase that is involved in the degradation mechanism of the tumor supresssor gene *TP53* [@zhang_2014]. Previous studies have shown that low expression of *UBE4B* is associated with survival in neuroblastoma patients [@zage2013ube4b]. As this marginally associated region was found in donor GVHD, targeting *UBE4B* in recipients whose donor has this variant may reduce risk of death due to GVHD. 
