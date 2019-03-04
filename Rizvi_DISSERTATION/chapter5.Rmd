@@ -12,7 +12,11 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 # Introduction
-Acute lymphoblastic leukemia (ALL) is the second most common disease of which patients will undergo HLA-matched unrelated donor hematopoeitic stem cell transplantation (MUD-HSCT)  [@DSouza_2017]. The number of transplants has steadily been increasing yearly. As recently as 2017, approximately 1500 ALL patients underwent MUD-HSCT [@DSouza_2017]. Nearly 60% of adult ($>= 18$ years old) patients with advanced disease die within the first year after transplant [@DSouza_2017]. ALL has slightly better prognosis in children ($<= 18$ years old) -- with 40% of advanced disease patients dying in the first year [@DSouza_2017], similar to trends that were discussed in Chapter 1 regarding survival after transplant. ALL has known risk factors certain genes are mutated at the somatic level. Numerous childhood (pediatric) ALL studies have been performed, however most are at the case/control or pharmacogenomics level. Very few studies have looked at adult ALL, which is the most deadly. No studies before DISCOVeRY-BMT have investigated genetic variation and its contribution to survival outcomes in ALL patients (and donors) and after MUD-HSCT. ALL can involve either B-cell or T-cell lineages and can occur at any stage of hematopoeisis (determined by immunophenotyping). Transplant after reaching CR. Disease status (risk stratification) determined by ... clinical, immunological and cytogenetic characteristics. Common survival send points are 100+ days, 1 year, and 3 year. Most adults are high risk as a consequence of their age. 
+Acute lymphoblastic leukemia (ALL) is a type liquid cancer that originates in the lymphoid line of hematopoietic stem cells. ALL can involve either B-cell or T-cell lineages and can occur at any stage of hematopoiesis. ALL is the most common type of childhood cancer and is the second most common blood malignancy  for which patients will undergo HLA-matched unrelated donor hematopoietic stem cell transplantation (MUD-HSCT)  [@DSouza_2017]. The number of transplants among ALL patients has steadily been increasing yearly. As recently as 2017, approximately 1500 ALL patients underwent MUD-HSCT [@DSouza_2017]. ALL patients receive HSCT as a curative therapy after reaching complete remission (CR) and disease status at time of diagnosis play a major role in disease prognosis. Nearly 60% of adult ($>= 18$ years old) patients with advanced disease die within the first year after transplant [@DSouza_2017]. ALL has slightly better prognosis in children ($<= 18$ years old), with 40% of advanced disease patients dying in the first year [@DSouza_2017], similar to post-transplant survival trends that were discussed in Chapter 1. Disease status (risk stratification) is determined by clinical, immunological and cytogenetic characteristics. Many somatic aberrations have been determined as a predictor of ALL prognosis. 
+
+Since younger children are much less exposed to environmental risk factors compared to adults, high ALL occurrence in young children suggests a strong germline effect. Numerous genome-wide studies have been conducted with pediatric patients in a case/control setting or to detect variants with a pharmacogenetic effect. However, only a few studies focused on adult ALL, despite the fact that mortality rates are higher among adults. Likely this is because ALL is the most common childhood cancer. Nonethless, older age groups are affected by this deadly disease as well.
+
+DISCOVeRY-BMT is the first genome-wide association study that  investigates genetic variation and its contribution to survival outcomes in ALL patients (and their HLA-matched donors) after MUD-HSCT. Common survival end points are 100+ days, 1 year, and 3 year. Most adults are high risk as a consequence of their age. The 1-year end point will be discussed in this chapter.
 
 # Methods
 Refer to Chapter 4 "Application and Pipeline" for an in depth description on the methodology that was undertaken. Survival analyses were performed using the DBMT meta-analysis pipeline. Cox regression survival analyses that were tested included: overall survival (OS), disease related mortality (DRM), transplant related mortality (TRM), relapse (REL), progression-free survival (PFS) and TRM subtypes [graft versus host disease (GVHD), infection (INF), and organ failure (OF)]. Refer to Chapter 1 for details on survival outcome definitions. All analyses were performed on one SNP (donors or recipients dosage across all patients) at a time, adjusted for clinically and statistically (bidirectional stepwise regression) relevant covariates. For SNPs to be considered 'hits', they must be below the field standard genome-wide significance threshold of $P < 5e^{-08}$. Meta-analysis was done using a fixed effects model via METAL software [@metal]. Additional QC was performed on the SNPs (i.e. INFO score > 0.8, MAF > 0.05 in both cohorts, required to be same direction between cohorts and heterogeneous SNPs were filtered out).  
@@ -62,12 +66,17 @@ all_stats <- map_dfr(covs, outcome_ct) %>%
     mutate(Outcome=c("DRM", "TRM", "OS", "PFS", "REL", "GVHD", "INF", "OF")) 
 
 all_stats %>%
-    knitr:: kable(caption="\\label{tab:all_event_props} Proportion of Events at 1-year in DISCOVeRy-BMT ALL Cohorts", booktabs=TRUE, align="c") %>%
-    kableExtra::kable_styling(latex_options="striped") %>%
+    knitr:: kable(caption="\\label{tab:all_event_props} Proportion of Events at 1-year in DISCOVeRY-BMT ALL Cohorts", 
+                  booktabs=TRUE, 
+                  align="c") %>%
+    kableExtra::kable_styling(latex_options="striped", 
+                              font_size=9,
+                              position='center') %>%
     footnote(general_title="",
-             general="Proportion of Events (Death or Relapse) are displayed as the sample size of event (Nevent) divided by the total number of patients in the ALL cohort. Overlapping events are not shown here.",
+             general="Proportion of Events (Death or Relapse) are displayed as the sample size of event ($\\\\text{N}_{\\\\text{event}}$) divided by the total number of patients (N) in the ALL cohort. Overlapping events are not shown here.",
              footnote_as_chunk = TRUE,
-             threeparttable = TRUE)
+             threeparttable = TRUE, 
+             escape=FALSE)
 
 ```
 
@@ -87,27 +96,26 @@ age_prop_table <- covariate.file %>%
     spread(cohort, prop) %>%
     rename(`Age Category`=value,
            `Cohort 1`=`1`,
-           `Cohort 2`=`2`)
+           `Cohort 2`=`2`) %>%
+    mutate_at(vars(`Cohort 1`, `Cohort 2`), .funs=funs(round(., 4)))
 
 age_prop_table %>%
-    knitr:: kable(caption="\\label{tab:all_ages} Distribution of ALL Patient Age Stratified by DISCOVeRY-BMT Cohorts", booktabs=TRUE, align="c") %>%
-    kableExtra::kable_styling(latex_options="striped") %>%
-        footnote(general_title="",
-             general="Adult: > 40 years old; Adolescent or Young Adult (AYA): > 18 and < 40; Pediatric < 18",
+    knitr:: kable(caption="\\label{tab:all_ages} Proportion of ALL Patient Age Groups Stratified by DISCOVeRY-BMT Cohorts",
+                  booktabs=TRUE,
+                  align="c") %>%
+    kableExtra::kable_styling(latex_options="striped", 
+                              font_size=9,
+                              position='center') %>%
+    footnote(general_title="",
+             general="Adult: $\\\\geq$ 40 years old; Adolescent or Young Adult (AYA): $\\\\geq$ 18 and < 40; Pediatric < 18",
              footnote_as_chunk = TRUE,
-             threeparttable = TRUE)
+             threeparttable = TRUE,
+             escape=FALSE)
 ```
 
-Age is adjusted as a continuous variable in our Cox regression model, however, for characterization purposes we looked at the age distribution by standard clinical stratification. Those groups include adult ($>= 40$ years old), adolescent and young adults (AYA; $>= 18$ and $< 40$ years old), and children ($<18$ years old) (Table \ref{tab:all_ages}). Pediatric ALL comprises nearly 25% of cohort 1 and 20% of cohort 2. AYA and adults comprise about 43%  and 35% of the cohorts, respectively (Table \ref{tab:all_ages}). 
+Age is adjusted as a continuous variable in our Cox regression model, however, for characterization purposes we looked at the age distribution by standard clinical stratification. Those groups include adult ($\geq 40$ years old), adolescent and young adults (AYA; $\geq 18$ and $< 40$ years old), and children ($< 18$ years old) (Table \ref{tab:all_ages}). Pediatric ALL comprises nearly 25% of cohort 1 and 20% of cohort 2. AYA and adults comprise about 43% and 35% of the cohorts, respectively (Table \ref{tab:all_ages}). 
 
-## Genome-wide Analysis of ALL in Recipients 
-\begin{figure}
-    \centering
-    \includegraphics[width=\linewidth, height=5in]{~/Desktop/figures/chapter5/R_ALLonly_DRM.jpeg}
-    \caption[Manhattan Plot of Recipient ALL DRM GWAS.]{Manhattan Plot of Recipient ALL DRM GWAS. The x-axis are chromosomes 1-22 and the y-axis is the -log10(Pvalue). Each dot is a SNP. The red line is genome wide significance at P < 5e-08. The blue line is suggestive significance at P < 5e-05. The labeled SNPs are genome wide significant hits.}
-    \label{fig:r_drm_1y}  
-\end{figure}
-
+## DISCOVeRY-BMT Associations have been previously reported in independent GWAS 
 ```{r gwas_hits_1y, echo=FALSE}
 gwas_hits <- readRDS("~/Google Drive/OSU_PHD/DBMT_ALLonly/hits/20190228_gwas_hits.rds")
 gwas_hits %>%
@@ -123,96 +131,514 @@ gwas_hits %>%
            Analysis=analysis) %>%
     select(Analysis, everything()) %>%
     kable(caption="\\label{tab:gwas_hits_1y} Previously Published GWAS Traits from GWAS Catalog Reproduced in DISCOVeRY-BMT 1 Year ALL Analysis.", digits=60, align='c') %>%
-    kableExtra::kable_styling(latex_options="striped") %>%
+    kableExtra::kable_styling(latex_options="striped", font_size=9, position='center') %>%
     kableExtra::column_spec(1, width="4em") %>%
     kableExtra::column_spec(2, width="5em") %>%
     kableExtra::column_spec(3, width="4em") %>%
-    kableExtra::column_spec(4, width="8em") %>%
-    kableExtra::column_spec(5, width="6em") %>%
+    kableExtra::column_spec(4, width="12.2em") %>%
+    kableExtra::column_spec(5, width="5em") %>%
     footnote(general_title="",
-             general="SNPs shown here are either the query SNP or in LD (r2 > 0.8) with the query SNP.",
+             general="SNPs shown here are either the query SNP or in LD ($r^{2}$ > 0.8) with the query SNP.",
+             footnote_as_chunk = TRUE,
+             threeparttable = TRUE, 
+             escape=FALSE)
+```
+
+GWAS were run for DRM, TRM, OS, PFS, REL, and TRM subtypes. The first annotations that were performed were using HaploReg v4.1. We lowered our threshold to marginally significant ($P < 5e^{-06}$) SNPs, while still maintaining the level of quality (stringent QC). HaploReg reports previously published hits from GWAS Catalog (EMBL-EBI). We cross-referenced all marginally significant regions from DISCOVeRY-BMT with GWAS catalog to determine if any SNPs have been reported genome wide significant in independent studies (Table \ref{tab:gwas_hits_1y}), yielding four regions that had previously been reported upon. While all of these previously identified traits are not blood or cancer related, inspecting these regions in DISCOVeRY-BMT is warranted.
+
+No genome-wide associations were found in recipients with the first year post-transplant with progression free survival (PFS) or relapse (REL). Only one association was found for donor PFS and REL, neither of which warranted further discussion. 
+
+## Recipient Death Due to Disease 
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth, height=3.5in]{~/Desktop/figures/chapter5/R_ALLonly_DRM.jpeg}
+    \caption[Manhattan Plot of Recipient ALL DRM GWAS.]{Manhattan Plot of Recipient ALL DRM GWAS. The x-axis is chromosome 1-22 and the y-axis is the $-\log_{10}$(P-value). Each dot is a SNP. The red line is genome wide significance at P < $5e^{-08}$. The blue line is suggestive significance at P < $5e^{-05}$. Labeled SNPs are associated hits that have passed genome-wide threshold.}
+    \label{fig:r_drm_1y}  
+\end{figure}
+
+
+```{r, echo=FALSE}
+library(glue)
+r_drm <- readRDS("~/Google Drive/OSU_PHD/dissertation/code/chapter5/r_drm_hits.rds")
+
+r_drm %>%
+    arrange(CHR, PVALUE_M) %>%
+    unite(`CHR:POS`, c("CHR", "POS"), sep=":") %>% 
+    mutate_at(.vars=vars(HR_ADJ, HR_lower_ADJ, HR_upper_ADJ), .funs=funs(round(., 2))) %>%
+    mutate_at(.vars=vars(RefPanelAF, SAMP_MAF_c1, SAMP_MAF_c2), .funs=funs(round(., 4))) %>%
+    mutate(HR=glue_data(., "{HR_ADJ} ({HR_lower_ADJ}-{HR_upper_ADJ})")) %>%
+    select(-PVALUE_c1:-PVALUE_c2, -TYPED, -HR_ADJ:-regdb_score) %>%
+    unite(`Ref. Panel/Cohort 1/ Cohort 2 MAF`, c("RefPanelAF", "SAMP_MAF_c1", "SAMP_MAF_c2"), sep="/") %>%
+    rename(`HR (95% CI)`=HR,
+           `REF/ ALT`=REF_ALT,
+           `P-value`=PVALUE_M) %>%
+        kable(caption="\\label{tab:r_drm_hits} DISCOVeRY-BMT Recipients Disease Related Mortality Hits at 1-Year", 
+              digits=60, 
+              align='c') %>%
+    kableExtra::kable_styling(latex_options="striped",
+                              font_size=9, 
+                              position='center') %>%
+    kableExtra::column_spec(1, width="5em") %>%
+    kableExtra::column_spec(2, width="5.5em") %>%
+    kableExtra::column_spec(3, width="2em") %>%
+    kableExtra::column_spec(4, width="10.5em") %>%
+    kableExtra::column_spec(5, width="4.8em") %>%
+    kableExtra::column_spec(6, width="8em") %>%
+    footnote(general_title="",
+             general="All SNPs shown here are imputed. Genomic positions are GRCh37 reference genome. The effect allele is labeled as ALT.",
              footnote_as_chunk = TRUE,
              threeparttable = TRUE)
 ```
 
-GWAS were run for DRM, TRM, OS, PFS, REL, and TRM subtypes. The first annotations that were performed were using HaploReg v4.1. We lowered our threshold to marginally significant ($P < 5e^{-06}$) SNPs, while still maintaining the level of quality (stringent QC). HaploReg reports previously published hits from GWAS Catalog (EMBL-EBI). We cross-referenced all marginally significant regions from DISCOVeRY-BMT with GWAS catalog to determine if any SNPs have been reported genome wide significant in independent studies (Table \ref{tab:gwas_hits_1y}), yielding four regions that had previously been reported upon. 
+Associations ($P < 5e^{-08}$) were found in recipients dying from disease (DRM) on chromosomes 2, 11, and 17 (Figure \ref{fig:r_drm_1y}). Typically when looking at an associated region, it is preferred that other SNPs that are in LD are have similar p-values in order to have confidence in the hit. Chromosome 4 marker rs4663706 is isolated and does not have any other SNPs with similar levels of association (Figure \ref{fig:r_drm_1y}), and thus does not substantiate further investigation. The region on chromosome 11 (rs118004702 and rs117517252) are both genome-wide significant (Table \ref{tab:r_drm_hits}; Figure \ref{fig:r_drm_1y}) and in LD ($r^2=0.94$). ENCODE ChIP-Seq experiments report that SNPs in this region alter regulatory motifs on *HNF4* and *TAL1* [@motifs_2014]. *TAL1* has been reported as an oncogenic transcription factor in T-cell ALL subtype [@sanda_2017]. 
 
-The GWAS trait blood metabolite levels [rs10022462; @shin_2014] was reproduced from rs10516806 ($r^{2} = 0.82$; $P=1.6e^{-07}$; HR: 0.474 [0.359-0.627] for T allele) that was just below genome wide significance. This SNP is in perfect LD ($r^2$) with rs2869930 which is protein bound for *Foxa1* (in liver cell line Hep G2) and *Eralpha* (in T-47D human breast cancer cells). *Foxa1* is a transcription factor that belongs to the *Fox* family -- of which another member of this family, *Foxp1*, when downregulated is associated with deficient B-cells  [@hu_2006; @Wlodarska_2005]. This may be contributing to the patient dying from their original disease. 
+Chromosome 17 has 4 SNPs associated with recipient disease death (DRM) within the first year after transplant (Table \ref{tab:r_drm_hits}). Annotation revealed that are rs149448001, rs147024703, and rs147024703 are near *CDRT1*, while rs77119354 is intronic for *CDRT1*. This region alters 35 regulatory motifs, some of which are known in leukemias or other cancers (i.e. *GATA*, *BRCA1*, *CDX*, *E2A*, *STAT*) [@PerezAndreu_2015]. However, none of these SNPs seem to have an effect on transcription or have any evidence of affecting of transcription factor binding.
 
-
-Associations ($P < 5e^{-08}$) were found in recipient genome for disease related mortality (DRM) on chromosomes 2, 11, and 17 (Figure \ref{fig:r_drm_1y}). The chromosome 17 region includes SNPs that are intronic for *CDRT1*.  
-
+We inspected a region on chromosome 4 where blood metabolite levels associations [rs10022462; @shin_2014] (Table \ref{tab:gwas_hits_1y}) had been reported. The blood metabolite GWAS hit is in LD with rs10516806 ($r^{2} = 0.82$; $P=1.6e^{-07}$; HR: 0.474 [0.359-0.627] for T allele) in recipients dying due to disease (DRM). Rs10516806 is in perfect LD ($r^2=1$) with rs2869930 which has been identified as protein bound in ChIP-Seq experiments for *FOXA1* (in liver cell line Hep G2) and \textit{ER$\alpha$} (also known as *NR3A1*; in T-47D human breast cancer cells) [@encode_2012]. *FOXA1* is a transcription factor that belongs to the *FOX* family -- of which another member of this family, *FOXP1*, when downregulated is associated with deficient B-cells [@hu_2006; @Wlodarska_2005]. *FOXA1* and *FOXP1* are transcription factors that are known to modulate activity of \textit{ER$\alpha$} in breast cancer [@Ijichi_2013]. It may be plausible to further interrogate *FOXA1* status in patients who die from their original disease. 
 
 
+```{r, echo=FALSE}
+library(tidytext)
+library(tidyverse)
+library(glue)
 
 
+haplo_sig <- readRDS("~/Google Drive/OSU_PHD/DBMT_ALLonly/hits/haplo_results.rds")
 
+joint_res <- readRDS("~/Google Drive/OSU_PHD/DBMT_ALLonly/hits/joint_res.rds")
 
+joint_res_split <- joint_res %>% 
+    filter(PVALUE_M < 5e-06, PVALUE_c1 < 0.05 , PVALUE_c2 < 0.05) %>%
+    mutate(pt_subset=str_replace(pt_subset, "ALLsubtype_Bcell", "BALL")) %>%  
+    separate(pt_subset, c("donor", "disease", "outcome", "interval"), sep="_") %>%
+    filter(RSID=="rs10516806")
 
+e_codes <- read_tsv("~/Google Drive/OSU_PHD/DBMT_ALLonly/hits/ecode_epigenome.txt")
+e_codes <- e_codes %>%
+    mutate(`Standardised epigenome name`=str_replace_all(`Standardised epigenome name`, "\xca", " ")) %>%
+    mutate_all(tolower) %>%
+    mutate_all(trimws)
+e_codes_vec <- e_codes$`Standardised epigenome name`
+names(e_codes_vec) <- e_codes$EID
+
+explore_haplo <- function(donor, disease, outcome, interval, haplo_col){
+    df <- joint_res_split %>%
+        filter(donor==!!donor,
+               disease==!!disease,
+               outcome==!!outcome,
+               interval==!!interval) 
+    haplo_df <- haplo_sig %>% 
+        filter(query_snp_rsid %in% df$RSID)
+    
+    switch(haplo_col,
+       motifs={
+           haplo_df %>%
+               filter(Motifs != ".") %>%
+               unnest_tokens(motifs, Motifs, token="regex", pattern = ";") %>% 
+               na.omit() %>% 
+               mutate_all(trimws) %>%
+               count(motifs) %>%
+               arrange(desc(n))
+        },
+        proteins={
+            haplo_df %>%
+                filter(Proteins != ".") %>%
+                select(query_snp_rsid, rsid, Proteins) %>%
+                unnest_tokens(proteins, Proteins, token="regex", pattern = ";") %>%
+                na.omit() %>% 
+                separate(proteins, c('cell lines', 'proteins', 'group', 'treatment'), sep=",") %>%
+                unite(cell_line_protein, c('cell lines', "proteins"), sep=";") %>%
+                mutate_all(trimws) %>%
+                count(cell_line_protein) %>%
+                arrange(desc(n)) %>%
+                separate(cell_line_protein, c("cell_line", "protein"), sep=";")
+        },
+        chromatin_marks={
+            haplo_df %>%
+                select(query_snp_rsid, rsid, Chromatin_Marks) %>%
+                unnest_tokens(chromatin_marks, Chromatin_Marks, token="regex", pattern = ";") %>%
+                na.omit() %>%
+                mutate_all(trimws) %>%
+                count(chromatin_marks) %>%
+                filter(!(chromatin_marks == "none"),
+                       (chromatin_marks!= ".")) %>%
+                arrange(desc(n)) %>%
+                separate(chromatin_marks, c("eid", "chromatin_mark"), sep=",") %>%
+                mutate(eid=e_codes_vec[eid])
+        },
+        promoter={
+            haplo_df %>%
+                select(query_snp_rsid, 
+                       rsid,
+                       Promoter_histone_marks) %>%
+                unnest_tokens(promoter_histone_marks, 
+                              Promoter_histone_marks, token="regex", 
+                              pattern = ";") %>%
+                na.omit() %>%
+                unnest_tokens(Promoter_histone_marks,
+                              promoter_histone_marks, token="regex",
+                              pattern = ",|\\n") %>%
+                mutate_all(trimws) %>%
+                count(Promoter_histone_marks) %>%
+                filter(!(Promoter_histone_marks == "none"),
+                       (Promoter_histone_marks != ".")) %>%
+                arrange(desc(n))
+        },
+        enhancer={
+            haplo_df %>%
+                select(query_snp_rsid, 
+                       rsid,
+                       Enhancer_histone_marks) %>%
+                unnest_tokens(enhancer_histone_marks,
+                              Enhancer_histone_marks, 
+                              token="regex", 
+                              pattern = ";") %>%
+                na.omit() %>%
+                unnest_tokens(Enhancer_histone_marks,
+                              enhancer_histone_marks,
+                              token="regex",
+                              pattern = ",|\\n") %>%
+                mutate_all(trimws) %>%
+                count(Enhancer_histone_marks) %>%
+                filter(!(Enhancer_histone_marks == "none"),
+                       (Enhancer_histone_marks != ".")) %>%
+                arrange(desc(n)) 
+        },
+       eqtl={
+           haplo_df %>%
+               select(query_snp_rsid, rsid, eQTL) %>%
+               unnest_tokens(eqtl, eQTL, token="regex", pattern = ";") %>%
+               filter(eqtl != ".") %>%
+               na.omit() %>%
+               separate(eqtl, c("gtex", "cell_lines", "gene", "pvalue"), sep=",") %>%
+               select(-rsid, -pvalue, -gtex) %>%
+               distinct() %>%
+               group_by(cell_lines, gene) %>%
+               summarize(n=n()) %>%
+               ungroup() %>%
+               arrange(desc(n))
+       },
+       gwas={
+               haplo_df %>%
+                   filter(gwas != ".") %>%
+                   select(query_snp_rsid, r2, rsid, gwas)     
+           },
+       grasp={
+           haplo_df %>%
+               filter(grasp != ".") %>%
+               select(query_snp_rsid, r2, rsid, grasp) %>% 
+               mutate(grasp=ifelse(str_detect(grasp, ";"), grasp, paste0(grasp, ";"))) %>%
+               unnest_tokens(Grasp, grasp, token="regex", pattern=";") %>%
+               separate(Grasp, c("pmid", "grasp_trait", "grasp_pvalue"), sep=",") %>%
+               mutate_at(vars(grasp_pvalue), as.double) %>%
+               group_by(rsid, pmid, grasp_trait, grasp_pvalue) %>%
+               summarize(query_snp_rsids=toString(query_snp_rsid)) %>%
+               ungroup() %>%
+               arrange(grasp_pvalue)
+       }
+    )
+}
+
+# explore_haplo("R", "ALLonly", "DRM", "1y", "grasp") %>% 
+#     arrange(grasp_pvalue) 
+# 
+# explore_haplo("R", "ALLonly", "DRM", "1y", "motifs") %>% 
+#     print(n=35)
+# explore_haplo("R", "ALLonly", "DRM", "1y", "proteins") %>% 
+#     print(n=20)
+# explore_haplo("R", "ALLonly", "DRM", "1y", "chromatin_marks")
+# explore_haplo("R", "ALLonly", "DRM", "1y", "promoter")
+# explore_haplo("R", "ALLonly", "DRM", "1y", "enhancer")
+
+explore_haplo("R", "ALLonly", "DRM", "1y", "grasp") %>% 
+    arrange(grasp_pvalue) %>%
+    rename(PMID=pmid,
+       `GRASP Trait`=grasp_trait,
+       `GRASP P-value`=grasp_pvalue) %>%
+    unite(`RSID/ Query SNP`, c("rsid", "query_snp_rsids"), sep="/ ") %>%
+    knitr::kable(caption="\\label{tab:r_drm_grasp} GRASP hits for rs1051680", booktabs=TRUE, align='c') %>%
+    kableExtra::kable_styling(latex_options="striped",
+                              font_size=9,
+                              position='center') %>%
+    kableExtra::column_spec(1, width="5em") %>%
+    kableExtra::column_spec(2, width="5em") %>%
+    kableExtra::column_spec(3, width="15em") %>%
+    kableExtra::column_spec(4, width="5em") 
+# explore_haplo("R", "ALLonly", "DRM", "1y", "eqtl") %>% 
+#     print(n=122)
+```
+
+rs10516806 and SNPs that are in LD ($r^2$ > 0.82) have enhancer and promoter histone marks in blood and transplant related tissues (i.e. skin, GI). Rs10516806 is associated with chromatin marks (H3K4me1 for primary T cells from peripheral blood). SNPs in this region alter regulatory motifs on *CEBPB* family genes, *ZPF410*, *FOXP3*, *HOXD8*, and *PAX5*. *ZPF410* is a *PAX5* activated gene [@yang_2015]. *PAX5* encodes for transcription factors that are essential for progression of adult B lymphoiesis from early B cell progenitor cells [@nutt_1998; @shah_2013]. This region has been reported to be associated to gene expression or quantitative traits in several studies (Table \ref{tab:r_drm_grasp}). The locus rs10516806 is eQTL and affects *PPM1K* gene expression in liver and breast cell lines [@li_2014]. Furthermore, a recent study *PPM1K* is involved in amino acid catabolism in HSCs and plays a major role in maintaining stem cell status and HSC repopulation in mice bone marrow [@Liu_2018]. This study suggests that *PPM1K* deletion in murine models improve survival [@Liu_2018]. While this could manifest different phenotypes in humans, it suggests that investigating the direction (risk or protective) rs10516806 alters *PPM1K* gene expression is reasonable.   
+
+## Functional annotation of transplant related death in recipients
 \begin{figure}
     \centering
-    \includegraphics[width=\linewidth, height=5in]{~/Desktop/figures/chapter5/R_ALLonly_TRM.jpeg}
-    \caption[Recipient TRM 1 Year Manhattan Plot]{Recipient TRM 1 Year Manhattan Plot}
-    \label{fig:r_trm_1y}  
-\end{figure}
-
-\begin{figure}
-    \centering
-    \includegraphics[width=\linewidth, height=5in]{~/Desktop/figures/chapter5/r_of_1y_gwas_hit.png}
-    \caption[Recipient OF Region Chromosome 6.]{Recipient OF Region Chromosome 6. Sentinal SNP is rs6915410. Previous GWAS hit rs7744392 for trait contracts in type 2 diabetes. In perfect LD with rs13362808 which is cis eQTL in blood tissue.}
+    \includegraphics[width=\linewidth, height=3.5in]{~/Desktop/figures/chapter5/r_of_1y_gwas_hit.png}
+    \caption[Recipients Chromosome 6 Region Marginally Associated to Organ Failure.]{Recipients Chromosome 6 Region Marginally Associated to Organ Failure. Sentinel SNP is rs6915410 and colored blue. The region comprises +/- 250 kb window from the sentinel SNP. The red-yellow color gradient represents LD strength. Shapes represent different effects that the SNP has been reported to have in this region from independent studies.}
     \label{fig:r_of_1y}  
 \end{figure}
 
+```{r, echo=FALSE}
+joint_res_split <- joint_res %>% 
+    filter(PVALUE_M < 5e-06, PVALUE_c1 < 0.05 , PVALUE_c2 < 0.05) %>%
+    mutate(pt_subset=str_replace(pt_subset, "ALLsubtype_Bcell", "BALL")) %>%  
+    separate(pt_subset, c("donor", "disease", "outcome", "interval"), sep="_")
+
+explore_haplo("R", "ALLonly", "OF", "1y", "proteins") %>%
+    select(-n) %>% 
+    mutate(protein=toupper(protein)) %>%
+    group_by(protein) %>%
+    summarize(cell_line=toString(cell_line)) %>%
+    rename(`Protein Bound`=protein,
+           `Cell Lines`=cell_line) %>%
+    knitr::kable(caption="\\label{tab:r_of_proteins} Proteins with Binding Evidence in rs6915410 Region.", 
+                 booktabs=TRUE,
+                 align='c') %>%
+    kableExtra::kable_styling(latex_options="striped",
+                              font_size=9,
+                              position='center') %>%
+    kableExtra::column_spec(1, width="10em") %>%
+    kableExtra::column_spec(2, width="30em") %>%
+    footnote(general_title="",
+         general="All SNPs in this region are minimum $r^2 \\\\geq 0.8$ with rs6915410.",
+         footnote_as_chunk = TRUE,
+         threeparttable = TRUE, 
+         escape=FALSE)
+```
+
+
+
+```{r, echo=FALSE}
+explore_haplo("R", "ALLonly", "OF", "1y", "motifs") %>%
+    mutate(motifs=str_replace_all(motifs, "_[:alnum:]+", "")) %>% 
+    select(-n) %>%
+    count(motifs) %>%
+    group_by(n) %>%
+    mutate(motifs=toupper(motifs)) %>%
+    summarize(motifs=toString(motifs)) %>%
+    arrange(-n) %>%
+    select(motifs, n) %>%
+    rename(`Motifs`=motifs,
+           `Number of SNPs`=n) %>%
+    knitr::kable(caption="\\label{tab:r_of_motifs} Regulatory Motifs Altered in Recipient Organ Failure rs6915410 Region.", booktabs=TRUE, align='c') %>%
+    kableExtra::kable_styling(latex_options="striped",
+                              font_size=9,
+                              position='center') %>%
+    kableExtra::column_spec(1, width="25em") %>%
+    kableExtra::column_spec(2, width="10em") %>%
+    footnote(general_title="",
+             general="All SNPs in this region are minimum $r^2 \\\\geq 0.8$ with rs6915410.",
+             footnote_as_chunk = TRUE,
+             threeparttable = TRUE, 
+             escape=FALSE)
+```    
+
+
+While more recipients died due to transplant in the first year compared to death due to disease (Table \ref{tab:all_event_props}, no genome-wide associations were uncovered from TRM survival analyses (Manhattan Plot not shown). However, when cross-referencing previous associated GWAS traits from GWAS catalog with marginally associated ($P < 5e^{-06}$) SNPs for TRM or TRM subtypes in DISCOVeRY-BMT, we identified rs6915410 ($P = 4.17e^{-07}$; HR: 4.64 [2.56-8.38]; C effect allele) on chromosome 6 as an interesting locus for death by organ failure (OF) in recipients. This SNP is in LD with rs7744392 ($r^2=0.86$; published GWAS association with cataracts in type 2 diabetes). This SNP is in a very active region, where many SNPs that are in moderate to high LD have direct regulatory effects on *DEF6* and *PPARD* (Figure \ref{fig:r_of_1y}). In addition to rs7744392 being *DEF6* eQTL in peripheral blood monocytes [@Zeller_2010] and blood [@Fehrmann_2011], it is an eQTL for *MPO* in peripheral monocytes [@Zeller_2010] as well. These eQTLs were identified in lymphoblastoid and whole blood derived cell lines [@Zeller_2010; @Fehrmann_2011]. Blood is the most abundant tissue that has histone marks on enhancers and promoter regions for rs6915410 and corresponding correlated SNPs [@haploreg].
+
+<!-- \begin{figure} -->
+<!--     \centering -->
+<!--     \includegraphics[width=\linewidth, height=4in]{~/Desktop/figures/chapter5/R_ALLonly_TRM.jpeg} -->
+<!--     \caption[Recipient TRM 1 Year Manhattan Plot]{Recipient TRM 1 Year Manhattan Plot} -->
+<!--     \label{fig:r_trm_1y}   -->
+<!-- \end{figure} -->
+
+Although these loci are on chromosome 4, the \textit{ER$\alpha$} protein binds to the region similar to chromosome 4 DRM regional associations discussed above (Table \ref{tab:r_of_proteins}). Similarly, altered regulatory motifs in this regions include known leukemia genes *E2A*, *CEBPB* family, *FOXO* family, *ARID3A*, among others (Table \ref{tab:r_of_motifs}). As well as motifs that were just mentioned for recipient DRM (i.e. *GATA* and *STAT*).
+
+## Recipient Overall Survival
 
 \begin{figure}
     \centering
-    \includegraphics[width=\linewidth, height=5in]{~/Desktop/figures/chapter5/R_ALLonly_OS.jpeg}
-    \caption[Recipient OS 1 Year Manhattan Plot]{Recipient OS 1 Year Manhattan Plot}
-    \label{fig:r_os_1y}  
+    \includegraphics[width=\linewidth, height=3.5in]{~/Desktop/figures/chapter5/R_ALLonly_OS.jpeg}
+    \caption[Recipient OS 1 Year Manhattan Plot]{Recipient OS 1 Year Manhattan Plot. The x-axis is chromosome 1-22 and the y-axis is the $-\log_{10}$(P-value). Each dot is a SNP. The red line is genome wide significance at P < $5e^{-08}$. The blue line is suggestive significance at P < $5e^{-05}$. Labeled SNPs are associated hits that have passed genome-wide threshold.}
+    \label{fig:r_os_1y}
 \end{figure}
 
+```{r, echo=FALSE}
+joint_res <- readRDS("~/Google Drive/OSU_PHD/DBMT_ALLonly/hits/joint_res.rds")
+
+joint_res %>%
+    filter(pt_subset=="R_ALLonly_OS_1y", PVALUE_M < 5e-08) %>% 
+    arrange(CHR, PVALUE_M) %>%
+    unite(`CHR:POS`, c("CHR", "POS"), sep=":") %>% 
+    mutate_at(.vars=vars(HR_ADJ, HR_lower_ADJ, HR_upper_ADJ), 
+              .funs=funs(round(., 2))) %>%
+    mutate_at(.vars=vars(RefPanelAF, SAMP_MAF_c1, SAMP_MAF_c2), 
+              .funs=funs(round(., 4))) %>%
+    mutate(HR=glue_data(., "{HR_ADJ} ({HR_lower_ADJ}-{HR_upper_ADJ})")) %>% 
+    select(-PVALUE_c1:-PVALUE_c2, 
+           -regdb_score,-TYPED, 
+           -HR_ADJ:-INFO,
+           -pt_subset) %>% 
+    unite(`Ref. Panel/Cohort 1/ Cohort 2 MAF`, c("RefPanelAF", "SAMP_MAF_c1", "SAMP_MAF_c2"),
+          sep="/") %>% 
+    rename(`HR (95% CI)`=HR,
+           `REF/ ALT`=REF_ALT,
+           `P-value`=PVALUE_M) %>% 
+        kable(caption="\\label{tab:r_os_hits} DISCOVeRY-BMT Recipients Overall Survival Associations at 1-Year", 
+              digits=60, 
+              align='c') %>%
+    kableExtra::kable_styling(latex_options="striped",
+                              font_size=9, 
+                              position='center') %>%
+    kableExtra::column_spec(1, width="5em") %>%
+    kableExtra::column_spec(2, width="5.5em") %>%
+    kableExtra::column_spec(3, width="2em") %>%
+    kableExtra::column_spec(4, width="10.5em") %>%
+    kableExtra::column_spec(5, width="4.8em") %>%
+    kableExtra::column_spec(6, width="8em") %>%
+    footnote(general_title="",
+             general="All SNPs shown here are imputed. Genomic positions are GRCh37 reference genome. The effect allele is labeled as ALT.",
+             footnote_as_chunk = TRUE,
+             threeparttable = TRUE)
+
+```
 
 
+Overall survival in recipients after MUD-HSCT reveals two loci that reached genome-wide significance (Figure \ref{fig:r_os_1y}; Table \ref{tab:r_os_hits}). For both rs34486026 (chr 9) and rs149914041 (chr 18), regulatory motifs alterations have been reported, [@motifs_2014], but no reported eQTLs or proteins bound to the region, making it much less likely that these are functional alterations.   
 
+## Matched unrelated donor genotype associations with overall survival
 
 \begin{figure}
     \centering
-    \includegraphics[width=\linewidth, height=5in]{~/Desktop/figures/chapter5/D_ALLonly_OS.jpeg}
-    \caption[Manhattan Plot of Donor ALL OS GWAS.]{Manhattan Plot of Donor ALL OS GWAS. Each dot is a SNP. Green box is ...}
+    \includegraphics[width=\linewidth, height=3.5in]{~/Desktop/figures/chapter5/D_ALLonly_OS.jpeg}
+    \caption[Manhattan Plot of Donor ALL OS GWAS.]{Manhattan Plot of Donor ALL OS GWAS. The x-axis is chromosome 1-22 and the y-axis is the $-\log_{10}$(P-value). Each dot is a SNP. The red line is genome wide significance at P < $5e^{-08}$. The blue line is suggestive significance at P < $5e^{-05}$. Labeled SNPs are associated hits that have passed genome-wide threshold.}
     \label{fig:d_os_1y}  
 \end{figure}
 
 
+```{r, echo=FALSE}
+joint_res %>%
+    filter(pt_subset=="D_ALLonly_OS_1y", PVALUE_M < 5e-08) %>% 
+    arrange(CHR, PVALUE_M) %>%
+    unite(`CHR:POS`, c("CHR", "POS"), sep=":") %>% 
+    mutate_at(.vars=vars(HR_ADJ, HR_lower_ADJ, HR_upper_ADJ), 
+              .funs=funs(round(., 2))) %>%
+    mutate_at(.vars=vars(RefPanelAF, SAMP_MAF_c1, SAMP_MAF_c2), 
+              .funs=funs(round(., 4))) %>%
+    mutate(HR=glue_data(., "{HR_ADJ} ({HR_lower_ADJ}-{HR_upper_ADJ})")) %>% 
+    select(-PVALUE_c1:-PVALUE_c2, 
+           -regdb_score,-TYPED, 
+           -HR_ADJ:-INFO,
+           -pt_subset) %>% 
+    unite(`Ref. Panel/Cohort 1/ Cohort 2 MAF`, c("RefPanelAF", "SAMP_MAF_c1", "SAMP_MAF_c2"),
+          sep="/") %>% 
+    rename(`HR (95% CI)`=HR,
+           `REF/ ALT`=REF_ALT,
+           `P-value`=PVALUE_M) %>% 
+        kable(caption="\\label{tab:d_os_hits} DISCOVeRY-BMT Donor Overall Survival Associations at 1-Year", 
+              digits=60, 
+              align='c') %>%
+    kableExtra::kable_styling(latex_options="striped",
+                              font_size=9, 
+                              position='center') %>%
+    kableExtra::column_spec(1, width="5em") %>%
+    kableExtra::column_spec(2, width="5.5em") %>%
+    kableExtra::column_spec(3, width="2em") %>%
+    kableExtra::column_spec(4, width="10.5em") %>%
+    kableExtra::column_spec(5, width="4.8em") %>%
+    kableExtra::column_spec(6, width="8em") %>%
+    footnote(general_title="",
+             general="All SNPs shown here are imputed. Genomic positions are GRCh37 reference genome. The effect allele is labeled as ALT.",
+             footnote_as_chunk = TRUE,
+             threeparttable = TRUE)
+```
+
+Two genome-wide associations to overall survival were found in the donor genome (Figure \ref{fig:d_os_1y}; Table \ref{tab:d_os_hits}). The polymorphism rs145457637 has no SNPs in LD with it that have similar p-values (Figure \ref{fig:d_os_1y}). Previous evidence from cell line studies suggest that it alters motifs on *NERF1a* (also known as *ELF2*), *POU3F2* and *TEF*. Studies have investigated a relationship between protein complexes comprised of Elf2 and Tal1 with DNA binding properties that may alter gene expression or differentation in T-cells, but evidence is limited [@wilkinson1997; @cai_2011]. The variant rs76587897 on chromosome 9 is also without SNPs in LD with it showing associations. Additionally this SNP has no known eQTLs, promoter histone markers, or relevant cancer related findings in general [@haploreg]. 
+
+## Matched unrelated donor genotype associations with transplant related mortality
 \begin{figure}
     \centering
-    \includegraphics[width=\linewidth, height=5in]{~/Desktop/figures/chapter5/D_ALLonly_TRM.jpeg}
+    \includegraphics[width=\linewidth, height=3.5in]{~/Desktop/figures/chapter5/D_ALLonly_TRM.jpeg}
     \caption[Manhattan Plot of Donor ALL TRM GWAS.]{Manhattan Plot of Donor ALL TRM GWAS. Each dot is a SNP. This is here to talk about GVHD.}
     \label{fig:d_trm_1y}  
 \end{figure}
 
-
-For donor OS 1 year GWAS. rs12533724 imputed ($P = 1.51\text{e}^{-06}$; HR: 1.78, 95% CI 1.41-2.26).
-
-
-rs62465751 (2b), rs7785755 (2b), rs10235334 (2c), rs62465735 (2b), rs28590087 (3a). This SNP is in LD with ..
-
-
 \begin{figure}
     \centering
-    \includegraphics[width=\linewidth, height=5in]{~/Desktop/figures/chapter5/rs9783053_1_D_ALLonly_GVHD.png}
-    \caption[Donor GVHD Region Chromosome 1.]{Donor GVHD Region Chromosome 1. Sentinal SNP is rs9783053. RegulomeDB 1A. Typed SNP}
+    \includegraphics[width=\linewidth, height=3.5in]{~/Desktop/figures/chapter5/rs9783053_1_D_ALLonly_GVHD.png}
+    \caption[Donor GVHD Region Chromosome 1.]{Donor GVHD Region Chromosome 1. Sentinel SNP is rs9783053 and colored blue. The region comprises +/- 250 kb window from the sentinel SNP. The red-yellow color gradient represents LD strength. Shapes represent different effects that the SNP has been reported to have in this region from independent studies. RegulomeDB 1A. Typed SNP}
     \label{fig:d_gvhd_1y}  
 \end{figure}
 
+HLA-matched unrelated donor genotypes are associated to TRM at one locus on chromosome 6. Although rs150712913 ($P = 9.18e-09$; HR: 8.12 [3.97-16.6]; C effect allele; MAF $\approx$ 0.137) or LD SNPs do not have eQTL or proteins binding, it is intronic for *FHIT* and has *in vitro* evidence of altering motifs on *POU5F1*, \textit{ER$\alpha$}, *ESR2*, *GATA*, and *PAX5*. Lack of *FHIT* at the protein level has been shown to induce leukemia [@peters_1999]. 
+
+```{r, echo=FALSE}
+joint_res_split <- joint_res %>% 
+    filter(PVALUE_M < 5e-06, PVALUE_c1 < 0.05 , PVALUE_c2 < 0.05, RSID=="rs9783053") %>%
+    mutate(pt_subset=str_replace(pt_subset, "ALLsubtype_Bcell", "BALL")) %>%  
+    separate(pt_subset, c("donor", "disease", "outcome", "interval"), sep="_")
+
+explore_haplo("D", "ALLonly", "GVHD", "1y", "motifs") %>%
+    mutate(motifs=str_replace_all(motifs, "_[:alnum:]+", "")) %>% 
+    select(-n) %>%
+    count(motifs) %>%
+    group_by(n) %>%
+    mutate(motifs=toupper(motifs)) %>%
+    summarize(motifs=toString(motifs)) %>%
+    arrange(-n) %>%
+    select(motifs, n) %>%
+    rename(`Motifs`=motifs,
+           `Number of SNPs`=n) %>%
+    knitr::kable(caption="\\label{tab:d_gvhd_motifs} Regulatory Motifs Altered in Recipient Organ Failure rs6915410 Region.", booktabs=TRUE, align='c') %>%
+    kableExtra::kable_styling(latex_options="striped",
+                              font_size=9,
+                              position='center') %>%
+    kableExtra::column_spec(1, width="30em") %>%
+    kableExtra::column_spec(2, width="10em") %>%
+    footnote(general_title="",
+             general="All SNPs in this region are minimum $r^2 \\\\geq 0.8$ with rs9783053",
+             footnote_as_chunk = TRUE,
+             threeparttable = TRUE, 
+             escape=FALSE)
+
+```
+
+
+```{r, echo=FALSE}
+explore_haplo("D", "ALLonly", "GVHD", "1y", "eqtl") %>% 
+    filter(!str_detect(gene, "ensg")) %>%
+    select(-n) %>%
+    mutate(gene=toupper(gene)) %>%
+    group_by(gene) %>%
+    summarize(cell_lines=toString(cell_lines)) %>%
+    rename(Gene=gene,
+           `Cell Lines`=cell_lines) %>%
+        knitr::kable(caption="\\label{tab:d_gvhd_eqtl} eQTLs in Donor GVHD rs9783053.", booktabs=TRUE, align='c') %>%
+    kableExtra::kable_styling(latex_options="striped",
+                              font_size=9,
+                              position='center') %>%
+    kableExtra::column_spec(1, width="5em") %>%
+    kableExtra::column_spec(2, width="15em") %>%
+    footnote(general_title="",
+             general="All SNPs in this region are minimum $r^2 \\\\geq 0.8$ with rs9783053.",
+             footnote_as_chunk = TRUE,
+             threeparttable = TRUE, 
+             escape=FALSE)
+```
+
+```{r, echo=FALSE}
+explore_haplo("D", "ALLonly", "GVHD", "1y", "grasp") %>% 
+    arrange(grasp_pvalue) %>%
+    rename(PMID=pmid,
+       `GRASP Trait`=grasp_trait,
+       `GRASP P-value`=grasp_pvalue) %>%
+    unite(`RSID/ Query SNP`, c("rsid", "query_snp_rsids"), sep="/ ")  %>%
+    knitr::kable(caption="\\label{tab:d_gvhd_grasp} GRASP hits for rs9783053.", booktabs=TRUE, align='c') %>%
+    kableExtra::kable_styling(latex_options="striped",
+                              font_size=9,
+                              position='center') %>%
+    kableExtra::column_spec(1, width="5em") %>%
+    kableExtra::column_spec(2, width="5em") %>%
+    kableExtra::column_spec(3, width="15em") %>%
+    kableExtra::column_spec(4, width="5em") 
+
+```
+
+Marginally associated loci ($P < 5e^{-06}$) were scanned using RegulomeDB for regions that may affect transcription factor binding. Donor GVHD SNP rs9783053 (typed SNP; $P=1.41e^{-06}$; HR: 3.27 [2.02-5.29]; G effect allele) was found to have a regulomeDB score of 1A (the highest score). A score of 1A means that there is strong evidence that the variant affects transcription factor binding [@Boyle_2012]. Functional annotation of +/- 250 kb of this rs9783053 revealed that this region comprises of many SNPs that have direct regulatory affects on *UBE4B* (Figure \ref{fig:d_gvhd_1y}). This polymorphism has five proteins (Ctcf, Ebf1, Elf1, Nf$\kappa$b, Pu1) that bind to this SNP in lymphoblastoid cell lines [@encode_2012]. This variant is in LD with synonymous variant rs2273299 ($r^2=0.88$). Experimental cell line studies from ENCODE provide evidence suggesting that this region alters regulatory motifs for cancer and leukemia related genes (Table \ref{tab:d_gvhd_motifs}). Variants that alter gene expression were found in blood, lymphoblast derived, brain and esophogeal cell lines (Tables \ref{tab:d_gvhd_eqtl} and \ref{tab:d_gvhd_grasp}). Thus, while donor GVHD SNPs did not reach genome-wide significance, it is evident that this region has affects ALL related genes and properties.
 
 # Discussion
 
-ALL and environment -- incidence higher in industralized countries.
+Preivously the relationship between survival outcomes and non-HLA donor-recipient genetics after MUD-HSCT had not been studied at the genome-wide level. Here we presented the first GWAS investigating this objective. Germline genetics have not been well characterized in adult ALL. The cohorts of DISCOVeRY-BMT comprise a comprehrensive age range of patients, including pediatrics, adolescent and young adults, and adults. Genome-wide associations to survival outcomes after 1-year post-transplant were identified in both recipient and donor genomes. Specifically, recipient death due to disease (DRM), transplant (TRM and OF), and overall survival (OS). Functional annotations using publicly available databases revealed that the genome-wide associations had evidence of leukemia related target genes. Unfortunately this region had no previous experimental evidence of directly affecting transcription. This suggests that these associations would not necessarily be beneficial to improving survival for MUD-HSCT recipients. However, a marginally associated region (P < $5e^{-06}$) on chromosome 6 (rs6915410) had interactions that may affect transcription for recipients dying from OF. And because it affects transcription, it may alter protein products of these genes, offering a potential target. As this region was not genome-wide significant, it requires replication in an independent study. 
 
-ALL and upregulation of oncogenes and loss of tumor suppressor genes. 
-
-Most ALL lack identifiable or environment causes.
-
-Familial inheritance with twins .. maybe environmental because twins pass it to other twin (intrauterine).
-
-
+Similarly, genome-wide regions were identified for donor genetics for OS and TRM. And like recipients, the associated SNPs in these regions had evidence of altering motifs but did not necessarily have any evidence of altering gene expression or transcription. As an exploratory measure, we looked for SNPs that specifically had evidence of altering transcription factor binding using RegulomeDB. A marginally associated locus (rs9783053) for donor genetics driven GVHD was identified. This region had many eQTLs that alter transcription regulation in *UBE4B*. *UBE4B* encodes a ubiqutin ligase that is involved in the degradation mechanism of the tumor supresssor gene *TP53* [@zhang_2014]. Previous studies have shown that low expression of *UBE4B* is associated with survival in neuroblastoma patients [@zage2013ube4b]. As this marginally associated region was found in donor GVHD, targeting *UBE4B* in recipients who have this variant may reduce risk of death due to GVHD. 

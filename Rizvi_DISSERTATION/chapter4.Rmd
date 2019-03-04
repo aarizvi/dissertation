@@ -35,8 +35,8 @@ recs <- c("Recipient",
           "age, sex, race group, blood type (ABO), graft source, causes of death (levels 1-7), conditioning regimen and intensity, TBI fractionation, GVHD prophylaxis, current disease type, current disease progression, prior disease type, cytogenetics status, time to death, time to relapse, AML type, transplant year, HLA match (8/8 or 10/10), cytomegalyvirus, Lansky Score, Karnovsky Score, Principal Components from EIGENSTRAT")
 
 knitr::kable(setNames(data.frame(rbind(dons, recs), row.names = NULL), c("Genome", "Description")), 
-             caption="Broad Overview of DISCOVeRY-BMT Clinical Characteristics", booktabs=TRUE) %>%
-    kableExtra::kable_styling(latex_options = "striped") %>%
+             caption="Broad Overview of DISCOVeRY-BMT Clinical Characteristics", booktabs=TRUE, align='c') %>%
+    kableExtra::kable_styling(latex_options = "striped", font_size=9, position='c') %>%
     kableExtra::column_spec(2, width="24em")
 ```
 
@@ -50,7 +50,6 @@ pheno_data <- pheno_data %>%
            intxrel_overall:racegp, dnrracegp, disease, gvhdgp, atgcampathgp, rel_overall:dead_overall, 
            sexMM, graftype, abod, abor, cpcod1gen:death7, dthprim, alstatpr, amstatpr, mdstatpr, MyeloReg1,
            ATG, TBI, DxCytogen:AMLtype, PriorDx, TxRelExposure, dead_1Y:infection_1Y, cmprisk, sample_type, sangerIDs)
-head(pheno_data)
 ```
 
 \doublespacing
@@ -74,9 +73,9 @@ x <- data.frame(cbind(cols, desc), row.names = NULL)
 colnames(x) <- c("Column name", "Description")
 
 
-knitr::kable(x, caption="Manifest file column descriptions", booktabs=TRUE) %>%
-kableExtra::kable_styling(latex_options = "striped") %>%
-kableExtra::column_spec(2, width="24em")
+knitr::kable(x, caption="Manifest file column descriptions", booktabs=TRUE, align='c') %>%
+    kableExtra::kable_styling(latex_options = "striped", font_size=9, position='center') %>%
+    kableExtra::column_spec(2, width="40em")
 
 ```
 
@@ -152,8 +151,8 @@ clean_df <- full_df %>%
 colnames(clean_df) <- c("Genomes", "Patient Subset", "Survival Outcomes", "Censoring Time", "Analyses Run")
 
 rbind(clean_df, c("Total", "", "", "", sum(clean_df$`Analyses Run`))) %>% 
-    knitr::kable(caption="DISCOVeRY-BMT Analyses Run Using DBMT metaPipeline." ,booktabs=TRUE) %>%
-    kableExtra::kable_styling(latex_options="striped") %>%
+    knitr::kable(caption="DISCOVeRY-BMT Analyses Run Using DBMT metaPipeline.", booktabs=TRUE) %>%
+    kableExtra::kable_styling(latex_options="striped", font_size=9) %>%
     kableExtra::column_spec(1, width="6em") %>%
     kableExtra::column_spec(2, width="4em") %>%
     kableExtra::column_spec(3, width="8em") %>%
@@ -185,10 +184,10 @@ df <- setNames(data.frame(
                c("Survival Outcomes", "Time Interval", "Covariates"))
 
 knitr::kable(df, caption="Survival Models Analyzed", booktabs=TRUE) %>%
-    kableExtra::kable_styling(latex_options="striped") %>%
-    kableExtra::column_spec(1, width="6em") %>%
-    kableExtra::column_spec(2, width="8em") %>%
-    kableExtra::column_spec(3, width="12em")
+    kableExtra::kable_styling(latex_options="striped", font_size=9) #%>%
+    # kableExtra::column_spec(1, width="6em") %>%
+    # kableExtra::column_spec(2, width="8em") %>%
+    # kableExtra::column_spec(3, width="14em")
 ```
 
 

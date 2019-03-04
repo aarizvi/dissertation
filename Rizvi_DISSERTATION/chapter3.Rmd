@@ -111,8 +111,8 @@ args.eg <- data.frame(variables=c("X",
                                     "vector of weights that we set to NULL",
                                     "efron method used for handling ties",
                                     "rownames that we set to NULL"))
-k <- knitr::kable(args.eg, caption="Description of arguments that are built manually in gwasurvivr and passed directly to survival::coxph.fit, bypassing the main survival::coxph function")
-kableExtra::kable_styling(k, position="center")
+k <- knitr::kable(args.eg, caption="Description of arguments that are built manually in gwasurvivr and passed directly to survival::coxph.fit, bypassing the main survival::coxph function", booktabs=TRUE)
+kableExtra::kable_styling(k, position="center", font_size=9)
 ```
 
 The function [`coxph_model.R`](https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/blob/master/supplemental_data/code/coxph_model.R) implements a `survival` model [survival package, @therneau2013] without using the optimization starting point obtained from including covariates in the model. To test the package runtime over a pre-specified number of iterations and including 1, 2, or 3 covariates the `microbenchmark` package [@microbenchmark] in R was used. 

@@ -107,7 +107,8 @@ dz.dist %>%
           caption="Donor and Recipients Disease Proportions by Cohort in DISCOVeRY-BMT.", 
           booktabs=TRUE) %>%
     kable_styling(latex_options = "striped",
-                  full_width=FALSE) %>%
+                  full_width=FALSE,
+                  font_size=9) %>%
     add_header_above(c(" ", "Donor (N/Percent %)"=2, "Recipient (N/Percent %)"=2)) %>%
     row_spec(3, hline_after=TRUE) %>%
     footnote(general_title="",
@@ -146,7 +147,8 @@ text_tbl %>%
       caption="Definitions of Survival OUtcomes", 
       booktabs=TRUE) %>%
     kable_styling(latex_options = "striped",
-                  full_width=FALSE) %>%
+                  full_width=FALSE,
+                  font_size=9) %>%
     group_rows("Primary Outcomes", 1, 2, latex_gap_space=".5em") %>%
     group_rows("Secondary Outcomes", 3, 5, latex_gap_space=".5em") %>%
     column_spec(2, width = "16em")
@@ -223,7 +225,7 @@ outcome_distributions %>%
           caption="Proportion of Events by Survival Outcome", 
           booktabs=TRUE) %>%
     kable_styling(latex_options = "striped",
-                  full_width=FALSE) %>%
+                  full_width=FALSE, font_size=9) %>%
     add_header_above(c(" ", "Recipient (N/Percent %)"=2)) %>%
     group_rows("Mixed Disease", 1, 8, latex_gap_space=".5em") %>%
     group_rows("AML + MDS ", 9, 16, latex_gap_space=".5em") %>%
@@ -461,14 +463,6 @@ grid.arrange(mixed.age,
              all.age,
              ncol=2)
 ```
-
-
-
-```{r, echo=FALSE}
-
-
-```
-
 
 ## Genotyping and Quality Control
 All samples were genotyped on a Illumina Human OmniExpress BeadChip whole-genome genotyping microarray. This chip had 637,655 tagged SNPs available that were strategically selected from all three phases of the HapMap project to capture the greatest amount of common SNP variation (>5% MAF). 

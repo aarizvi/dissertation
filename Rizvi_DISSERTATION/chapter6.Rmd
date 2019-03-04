@@ -12,12 +12,64 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 # Introduction
-Here we do 100+ Days.
+In Chapter 5 we investigated non-HLA genetics in donor and recipients and how genetic variation may contribute to survival outcomes within the first year after transplant. in this chapter, a parallel analysis was conducted, this time censoring the patient at the 100+ day endpoint. Early death after MUD-HSCT is fairly common and the genetics contributing to have not been well characterized and may be quite different than those identified at a later time point (at 1-year). As shown in Chapter 1 (Figure 1.1), death in the first year shifts from being driven by transplant related causes for the majority of the first year to being driven by the disease towards the end of the year. 
 
 # Methods
-Please refer to Chapter 4 "Application and Pipeline" for a detailed description of the pipeline that was undertaken.  
+Please refer to Chapter 4 "Application and Pipeline" for a detailed description of the pipeline that was undertaken.   
 
 # Results
+
+```{r, echo=FALSE}
+library(tidyverse)
+covariate.file <- read_tsv("~/Google Drive/OSU_PHD/DBMT_100d/DBMT_PhenoData_EA_long_allVar_20190223.txt")
+
+covariate.file <- covariate.file %>%
+    filter(sample_type=="recipient",
+           ALLdummy==1) %>%
+    select(cohort, age, intxsurv_100d, intxrel_100d, dnrsex, sex, racegp,
+           distatD,ncmvc, graftype, bmi_cat, abomatch, alstatpr,
+           drm_100d, trm_100d, dead_100d, lfs_100d,
+           rel_100d, gvhd_100d, inf_100d, of_100d) 
+
+outcome_ct <- function(...) {
+    covariate.file %>%
+        group_by(cohort) %>%
+        count(...) %>%
+        mutate(freq=paste0("(", round(n/sum(n),3), ")"),
+               desc=paste0(n, "/", sum(n))) %>%
+        unite(freq, c("desc", "freq"), sep=" ") %>%
+        select(-n) %>%
+        gather(key, value, ...) %>%
+        spread(cohort, freq) %>%
+        filter(value==1)
+}   
+
+covs <- vars(disease_death_1Y, TRM_1Y, dead_1Y,
+             lfs_1Y, rel_1Y, GVHD_death_1Y, 
+             infection_1Y, OF_1Y)
+
+all_stats <- map_dfr(covs, outcome_ct) %>%
+    rename(`Cohort 1`=`1`,
+           `Cohort 2`=`2`,
+           Outcome=key,
+           Status=value) %>%
+    select(-Status) %>%
+    mutate(Outcome=c("DRM", "TRM", "OS", "PFS", "REL", "GVHD", "INF", "OF")) 
+
+all_stats %>%
+    knitr:: kable(caption="\\label{tab:all_event_props} Proportion of Events at 1-year in DISCOVeRY-BMT ALL Cohorts", 
+                  booktabs=TRUE, 
+                  align="c") %>%
+    kableExtra::kable_styling(latex_options="striped", 
+                              font_size=9,
+                              position='center') %>%
+    footnote(general_title="",
+             general="Proportion of Events (Death or Relapse) are displayed as the sample size of event ($\\\\text{N}_{\\\\text{event}}$) divided by the total number of patients (N) in the ALL cohort. Overlapping events are not shown here.",
+             footnote_as_chunk = TRUE,
+             threeparttable = TRUE, 
+             escape=FALSE)
+
+```
 
 ```{r gwas_hits_100d, echo=FALSE}
 gwas_hits <- readRDS("~/Google Drive/OSU_PHD/DBMT_ALLonly/hits/20190228_gwas_hits.rds")
@@ -34,16 +86,17 @@ gwas_hits %>%
            Analysis=analysis) %>%
     select(Analysis, everything()) %>%
     kable(caption="\\label{tab:gwas_hits_100d} Previously Published GWAS Traits from GWAS Catalog Reproduced in DISCOVeRY-BMT 100+ Days ALL Analysis.", digits=60, align='c') %>%
-    kableExtra::kable_styling(latex_options="striped") %>%
+    kableExtra::kable_styling(latex_options="striped", font_size=9) %>%
     kableExtra::column_spec(1, width="4em") %>%
-    kableExtra::column_spec(2, width="5em") %>%
-    kableExtra::column_spec(3, width="4em") %>%
-    kableExtra::column_spec(4, width="8em") %>%
-    kableExtra::column_spec(5, width="4em") %>%
+    # kableExtra::column_spec(2, width="5em") %>%
+    # kableExtra::column_spec(3, width="4em") %>%
+    # kableExtra::column_spec(4, width="12em") %>%
+    # kableExtra::column_spec(5, width="4em") %>%
     footnote(general_title="",
-             general="SNPs shown here are either the query SNP or in LD (r2 > 0.8) with the query SNP.",
+             general="SNPs shown here are either the query SNP or in LD ($r^2$ > 0.8) with the query SNP.",
              footnote_as_chunk = TRUE,
-             threeparttable = TRUE)
+             threeparttable = TRUE,
+             escape=FALSE)
 
 ```
 
@@ -51,7 +104,7 @@ Table \ref{tab:gwas_hits_100d} works.
 
 \begin{figure}
     \centering
-    \includegraphics[width=\linewidth, height=5in]{~/Desktop/figures/chapter6/R_ALLonly_OS_100d.jpeg}
+    \includegraphics[width=\linewidth, height=3.5in]{~/Desktop/figures/chapter6/R_ALLonly_OS_100d.jpeg}
     \caption[Recipient OS 100+ Days GWAS Manhattan Plot]{Recipient OS 100+ Days GWAS Manhattan Plot. Red line GWAS significance at 5e-08. Blue line is suggestive significance at 5e-06.}
     \label{fig:r_os_100d_manplot}  
 \end{figure}
@@ -59,7 +112,7 @@ Table \ref{tab:gwas_hits_100d} works.
 
 \begin{figure}
     \centering
-    \includegraphics[width=\linewidth, height=5in]{~/Desktop/figures/chapter6/r_os_100d_chr11_1a.png}
+    \includegraphics[width=\linewidth, height=3.5in]{~/Desktop/figures/chapter6/r_os_100d_chr11_1a.png}
     \caption[Recipient OS 100+ Days.]{Recipient OS 100+ Days. Chromosome 11. rs489591 (Imputed) sentinel SNP is shown in blue. RegulomeDB 1A. In LD with typed SNP (1B). Likely to affect binding and linked to expression of a gene target. Mention number of SNPs in this region.}
     \label{fig:r_os_100d_1a}  
 \end{figure}
@@ -67,14 +120,14 @@ Table \ref{tab:gwas_hits_100d} works.
 
 \begin{figure}
     \centering
-    \includegraphics[width=\linewidth, height=5in]{~/Desktop/figures/chapter6/rs7111341_diabetes_gwas_region_chr11.png}
+    \includegraphics[width=\linewidth, height=3.5in]{~/Desktop/figures/chapter6/rs7111341_diabetes_gwas_region_chr11.png}
     \caption[Recipient OS 100+ Days Reproduces Reported GWAS]{Recipient OS 100+ Days Reproduces Reported GWAS. Sentinel SNP (rs7111341) is the blue dot. Typed SNP}
     \label{fig:r_os_100d_t1d_gwas}  
 \end{figure}
 
 \begin{figure}
     \centering
-    \includegraphics[width=\linewidth, height=5in]{~/Desktop/figures/chapter6/D_ALLonly_PFS_100d.jpeg}
+    \includegraphics[width=\linewidth, height=3.5in]{~/Desktop/figures/chapter6/D_ALLonly_PFS_100d.jpeg}
     \caption[Donor PFS 100+ Days Manhattan Plot]{Donor PFS 100+ Days Manhattan Plot}
     \label{fig:d_pfs_100d_manplot}  
 \end{figure}
