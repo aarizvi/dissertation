@@ -406,6 +406,19 @@ while(<MANIFEST>) {
 
 \doublespacing
 
+## Custom Manhattan Plot Generator
+
+## Post-GWAS Annotation
+After the meta-analysis GWAS are complete, we annotated SNPs that reached a suggestive significance threshold $P < 5\times{10}^{-05}$. Annotation aids reseachers develop mechanistic hypotheses to further characterize the impact of non-coding variants on clinical phenotypes and/or normal genetic variation. Annotation was done by leveraging publicly available databases that have compiled data from large scale studies (ENCODE, GTEx) using HaploReg [@haploreg], RegulomeDB [@Boyle_2012], and single nucleotide polymorphisms annotator (SNiPA) [@snipa].  
+
+HaploReg leverages LD information from the 1000 Genomes Project to compile chromatin states and protein binding annotation from ENCODE and Roadmap to Epigenome projects [@haploreg]. HaploReg also collects and curates data from sequence conservation studies, as well as studies that determine effects of SNPs and consequences on regulatory motifs and/or gene expression (eQTL) [@haploreg]. HaploReg data was accessed using haploR [@haploR].  
+
+RegulomeDB is a collection of annotation databses that reports SNPs with known and/or predicted regualtory elements in intergenic regions of the human genome [@Boyle_2012]. Known and predicted regulatory DNA elements include regions of DNAase hypersensitivity, binding sites of transcription factors (TFs), and promoter regions that have been experimentally/biochemically characterized to regulate transcription [@Boyle_2012]. The entire RegulomeDB database was downloaded and stored on UB CCR for ease of access when annotating regions of interest.  
+
+SNiPA annotations come from Ensembl87 (v3.2). It comprises variant-phenotype associations and annotations contained in Ensembl 92 release, as well as pQTL data. pQTL association datai s obtained from the pGWAS study in blood [@sun_2018]. SNiPA includes more than 16,500 cis- and trans-associations with blood protein levels [@snipa]. The genome assembly for SNiPA is GRCh37.p13 and it uses 1000 Genomes Project Phase 3 (v5). SNiPA obtains data from HGMD, dbGaP, ClinVar, OMIM variation, UniProt, GWAS Catalog, DrugBank, DECIPHER, and GTEx eQTL associations [@snipa]. Flanking regions of +/- 150kb from the sentinel SNP (snp of interest) are pulled from DISCOVeRY-BMT results.   
+
+## SNiPA Region 
+
 # Results
 
 \begin{figure}
@@ -415,13 +428,13 @@ while(<MANIFEST>) {
     \label{fig:run_times}  
 \end{figure}
 
-
 \doublespacing
 
-## Manifest file
-
-## Output Folders
-
 # Discussion
+We were successful in automating 
 
-# Future Directions
+PhenoScanner
+PrediXscan
+
+
+
