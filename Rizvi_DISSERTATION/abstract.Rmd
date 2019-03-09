@@ -15,4 +15,23 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 
-Here I will be writing an abstract that summarizes my dissertation results
+
+
+
+
+
+
+
+
+
+\afterpage{
+    
+\begin{landscape}
+\begin{figure}
+    \centering
+    \includegraphics[width=8.7in, height=7.5in]{~/Desktop/figures/abstract/pipeline_draft.png}
+    \caption[Graphical Abstract]{Graphical Abstract. The flow of the abstract begins on the right. }
+    \label{fig:abstract}  
+\end{figure}
+\end{landscape}
+}

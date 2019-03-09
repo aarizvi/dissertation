@@ -126,12 +126,12 @@ Age is adjusted as a continuous variable in our Cox regression model, however, f
 
 We tested recipient (patient) SNPs for association with OS, PFS, DRM, TRM and GVHD in ALL patients. While all the subgroups of TRM are of interest, for the purpose of this chapter the main focus are on these more frequent outcomes while the rest are exploratory. We detected genome-wide associated regions with DRM and OS outcomes. Some of these regions were also genome-wide significant for patients diagnosed with B-ALL subtype. Identifying such recipient SNPs can be helpful in distinguishing individuals that have a higher risk of mortality following transplant and treatment strategies can be modified accordingly. 
 
-## Recipient Overall Survival Associations
+## Recipient SNPs Overall Survival Associations
 
 \begin{figure}
     \centering
     \includegraphics[width=\linewidth, height=3.5in]{~/Desktop/figures/chapter5/R_ALLonly_OS.jpeg}
-    \caption[Recipient OS 1 Year Manhattan Plot]{Recipient OS 1 Year Manhattan Plot. The x-axis is chromosome 1-22 and the y-axis is the $-\log_{10}(P_{meta})$. Each dot is a SNP. The red line is genome wide significance at $P_{meta} < 5\times{10}^{-08}$. The blue line is suggestive significance at $P_{meta} < 5\times{10}^{-05}$. Labeled SNPs are associated hits that have passed genome-wide threshold.}
+    \caption[Recipient OS 1 Year Manhattan Plot]{Recipient OS 1 Year Manhattan Plot. The x-axis is chromosome 1-22 and the y-axis is the $-\log_{10}(P_{meta})$. Each dot is a SNP. The red line is genome wide significance at $P_{meta} < 5\times{10}^{-8}$. The blue line is suggestive significance at $P_{meta} < 5\times{10}^{-5}$. Labeled SNPs are associated hits that have passed genome-wide threshold.}
     \label{fig:r_os_1y}
 \end{figure}
 
@@ -154,7 +154,7 @@ joint_res %>% filter(pt_subset == "R_ALLonly_OS_1y",
     select(-PVALUE_c1:-PVALUE_c2, -Direction, -TYPED, -HR_ADJ:-regdb_score, INFO) %>%
     unite(`Ref. Panel/Cohort 1/ Cohort 2 MAF`, c("RefPanelAF", "SAMP_MAF_c1", "SAMP_MAF_c2"), sep="/") %>%
     rename(`HR (95% CI)`=HR,
-           `REF/ ALT`=REF_ALT,
+           `REF/ EFFECT`=REF_ALT,
            `P-value`=PVALUE_M) %>% 
     kable(caption="\\label{tab:r_os_hits} DISCOVeRY-BMT Recipients Overall Survival Associations at 1-Year", 
               digits=60, 
@@ -169,7 +169,7 @@ joint_res %>% filter(pt_subset == "R_ALLonly_OS_1y",
     kableExtra::column_spec(5, width="4.8em") %>%
     kableExtra::column_spec(6, width="8em") %>%
     footnote(general_title="",
-             general="All SNPs shown here are imputed. Genomic positions are GRCh37 reference genome. The effect allele is labeled as ALT.",
+             general="All SNPs shown here are imputed. Genomic positions are GRCh37 reference genome.",
              footnote_as_chunk = TRUE,
              threeparttable = TRUE)
 
@@ -222,7 +222,7 @@ Identified loci on chromosome 6 were eQTLs for *CDCL5* gene (Figure \ref{fig:r_o
 <!-- Region on chromosome 12  -->
 
 
-## Recipient SNPs associations with Disease Related Mortality 
+## Recipient SNPs Disease Related Mortality Associations 
 
 ```{r, echo=FALSE}
 library(glue)
@@ -243,7 +243,7 @@ joint_res %>% filter(pt_subset == "R_ALLonly_DRM_1y",
     select(-PVALUE_c1:-PVALUE_c2, -Direction, -TYPED, -HR_ADJ:-regdb_score, INFO) %>%
     unite(`Ref. Panel/Cohort 1/ Cohort 2 MAF`, c("RefPanelAF", "SAMP_MAF_c1", "SAMP_MAF_c2"), sep="/") %>%
     rename(`HR (95% CI)`=HR,
-           `REF/ ALT`=REF_ALT,
+           `REF/ EFFECT`=REF_ALT,
            `P-value`=PVALUE_M) %>% 
         kable(caption="\\label{tab:r_drm_hits} DISCOVeRY-BMT recipient genotypes associated with disease related mortality at 1-year.", 
               digits=60, 
@@ -258,7 +258,7 @@ joint_res %>% filter(pt_subset == "R_ALLonly_DRM_1y",
     kableExtra::column_spec(5, width="4.8em") %>%
     kableExtra::column_spec(6, width="8em") %>%
     footnote(general_title="",
-             general="All SNPs shown are imputed. Genomic positions are GRCh37 reference genome. The effect allele is labeled as ALT.",
+             general="All SNPs shown are imputed. Genomic positions are GRCh37 reference genome.",
              footnote_as_chunk = TRUE,
              threeparttable = TRUE)
 ```
@@ -266,7 +266,7 @@ joint_res %>% filter(pt_subset == "R_ALLonly_DRM_1y",
 \begin{figure}
     \centering
     \includegraphics[width=\linewidth, height=3.5in]{~/Desktop/figures/chapter5/R_ALLonly_DRM.jpeg}
-    \caption[Manhattan Plot of Recipient ALL DRM GWAS.]{Manhattan Plot of Recipient ALL DRM GWAS. The x-axis is chromosome 1-22 and the y-axis is the $-\log_{10}(P_{meta})$. Each dot is a SNP. The red line is genome wide significance at $P_{meta} < 5\times{10}^{-08}$. The blue line is suggestive significance at $P_{meta} <  5\times{10}^{-05}$. Labeled SNPs are associated hits that have passed genome-wide threshold.}
+    \caption[Manhattan Plot of Recipient ALL DRM GWAS.]{Manhattan Plot of Recipient ALL DRM GWAS. The x-axis is chromosome 1-22 and the y-axis is the $-\log_{10}(P_{meta})$. Each dot is a SNP. The red line is genome wide significance at $P_{meta} < 5\times{10}^{-8}$. The blue line is suggestive significance at $P_{meta} <  5\times{10}^{-5}$. Labeled SNPs are associated hits that have passed genome-wide threshold.}
     \label{fig:r_drm_1y}  
 \end{figure}
 
@@ -300,12 +300,12 @@ The region on chromosome 11, includes two genome-wide associated SNPs, rs1180047
 \begin{figure}
     \centering
     \includegraphics[width=\linewidth, height=3.5in]{~/Desktop/figures/chapter5/rs149448001_motif.png}
-    \caption[Recipient DRM Chromosome 17 rs149448001 motif. A schematic of chromosome 17 is at the top. The red vertical line it the genomic location that the of this motif. The two panels show BRCA1 binding motif on chromosome 7 from two different human motif databases. rs149448001 is located at position 8 from T to C. The coordinate is highly predicted to be a T, and therefore a C allele will likely alter the binding properties of proteins to this region.]{Recipient DRM Chromosome 17 rs149448001 motif.}
+    \caption[Recipient DRM Chromosome 17 rs149448001 motif.]{Recipient DRM Chromosome 17 rs149448001 motif. A schematic of chromosome 17 is at the top. The red vertical line it the genomic location that the of this motif. The two panels show BRCA1 binding motif on chromosome 7 from two different human motif databases. rs149448001 is located at position 8 from T to C. The coordinate is highly predicted to be a T, and therefore a C allele will likely alter the binding properties of proteins to this region.}
     \label{fig:r_drm_motif}  
 \end{figure}
 
 
-Chromosome 17 has four recipient SNPs (rs149448001, rs3865256, rs147024703, rs77119354) associated with DRM within the first year transplant (Table \ref{tab:r_drm_hits}; Figure \ref{tab:r_drm_hits}; Figure \ref{fig:r_drm_1y_chr17reg}). All four SNPs are located in the intronic region of CDRT1 and alter binding motifs for various proteins known to play important roles in leukemias or other cancers (i.e.  *BRCA1*, *CDX*, *E2A*, *STAT* and *GATA* families) [@PerezAndreu_2015]. The SNP rs149448001 had the strongest association in this region and significantly changes the binding motif of *BRCA1*, a well known tumor suppressor. In fact rs149448001 changes the only unambiguous 8th position in the motif from T to C (Figure \ref{fig:@r_drm_motif}; @motifbreakr).The Roadmap Epigenome Project, places one of the associated SNPs, rs77119354, in an enhancer region in almost all primary T-cell and hematopoietic stem cell lines [@haploreg]. 
+Chromosome 17 has four recipient SNPs (rs149448001, rs3865256, rs147024703, rs77119354) associated with DRM within the first year transplant (Table \ref{tab:r_drm_hits}; Figure \ref{tab:r_drm_hits}; Figure \ref{fig:r_drm_1y_chr17reg}). All four SNPs are located in the intronic region of CDRT1 and alter binding motifs for various proteins known to play important roles in leukemias or other cancers (i.e.  *BRCA1*, *CDX*, *E2A*, *STAT* and *GATA* families) [@PerezAndreu_2015]. The SNP rs149448001 had the strongest association in this region and significantly changes the binding motif of *BRCA1*, a well known tumor suppressor. In fact rs149448001 changes the only unambiguous 8th position in the motif from T to C (Figure \ref{fig:r_drm_motif}; @motifbreakr).The Roadmap Epigenome Project, places one of the associated SNPs, rs77119354, in an enhancer region in almost all primary T-cell and hematopoietic stem cell lines [@haploreg]. 
 
 \begin{figure}
     \centering
@@ -554,13 +554,13 @@ explore_haplo("R", "ALLonly", "OF", "1y", "motifs") %>%
 
 While more recipients died due to transplant in the first year compared to death due to disease (Table \ref{tab:all_event_props}), no genome-wide associations with recipient SNPs were uncovered from TRM survival analyses (Manhattan Plot not shown). 
 
-However, upon when we scanned suggestive associations organ failure in DISCOVeRY-BMT, we identified rs6915410 ($P = 4.17e^{-07}$; HR: 4.64 [2.56-8.38]; C effect allele) on chromosome 6 as an interesting locus for death by organ failure (OF) in recipients. This SNP is in a very active region, where many SNPs that are in moderate to high LD have direct regulatory effects on *DEF6* and *PPARD* (Figure \ref{fig:r_of_1y}). In addition to rs7744392 being *DEF6* eQTL in peripheral blood monocytes [@Zeller_2010] and blood [@Fehrmann_2011], it is an eQTL for *MPO* in peripheral monocytes [@Zeller_2010] as well. These eQTLs were identified in lymphoblastoid and whole blood derived cell lines [@Zeller_2010; @Fehrmann_2011]. Blood is the most abundant tissue that has histone marks on enhancers and promoter regions for rs6915410 and corresponding correlated SNPs [@haploreg]. Experimental ChIP-seq studies have shown that \textit{ER$\alpha$} protein binds to this region. Notably, this region has evidence of altered regulatory motifs including known leukemia genes *E2A*, *CEBPB* family, *FOXO* family, *ARID3A*, *GATA* and *STAT*, among others [@Iacobucci_2017]. 
+However, upon when we scanned suggestive associations organ failure in DISCOVeRY-BMT, we identified rs6915410 ($P = 4.17\times{10}^{-7}$; HR: 4.64 [2.56-8.38]; C effect allele) on chromosome 6 as an interesting locus for death by organ failure (OF) in recipients. This SNP is in a very active region, where many SNPs that are in moderate to high LD have direct regulatory effects on *DEF6* and *PPARD* (Figure \ref{fig:r_of_1y}). In addition to rs7744392 being *DEF6* eQTL in peripheral blood monocytes [@Zeller_2010] and blood [@Fehrmann_2011], it is an eQTL for *MPO* in peripheral monocytes [@Zeller_2010] as well. These eQTLs were identified in lymphoblastoid and whole blood derived cell lines [@Zeller_2010; @Fehrmann_2011]. Blood is the most abundant tissue that has histone marks on enhancers and promoter regions for rs6915410 and corresponding correlated SNPs [@haploreg]. Experimental ChIP-seq studies have shown that \textit{ER$\alpha$} protein binds to this region. Notably, this region has evidence of altered regulatory motifs including known leukemia genes *E2A*, *AR3A*, and *CEBPB*, *FOXO*, *GATA*, *STAT* families [@Iacobucci_2017]. 
 
 
 ## Post-HSCT Associations with Donor SNPs
 All eight patient outcomes (DRM, TRM, OS, PFS, REL, GVHD, INF and OF) in ALL patients were tested for association with their matched unrelated donors SNPs. We detected genome-wide associated regions with OS, DRM, TRM and GVHD outcomes. Identifying such donor SNPs can be helpful in providing insight on genes and pathways involved in post-transplant events. More importantly upon rigorous replication, these SNPs can help clinicians improve donor selection and ultimately post-transplant survival outcomes.
 
-## Donor SNPs Associated with Overall Survival
+## Donor SNPs Associated with Recipient Overall Survival
 
 \begin{figure}
     \centering
@@ -588,7 +588,7 @@ joint_res %>%
     select(-PVALUE_c1:-PVALUE_c2, -Direction, -TYPED, -HR_ADJ:-regdb_score, INFO) %>%
     unite(`Ref. Panel/Cohort 1/ Cohort 2 MAF`, c("RefPanelAF", "SAMP_MAF_c1", "SAMP_MAF_c2"), sep="/") %>%
     rename(`HR (95% CI)`=HR,
-           `REF/ ALT`=REF_ALT, 
+           `REF/ EFF`=REF_ALT, 
            `P-value`=PVALUE_M) %>%  
         kable(caption="\\label{tab:d_os_hits} DISCOVeRY-BMT Donor SNPs Associated to Recipient Overall Survival at 1-Year", 
               digits=60, 
@@ -603,7 +603,7 @@ joint_res %>%
     kableExtra::column_spec(5, width="4.8em") %>%
     kableExtra::column_spec(6, width="8em") %>%
     footnote(general_title="",
-             general="All SNPs shown here are imputed. Genomic positions are GRCh37 reference genome. The effect allele is labeled as ALT.",
+             general="All SNPs shown here are imputed. Genomic positions are GRCh37 reference genome. REF is reference allele and EFF is effect allele.",
              footnote_as_chunk = TRUE,
              threeparttable = TRUE)
 ```
@@ -620,7 +620,7 @@ Donor SNPs were associated to recipient overall survival (OS) on chromosomes 2, 
 
 There are two associated regions on chromosome 2 (near 71Mb and 154 Mb). The former has two associated SNPs in perfectly correlated (rs116220248, rs76480148), both of these SNPs are in perfect LD with a SNP that has protein binding evidence for CEBPB, a well known leukemia target gene [@Akasaka_2007;@Guerzoni_2006]. The other region ($\approx$ 154 Mb region) does not have any noteworthy functional effects. Similarly, the regions on 5, 9, 13, and 18 also provided little evidence of having any known eQTLs, promoters Histones, or relevant alterations to cancer related motifs [@haploreg; @snipa].
 
-Upon screening suggestive associations of donor SNPs with patient OS, we detected rs62465751, a highly regulatory SNP located on chromosome 7, upstream of *TMEM248* (Figure \ref{fig:d_os_chr7}). This location encompassing rs62465751 has been predicted to be an active transcription start site in almost all cell lines included in Roadmap Epigenome project. Consequently, rs62465751 was detected for 60 eQTL associations, involving multiple genes across multiple tissues included in GTEx project. rs62465751 belongs to a LD block consisting of 73 SNPs ($r^2>0.8$), 22 of which located in the intronic region of TMEM248. SNPs in this LD block alter more than 22 binding motifs and are all reported eQTLs for various tissues, including CEU ancestry lymphoblastoid cell lines [@stranger_2007; @Lappalainen_2013]. 
+Upon screening suggestive associations of donor SNPs with patient OS, we detected rs62465751, a highly regulatory SNP located on chromosome 7, upstream of *TMEM248* (Figure \ref{fig:d_os_chr7}). This location encompassing rs62465751 has been predicted to be an active transcription start site in almost all cell lines included in Roadmap Epigenome project. Consequently, rs62465751 was detected for 60 eQTL associations, involving multiple genes across multiple tissues included in GTEx project. rs62465751 belongs to a LD block consisting of 73 SNPs ($r^2>0.8$), 22 of which located in the intronic region of *TMEM248*. SNPs in this LD block alter more than 22 binding motifs and are all reported eQTLs for various tissues, including CEU ancestry lymphoblastoid cell lines [@stranger_2007; @Lappalainen_2013]. 
 
 <!-- ## DISCOVeRY-BMT Associations have been previously reported in independent GWAS  -->
 <!-- ```{r gwas_hits_1y, echo=FALSE, eval=FALSE} -->
@@ -661,7 +661,7 @@ Upon screening suggestive associations of donor SNPs with patient OS, we detecte
 \begin{figure}
     \centering
     \includegraphics[width=\linewidth, height=3.5in]{~/Desktop/figures/chapter5/D_ALLonly_DRM.jpeg}
-    \caption[Manhattan Plot of Donor SNPs Contribution to Recipient DRM. ]{Manhattan Plot of Donor SNPs Contribution to Recipient DRM. The x-axis is chromosome 1-22 and the y-axis is the $-\log_{10}(P_{meta})$. Each dot is a SNP. The red line is genome wide significance at $P_{meta} < 5\times{10}^{-08}$. The blue line is suggestive significance at $P_{meta} <  5\times{10}^{-05}$. Labeled SNPs are associated hits that have passed genome-wide threshold.}
+    \caption[Manhattan Plot of Donor SNPs Contribution to Recipient DRM. ]{Manhattan Plot of Donor SNPs Contribution to Recipient DRM. The x-axis is chromosome 1-22 and the y-axis is the $-\log_{10}(P_{meta})$. Each dot is a SNP. The red line is genome wide significance at $P_{meta} < 5\times{10}^{-8}$. The blue line is suggestive significance at $P_{meta} <  5\times{10}^{-5}$. Labeled SNPs are associated hits that have passed genome-wide threshold.}
     \label{fig:d_drm_1y}  
 \end{figure}
 
@@ -679,7 +679,7 @@ joint_res %>%
     select(-PVALUE_c1:-PVALUE_c2, -Direction, -TYPED, -HR_ADJ:-regdb_score, INFO) %>%
     unite(`Ref. Panel/Cohort 1/ Cohort 2 MAF`, c("RefPanelAF", "SAMP_MAF_c1", "SAMP_MAF_c2"), sep="/") %>%
     rename(`HR (95% CI)`=HR,
-           `REF/ ALT`=REF_ALT, 
+           `REF/ EFF`=REF_ALT, 
            `P-value`=PVALUE_M) %>%  
     kable(caption="\\label{tab:d_drm_hits} DISCOVeRY-BMT Donor Genotypes Associated with Recipient Disease Related Mortality at 1-year.", 
               digits=60, 
@@ -694,7 +694,7 @@ joint_res %>%
     kableExtra::column_spec(5, width="4.8em") %>%
     kableExtra::column_spec(6, width="8em") %>%
     footnote(general_title="",
-             general="All SNPs shown are imputed. Genomic positions are GRCh37 reference genome. The effect allele is labeled as ALT.",
+             general="All SNPs shown are imputed. Genomic positions are GRCh37 reference genome. REF is reference allele and EFF is effect allele.",
              footnote_as_chunk = TRUE,
              threeparttable = TRUE)
 ```
@@ -712,7 +712,7 @@ The regions on chromosomes 20 and 21 showed no evidence of affecting transcripti
 \begin{figure}
     \centering
     \includegraphics[width=\linewidth, height=3.5in]{~/Desktop/figures/chapter5/D_ALLonly_TRM.jpeg}
-    \caption[Manhattan Plot of Donor SNPs Contribution to Recipient TRM]{Manhattan Plot of Donor SNPs Contribution to Recipient TRM. The x-axis is chromosome 1-22 and the y-axis is the $-\log_{10}(P_{meta})$. Each dot is a SNP. The red line is genome wide significance at $P_{meta} < 5\times{10}^{-08}$. The blue line is suggestive significance at $P_{meta} <  5\times{10}^{-5}$. Labeled SNPs are associated hits that have passed genome-wide threshold.}
+    \caption[Manhattan Plot of Donor SNPs Contribution to Recipient TRM]{Manhattan Plot of Donor SNPs Contribution to Recipient TRM. The x-axis is chromosome 1-22 and the y-axis is the $-\log_{10}(P_{meta})$. Each dot is a SNP. The red line is genome wide significance at $P_{meta} < 5\times{10}^{-8}$. The blue line is suggestive significance at $P_{meta} <  5\times{10}^{-5}$. Labeled SNPs are associated hits that have passed genome-wide threshold.}
     \label{fig:d_trm_1y}  
 \end{figure}
 
@@ -732,7 +732,7 @@ joint_res %>%
     select(-PVALUE_c1:-PVALUE_c2, -Direction, -TYPED, -HR_ADJ:-regdb_score, INFO) %>%
     unite(`Ref. Panel/Cohort 1/ Cohort 2 MAF`, c("RefPanelAF", "SAMP_MAF_c1", "SAMP_MAF_c2"), sep="/") %>%
     rename(`HR (95% CI)`=HR,
-           `REF/ ALT`=REF_ALT, 
+           `REF/ EFF`=REF_ALT, 
            `P-value`=PVALUE_M) %>%  
     kable(caption="\\label{tab:r_os_hits} DISCOVeRY-BMT Donor Genotypes Associated with Recipent Transplant Related Mortality at 1-year.", 
               digits=60, 
@@ -747,7 +747,7 @@ joint_res %>%
     kableExtra::column_spec(5, width="4.8em") %>%
     kableExtra::column_spec(6, width="8em") %>%
     footnote(general_title="",
-             general="All SNPs shown are imputed. Genomic positions are GRCh37 reference genome. The effect allele is labeled as ALT.",
+             general="All SNPs shown are imputed. Genomic positions are GRCh37 reference genome. REF is reference allele and EFF is effect allele.",
              footnote_as_chunk = TRUE,
              threeparttable = TRUE)
 ```
@@ -798,7 +798,7 @@ explore_haplo("D", "ALLonly", "GVHD", "1y", "motifs") %>%
 ```
 
 
-## Donor Graft-versus-Host Disease Associations
+## Donor SNPs Associated with Graft-versus-Host Disease
 
 \begin{figure}
     \centering
@@ -848,13 +848,13 @@ explore_haplo("D", "ALLonly", "GVHD", "1y", "grasp") %>%
 
 ```
 
-We scanned suggestive SNP regions ($P < 5\times{10}^{-05}$) for regions that may affect transcription factor binding. Donor GVHD SNP rs9783053 (typed SNP; $P=1.41\times{10}^{-06}$; HR: 3.27 [2.02-5.29]; G effect allele) was found to have a regulomeDB score of 1A (the highest score). This means based off of previous literature, there is strong evidence that rs9783053 affects transcription factor binding [@Boyle_2012]. This region has many SNPs that directly regulate transcription on *UBE4B* (Figure \ref{fig:d_gvhd_1y}). This polymorphism has five proteins (Ctcf, Ebf1, Elf1, Nf$\kappa$b, Pu1) that bind to this SNP in lymphoblastoid cell lines [@encode_2012]. This variant is in LD with synonymous variant rs2273299 ($r^2=0.88$). Experimental cell line studies from ENCODE provide evidence suggesting that this region alters regulatory motifs for cancer and leukemia related genes [@haploreg]. Variants that alter gene expression were found in blood and lymphoblast derived CEU cell lines. Thus, while donor GVHD SNPs did not reach genome-wide significance, the is some evidence that suggests this region may transcriptional or epigenetic on effects on ALL related genes.
+We scanned suggestive SNP regions ($P < 5\times{10}^{-5}$) for regions that may affect transcription factor binding. Donor GVHD SNP rs9783053 (typed SNP; $P=1.41\times{10}^{-6}$; HR: 3.27 [2.02-5.29]; G effect allele) was found to have a regulomeDB score of 1A (the highest score). This means based off of previous literature, there is strong evidence that rs9783053 affects transcription factor binding [@Boyle_2012]. This region has many SNPs that directly regulate transcription on *UBE4B* (Figure \ref{fig:d_gvhd_1y}). This polymorphism has five proteins (Ctcf, Ebf1, Elf1, Nf$\kappa$b, Pu1) that bind to this SNP in lymphoblastoid cell lines [@encode_2012]. This variant is in LD with synonymous variant rs2273299 ($r^2=0.88$). Experimental cell line studies from ENCODE provide evidence suggesting that this region alters regulatory motifs for cancer and leukemia related genes [@haploreg]. Variants that alter gene expression were found in blood and lymphoblast derived CEU cell lines. Thus, while donor GVHD SNPs did not reach genome-wide significance, the is some evidence that suggests this region may transcriptional or epigenetic on effects on ALL related genes.
 
 # Discussion
 
 Previously the relationship between survival outcomes and non-HLA donor-recipient genetics after MUD-HSCT had not been studied at the genome-wide level. Here we presented the first GWAS investigating this objective. The cohorts of DISCOVeRY-BMT span the entire ALL patient pool, ranging from childhood, AYA, adults and senior adults. Genome-wide associations to survival outcomes after 1-year post-transplant were identified in both recipient and donor genomes. Specifically, recipient DRM, OS, and OF. And for donors, associations were found for DRM, TRM, GVHD, and OS. Often our genome-wide associations provided only a small insights of possible biological mechanisms that may contribute to these observed death related phenotypes. 
 
-We attempted to gain additional insight by leveraging publicly available databases. We inspected regions that were below genome-wide significance at $P < 5\times{10}^{-05}$. Often we found regions that were in fact not genome-wide significant, but regional association plots revealed that there may some effect on transcription and that previous studies have provided evidence that these regions have many interactions. Future directions for this project include implementing PrediXcan which is currently underway in the lab and will be added to this work before publication. PrediXcan always assessment of gene-based expression levels in our data and thus will help us prioritize our GWAS associations. Future directions for this project include implementing PrediXcan [@Barbeira_2018] which is currently underway in the lab and will be added to this work before publication. PrediXcan allows assessment of gene-based expression levels in our data (using blood tissue samples from GTEx) and thus will help us prioritize our GWAS associations.
+We attempted to gain additional insight by leveraging publicly available databases. We inspected regions that were below genome-wide significance at $P < 5\times{10}^{-5}$. Often we found regions that were in fact not genome-wide significant, but regional association plots revealed that there may some effect on transcription and that previous studies have provided evidence that these regions have many interactions. Future directions for this project include implementing PrediXcan which is currently underway in the lab and will be added to this work before publication. PrediXcan always assessment of gene-based expression levels in our data and thus will help us prioritize our GWAS associations. Future directions for this project include implementing PrediXcan [@Barbeira_2018] which is currently underway in the lab and will be added to this work before publication. PrediXcan allows assessment of gene-based expression levels in our data (using blood tissue samples from GTEx) and thus will help us prioritize our GWAS associations.
 
 Although DISCOVeRY-BMT is the largest cohort to date investigating ALL recipient-donor genetic variation after transplant, sample size remains a large limitation. The next step will be replicate these findings in an independent study. Namely using University of Washington ALL cohort study for replication of relapse and overall survival. If available, in addition to replication using University of Washington cohorts, meta-analysis combining DISCOVeRY-BMT may provide stronger signal for overall survival and/or relapse outcomes. In terms of improving our survival models, alterations to our current workflow may improve signal by adjusting for age by stratifying by clinical age groups, or by modeling the age as a non-linear function and smoothing the distribution using splines [@shepherd_2017]. Challenges in improving long-term survival after MUD-HSCT remain, however, we believe that this study provides unique insights in this field and is a positive step towards improving outcomes. 
 

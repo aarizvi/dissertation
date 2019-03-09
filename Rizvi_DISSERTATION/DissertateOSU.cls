@@ -282,24 +282,23 @@
 {1em}
 {}
 
-
-\titleformat{\section}[display]
+\titleformat{\section}[hang]
 {\normalfont\normalsize\bfseries}
+{\thesection}
+{3mm}
 {}
-{0pt}
-{{}}
 
-\titleformat{\subsection}[display]
+\titleformat{\subsection}[hang]
+{\normalfont\normalsize\itshape\bfseries}
+{\thesubsection}
+{3mm}
+{}
+
+\titleformat{\subsubsection}[hang]
 {\normalfont\normalsize\itshape}
+{\thesubsubsection}
+{3mm}
 {}
-{0pt}
-{{}}
-
-\titleformat{\subsubsection}[display]
-{\normalfont\normalsize}
-{}
-{0pt}
-{{}}
 
 % An environment for paragraph-style section.
 \providecommand\newthought[1]{%
