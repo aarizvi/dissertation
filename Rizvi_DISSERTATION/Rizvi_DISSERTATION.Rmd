@@ -90,11 +90,20 @@ dissertateUSU::preamble_for_title()
 \pagestyle{plain}
 \fancyhead[L]{}
 \fancyhead[R]{}
-\fancyfoot[C]{}
-\chapter*{DEDICATION}
+\fancyfoot[C]{\thepage}
+<!-- \chapter*{DEDICATION} -->
 \addcontentsline{toc}{section}{Dedication}
 
-Dedicated to Ezgi, my parents, my siblings and their kids, and my sweet little pooch Bernie. 
+\vspace*{\fill}
+  \begin{center}
+	\doublespacing
+	This is dedicated to Ezgi, \\
+	my parents, my siblings, and their families, \\
+    for their endless love and support. \\
+	And to my sweet little pooch Bernie.
+  \end{center}
+\vspace*{\fill}
+
 
 <!-- Acknowledgements -->
 \newpage
