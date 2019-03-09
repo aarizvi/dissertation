@@ -14,15 +14,10 @@ geometry:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+\doublespacing
+HLA-matched unrelated donor (MUD) hematopoietic stem cell transplantation (HSCT) is used as a potential curative therapy for otherwise fatal hematological cancers, including but not limited to acute and chronic leukemia, Hodgkin and non-Hodgkin lymphoma, and myelodysplastic syndrome (MDS). MUD-HSCT involves the transfer of healthy individual (donor) bone marrow stem cells to an unhealthy patient (recipient). Despite improvements in human leukocyte antigen (HLA) matching algorithms, treatment protocols and patient care overall survival (OS) rates profoundly decrease in the first 1-year post-transplant. The largest predictor of mortality during this time frame is HLA matching, emphasizing the importance of genetic variation in determining survival. Despite the clear importance of genetics to survival following transplant, the relationship of non-HLA genetic variation remains underexplored. In this dissertaton, we characterized and explored the independent and joint non-HLA genetic contributions to survival outcomes in donors and recipients with acute leukemias or MDS using pre-existing genome-wide association study (GWAS), *D*etermining the *I*nfluence of *S*usceptibility *CO*nveying *V*ariants *R*elated to one-*Y*ear mortality after *BMT* (DISCOVeRY-BMT), a study of 3,532 donor-recipient pairs with survival, clinical and genomic data available.
 
-
-
-
-
-
-
-
-
+We used DISCOVeRY-BMT to replicate or validate all previous literature that investigated survival outcomes after allogeneic HSCT. None of the previous literature was reproduced, likely due to the previous cohorts comprising heterogeneous samples (testing with multiple diseases) or small sample sizes. Next we developed an R/Bioconductor software package called gwasurvivr. This package takes input from popular genomics software and performs multivariate Cox regression survival analysis in a scalable and efficient manner. We integrated gwasurvivr into an automated pipeline that performs full survival GWAS analyses and conducts meta-analysis. We conducted this on numerous subsets of DISCOVeRY-BMT. Here, we report only post-HSCT genetic associations for acute lymphoblastic leukemia (ALL) subset of DISCOVeRY-BMT GWAS. We found SNPs associated to recipients for the outcomes overall survival (OS), disease related moratlity (DRM), and organ failure (OF). We also found donor SNPs associated with OS, transplant-related moratlity (TRM), DRM, and graft-versus host disease (GVHD). Lastly, we probed our findings for biological relevance (affecting gene expression or transcription factor binding) by annotating associated SNPs using publicly available databases. 
 
 \afterpage{
     
@@ -30,7 +25,7 @@ knitr::opts_chunk$set(echo = TRUE)
 \begin{figure}
     \centering
     \includegraphics[width=8.7in, height=7.5in]{~/Desktop/figures/abstract/pipeline_draft.png}
-    \caption[Graphical Abstract]{Graphical Abstract. The flow of the abstract begins on the right. }
+    \caption[Graphical Abstract]{Graphical Abstract. The flow of the abstract begins on the upper left, illustrating the HSCT process of a patient receiving chemotherapy and/or radiation prior to kill all of the patients bone marrow cells prior to allogeneic HSCT. An HLA matched donor donates their healthy hematopoietic stem cells (HSCs) to the recipient. We genotyped both the donor and recipient blood samples for a GWAS testing for associations with survival outcomes. The gray boxes describe the DISCOVeRY-BMT phenotype and sample sizes, as well as our workflow pipeline. The graphical figures on the far right are typical output after GWAS (Manhattan plot and regional plot) to visualize results.}
     \label{fig:abstract}  
 \end{figure}
 \end{landscape}

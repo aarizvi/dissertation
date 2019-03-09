@@ -2,64 +2,56 @@
 title: "Application and Implementation"
 author: "Abbas Rizvi"
 date: "11/21/2018"
-output: pdf_document  
-editor_options: 
-  chunk_output_type: console
+output: pdf_document
 ---
 
 ```{r ch4_setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(knitr)
+library(kableExtra)
 ```
 
 # Introduction
-Automation of large scale studies is essential to the reproducibility of analyses. Robust workflows that have minimal user interaction decrease the possibility of continual, unnoticed errors from propagating. When modeling and analyzing DISCOVeRY-BMT, we often have to compute hundreds of analyses, i.e. for three genomes (donor, recipient and mismatch), different disease stratification, two cohorts, and different survival outcomes. The effects of both cohorts are combined using meta-analyses. In order to overcome this potentially cumbersome process, we developed an automated pipeline that uses imputed genotype data from the Sanger imputation server as input, runs user specified Cox regression models using gwasurvivr, performs a meta-analysis, and subsequently reshapes the data into a clean format. Here we show an overview of the pipeline (known as DISCOVeRY-BMT Meta-analysis Pipeline) we created and the analyses that were performed after re-imputing DISCOVeRY-BMT using the Sanger Imputation Server. 
+Automation of large scale studies is essential to the reproducibility of analyses. Robust workflows that have minimal user interaction decrease the possibility of continual, unnoticed errors from propagating. When modeling and analyzing DISCOVeRY-BMT, we often have to compute hundreds of analyses, i.e. for three genomes (donor, recipient and mismatch), different disease stratification, two cohorts, and different survival outcomes. The effects of both cohorts are combined using meta-analyses. In order to overcome this potentially cumbersome process, we developed an automated pipeline that uses imputed genotype data from the Sanger imputation server as input, runs user specified Cox regression models using gwasurvivr, performs a meta-analysis, and subsequently reshapes the data into a clean format. Here we show an overview of the pipeline (known as DISCOVeRY-BMT Meta-analysis Pipeline) we created and the analyses that were performed after re-imputing DISCOVeRY-BMT using the Sanger Imputation Server and describe the functional annotation that succeeding the initial GWAS.
 
 # Methodology
 \begin{figure}
     \centering
     \includegraphics[width=\linewidth, height=3in]{~/Desktop/figures/chapter4/chapter4_flowdiagram_v2.png}
-    \caption[Process diagram of automated survival meta-analysis pipeline.]{Process diagram of automated survival meta-analysis pipeline DISCOVeRY-BMT. The pipeline is written in DBMT\_metaPipeline.pl. It submits three jobs on UB CCR SLURM, job 1 (cohort 1 survival analysis), job 2 (cohort 2 survival analysis), and job3 (meta-analysis) which waits for (dependency) job 1 and 2 to complete before starting. To elaborate, a manifest file passed to DBMT\_Pipeline.pl as input that defines the VCF file (chromosome), outcome, patient subset, and memory allocation. run\_gwasurvivr.R captures the command line Rscript that is invoked in the perl script and prepares the data. run\_gwasurvivr.R uses the outcome and patient subset from the manifest file and defines these outcomes and affiliated covariates and runs gwasurvivr survival analysis. After both cohort 1 and cohort 2 are complete, meta-analysis is performed. After meta-analysis is complete, spread\_metal.R, filters out heterogeneous SNPs between cohorts, statistics are computed, and data is reformatted such that cohort 1, cohort 2, and meta-analysis are all shown in a single line corresponding to a single variant. The output it then used for annotation to further characterize associations.}
+    \caption[Process diagram of automated survival meta-analysis pipeline.]{Process diagram of automated survival meta-analysis pipeline DISCOVeRY-BMT. The pipeline is written in $\texttt{DBMT\_metaPipeline.pl}$. It submits three jobs on UB CCR SLURM, job 1 (cohort 1 survival analysis), job 2 (cohort 2 survival analysis), and job3 (meta-analysis) which waits for (dependency) job 1 and 2 to complete before starting. To elaborate, a manifest file passed to $\texttt{DBMT\_metaPipeline.pl}$ as input that defines the VCF file (chromosome), outcome, patient subset, and memory allocation. $\texttt{run\_gwasurvivr.R}$ captures the command line Rscript that is invoked in the perl script and prepares the data. $\texttt{run\_gwasurvivr.R}$ uses the outcome and patient subset from the manifest file and defines these outcomes and affiliated covariates and runs gwasurvivr survival analysis. After both cohort 1 and cohort 2 are complete, meta-analysis is performed. After meta-analysis is complete, $\texttt{spread\_metal.R}$, filters out heterogeneous SNPs between cohorts, statistics are computed, and data is reformatted such that cohort 1, cohort 2, and meta-analysis are all shown in a single line corresponding to a single variant. The output it then used for annotation to further characterize associations.}
     \label{fig:flow}  
 \end{figure}
 
-## Data
-1. Genetic Data (Imputation Results)  
-DISCOVeRY-BMT was first imputed using IMPUTE2 [@Howie_2009] and 1000 Genomes Project (1kGP) Phase 3 [@1000genomes] reference panel. Although new reference panels are Genome Reference Consorstium Human Build 37 (GRCh37; same as 1kGP), as new reference panels continue to be released, we decided that it would be appropriate to update DISCOVeRY-BMT GWAS data. As mentioned in Chapter 1 and Chapter 3, several imputation software and servers exist. Two imputation web services are publicly available, Michigan imputation server [@michigan_imputation] from University of Michigan and Sanger imputation server from Wellcome Sanger Institute [@hrc]. The largest, non-subtle, differences between the servers are related to the imputation algorithms used. Michigan imputation server uses minimac3 [@michigan_imputation]. Sanger imputation server using the position Burrows-Wheeler transform (PBWT) algorithm [@durbin_2014]. Both imputation services offer user friendly platforms and offer the most up to date reference panels, including HRC release 1.1. HRC reference panel combines data from over 20 different studies. The majority of samples in HRC are low coverage sequencing data and predominantly European ancestry, and HRC includes 1kGP Phase 3 as well. HRC has $\approx 65,000$ haplotypes and $\approx 40$ million SNPs. We decided to go with Sanger imputation because ... **nothing written here**. Prior to imputation, it is common practice it is common practice to pre-phase (haplotype estimation) before imputation, as previous studies have demonstrated estimating haplotypes prior to imputation substantially speeds up the imputation process [@OConnell_2016]. EAGLE2 [@eagle2] or SHAPEIT2 [@shapeit2] are commonly used pre-phasing algorithms. SHAPEIT2 pre-phasing and PBWT imputation were used for DISCOVeRY-BMT, returning unphased, imputed genotypes. 
 
-2. Phenotype file  
-DISCOVeRY-BMT has clinical characteristics and survival times/events corresponding to recipients and donors provided by NMDP and CIBMTR. The phenotype file will interchangeably be referred to as "covariate file". The survival times and events are for recipients only. Characteristics are shown in Table 1.  
-
-```{r, echo=FALSE}
+```{r, echo=FALSE, warning=FALSE}
 dons <- c("Donor","age, sex, race group, blood type (ABO)")
 recs <- c("Recipient",
           "age, sex, race group, blood type (ABO), graft source, causes of death (levels 1-7), conditioning regimen and intensity, TBI fractionation, GVHD prophylaxis, current disease type, current disease progression, prior disease type, cytogenetics status, time to death, time to relapse, AML type, transplant year, HLA match (8/8 or 10/10), cytomegalyvirus, Lansky Score, Karnovsky Score, Principal Components from EIGENSTRAT")
 
 knitr::kable(setNames(data.frame(rbind(dons, recs), row.names = NULL), c("Genome", "Description")), 
-             caption="Broad Overview of DISCOVeRY-BMT Clinical Characteristics", booktabs=TRUE, align='c') %>%
+             caption="\\label{tab:clin_char} Broad Overview of DISCOVeRY-BMT Clinical Characteristics", booktabs=TRUE, align='c') %>%
     kableExtra::kable_styling(latex_options = "striped", font_size=9, position='c') %>%
     kableExtra::column_spec(2, width="24em")
 ```
 
-\singlespacing
 
-```{r, echo=FALSE, eval=FALSE}
-library(tidyverse)
-pheno_data <- read_tsv("~/Google Drive/OSU_PHD/DBMT_100d/DBMT_PhenoData_EA_long_allVar_20181206.txt")
-pheno_data <- pheno_data %>%
-    select(updated.EA_IID, pair_id, FID, age, dnrage, htpr, wtpr, bmi, yeartx,
-           intxrel_overall:racegp, dnrracegp, disease, gvhdgp, atgcampathgp, rel_overall:dead_overall, 
-           sexMM, graftype, abod, abor, cpcod1gen:death7, dthprim, alstatpr, amstatpr, mdstatpr, MyeloReg1,
-           ATG, TBI, DxCytogen:AMLtype, PriorDx, TxRelExposure, dead_1Y:infection_1Y, cmprisk, sample_type, sangerIDs)
-```
+## Data
+### Genetic Data (Imputation Results)
+DISCOVeRY-BMT was first imputed using IMPUTE2 [@Howie_2009] and 1000 Genomes Project (1kGP) Phase 3 [@1000genomes] reference panel. Although new reference panels have not updated to a newer genome release than Genome Reference Consortium Human Build 37 (GRCh37; same as 1kGP), the number of samples included in the development of the reference panel itself have increased substantially (i.e. from $\approx 1000$ to $\approx 65,000$. As such we decided that it would be appropriate to update DISCOVeRY-BMT GWAS data to increase the quality of imputation. 
 
-\doublespacing
+As mentioned in Chapter 1 and Chapter 3, several imputation software and servers exist. Two imputation web services are publicly available, Michigan imputation server [@michigan_imputation] from University of Michigan and Sanger imputation server from Wellcome Sanger Institute [@hrc]. The largest, non-subtle, differences between the servers are related to the imputation algorithms used. Michigan imputation server uses minimac3 [@michigan_imputation]. Sanger imputation server using the position Burrows-Wheeler transform (PBWT) algorithm [@durbin_2014]. Both imputation services offer user friendly platforms and offer the most up to date reference panels, including HRC release 1.1. HRC reference panel combines data from over 20 different studies. The majority of samples in HRC are low coverage sequencing data and predominantly European ancestry, and HRC includes 1kGP Phase 3 as well. HRC has $\approx 65,000$ haplotypes and $\approx 40$ million SNPs. Prior to imputation, it is common practice it is common practice to pre-phase (haplotype estimation) before imputation, as previous studies have demonstrated estimating haplotypes prior to imputation substantially speeds up the imputation process [@OConnell_2016]. EAGLE2 [@eagle2] or SHAPEIT2 [@shapeit2] are commonly used pre-phasing algorithms. SHAPEIT2 pre-phasing and PBWT imputation were used for DISCOVeRY-BMT, returning unphased, imputed genotypes. 
 
-In the actual phenotype file -- many clinical covariates been recoded into dummy/indicator variables or stratified into joint groupings.   
+### Phenotype file
+DISCOVeRY-BMT has clinical characteristics and survival times/events corresponding to recipients and donors provided by NMDP and CIBMTR. The phenotype file will interchangeably be referred to as "covariate file". The survival times and events are for recipients only. Characteristics are shown in Table \ref{tab:clin_char}. In the phenotype file that is used for our analyses -- many clinical covariates been recoded into dummy/indicator variables or stratified into joint groupings.   
 
-## Manifest file
-The imputed files can be directly passed to gwasurvivr. Manifest files are defined as a file that contains columns (for this pipeline, manifest files are tab-separated) that describe specific arguments that are passed to other functions (i.e. the `run_gwasurvivr.R`, or to the SLURM scripts). Manifest file fields can be found in Table 2.
+## Perl Script for Pipeline
+The perl script resides on UB CCR and is very specific to DISCOVeRY-BMT and folder structure on our accounts. The central idea is that the pipeline consists of three jobs (JOB1, JOB2, and JOB3) in a single Slurm Workload Manager submission. JOB1 and JOB2 are perform survival analysis using gwasurvivr on VCF files for one chromosome (Figure \ref{fig:flow}). JOB3 is the meta-analysis of cohorts 1 and 2 using METAL [@metal] software. JOB3 also reshapes the data such that results from cohort 1, cohort 2, and meta-analysis are all in one row. JOB3 has a dependency on JOB1 and JOB2 completion before initiating (Figure \ref{fig:flow}). 
 
-```{r, echo=FALSE}
+### Manifest file
+The imputed files can be directly passed to gwasurvivr. Manifest files are defined as a file that contains columns (for this pipeline, manifest files are tab-separated) that describe specific arguments that are passed to other functions (i.e. `run_gwasurvivr.R` or SLURM scripts). Manifest file fields can be found in Table 2.
+
+```{r, echo=FALSE, warning=FALSE}
 cols <- c("path_to_vcf_file", "output_name", "patient_subset", "genome", "outcome", "memory")
 desc <- c("Chromosomes 1-22 VCF files (include full directory)",
           "Output file name",
@@ -79,8 +71,56 @@ knitr::kable(x, caption="Manifest file column descriptions", booktabs=TRUE, alig
 
 ```
 
-## Execution of script
-The perl script that runs the pipeline can be found in the Appendix. Essentially the script facilitates the submisssion of survival analysis for cohort 1 (JOB1), cohort 2 (JOB2) and the meta-analysis/reshaping of the data (JOB3). This done for 167 different analyses (501 analysis jobs total) (Table 4.3). 
+### Execution of script
+```{r, echo=FALSE, warning=FALSE}
+genome <- c("Donor", "Recipient", "Mismatch")
+outcomes <- c("DRM", "TRM", "OS", "PFS")
+patient_subset <- c("Mixed", "AML + MDS", "AML", "ALL", "B-ALL", "T-ALL")
+censor <- c("1 year", "3 years", "100 days")
+full_df <- setNames(expand.grid(genome, outcomes, patient_subset, censor, stringsAsFactors = FALSE),
+                    c("genome", "outcomes", "patient_subset", "cens_time"))
+clean_df <- full_df %>% 
+    filter(!(genome=="Mismatch" &
+           patient_subset %in% c("B-ALL", "T-ALL") & 
+           cens_time %in% c("1 year","3 years", "100 days")),
+           !(cens_time == "3 years" &
+                 patient_subset %in% c("Mixed", "AML", "AML + MDS", "B-ALL", "T-ALL") |
+             cens_time == "3 years" & genome == "Mismatch" |
+             cens_time == "3 years" & outcomes %in% c("DRM", "TRM", "PFS")),
+           !(cens_time == "100 days" & patient_subset %in% c("B-ALL", "T-ALL")),
+           !(cens_time == "1 year" & genome == "Mismatch" & patient_subset=="ALL")) %>% 
+    group_by(patient_subset, cens_time) %>%
+    summarize(genomes=toString(unique(genome)), 
+              outcomes=toString(unique(outcomes))) %>%
+    ungroup() %>%
+    select(genomes, patient_subset, outcomes, cens_time) %>%
+    mutate(outcomes=ifelse(cens_time=="100 days", 
+                           paste0(outcomes, ", REL, INF, OF, GVHD"),
+                           outcomes),
+           outcomes=ifelse(patient_subset == "ALL" & cens_time %in% c("1 year"), 
+                           paste0(outcomes, ", REL, OF, GVHD, INF"),
+                           outcomes),
+           outcomes=ifelse(patient_subset == "ALL" & cens_time %in% c("3 years"), 
+                           paste0(outcomes, ", REL"),
+                           outcomes),
+           analyses=str_count(genomes, "\\w+") * str_count(outcomes, "\\w+")) %>%
+    arrange(cens_time, desc(genomes)) 
+
+colnames(clean_df) <- c("Genomes", "Patient Subset", "Survival Outcomes", "Censoring Time", "Analyses Run")
+
+rbind(clean_df, c("Total", "", "", "", sum(clean_df$`Analyses Run`))) %>% 
+    knitr::kable(caption="\\label{tab:jobs_run} DISCOVeRY-BMT Analyses Run Using DBMT metaPipeline.", booktabs=TRUE) %>%
+    kableExtra::kable_styling(latex_options="striped", font_size=9) %>%
+    kableExtra::column_spec(1, width="6em") %>%
+    kableExtra::column_spec(2, width="4em") %>%
+    kableExtra::column_spec(3, width="8em") %>%
+    kableExtra::column_spec(4, width="6em") %>%
+    kableExtra::column_spec(5, width="4em") %>%
+    kableExtra::row_spec(11, hline_after=TRUE) 
+```
+
+
+Essentially the script facilitates submission of survival analysis for JOB1, JOB2, and JOB3.
 
 Required commands:  
 
@@ -115,57 +155,8 @@ perl /projects/rpci/lsuchest/lsuchest/DBMT_metaPipeline/\
 
 \doublespacing
 
-## Analyses Run
-
-```{r, echo=FALSE}
-genome <- c("Donor", "Recipient", "Mismatch")
-outcomes <- c("DRM", "TRM", "OS", "PFS")
-patient_subset <- c("Mixed", "AML + MDS", "AML", "ALL", "B-ALL", "T-ALL")
-censor <- c("1 year", "3 years", "100 days")
-full_df <- setNames(expand.grid(genome, outcomes, patient_subset, censor, stringsAsFactors = FALSE),
-                    c("genome", "outcomes", "patient_subset", "cens_time"))
-clean_df <- full_df %>% 
-    filter(!(genome=="Mismatch" &
-           patient_subset %in% c("B-ALL", "T-ALL") & 
-           cens_time %in% c("1 year","3 years", "100 days")),
-           !(cens_time == "3 years" &
-                 patient_subset %in% c("Mixed", "AML", "AML + MDS", "B-ALL", "T-ALL") |
-             cens_time == "3 years" & genome == "Mismatch" |
-             cens_time == "3 years" & outcomes %in% c("DRM", "TRM", "PFS")),
-           !(cens_time == "100 days" & patient_subset %in% c("B-ALL", "T-ALL")),
-           !(cens_time == "1 year" & genome == "Mismatch" & patient_subset=="ALL")) %>% 
-    group_by(patient_subset, cens_time) %>%
-    summarize(genomes=toString(unique(genome)), 
-              outcomes=toString(unique(outcomes))) %>%
-    ungroup() %>%
-    select(genomes, patient_subset, outcomes, cens_time) %>%
-    mutate(outcomes=ifelse(cens_time=="100 days", 
-                           paste0(outcomes, ", INF, OF, GVHD, REL"),
-                           outcomes),
-           outcomes=ifelse(patient_subset == "ALL" & cens_time %in% c("1 year", "3 years"), 
-                           paste0(outcomes, ", REL"),
-                           outcomes),
-           analyses=str_count(genomes, "\\w+") * str_count(outcomes, "\\w+")) %>%
-    arrange(cens_time, desc(genomes)) 
-
-colnames(clean_df) <- c("Genomes", "Patient Subset", "Survival Outcomes", "Censoring Time", "Analyses Run")
-
-rbind(clean_df, c("Total", "", "", "", sum(clean_df$`Analyses Run`))) %>% 
-    knitr::kable(caption="DISCOVeRY-BMT Analyses Run Using DBMT metaPipeline.", booktabs=TRUE) %>%
-    kableExtra::kable_styling(latex_options="striped", font_size=9) %>%
-    kableExtra::column_spec(1, width="6em") %>%
-    kableExtra::column_spec(2, width="4em") %>%
-    kableExtra::column_spec(3, width="8em") %>%
-    kableExtra::column_spec(4, width="6em") %>%
-    kableExtra::column_spec(5, width="4em") %>%
-    kableExtra::row_spec(11, hline_after=TRUE) 
-```
-
-# Model Descriptions
-
-The models that we ran:  
-
-```{r, echo=FALSE}
+## GWAS Analyses Run
+```{r, echo=FALSE, warning=FALSE}
 outcomes <- c("TRM", "DRM", "OS", 
               "PFS", "REL", "GVHD", 
               "OF", "INF")
@@ -183,243 +174,12 @@ df <- setNames(data.frame(
                  stringsAsFactors = FALSE),
                c("Survival Outcomes", "Time Interval", "Covariates"))
 
-knitr::kable(df, caption="Survival Models Analyzed", booktabs=TRUE) %>%
+knitr::kable(df, caption="\\label{tab:models_run} Survival Models Analyzed", booktabs=TRUE) %>%
     kableExtra::kable_styling(latex_options="striped", font_size=9) #%>%
     # kableExtra::column_spec(1, width="6em") %>%
     # kableExtra::column_spec(2, width="8em") %>%
     # kableExtra::column_spec(3, width="14em")
 ```
-
-
-
-## perl script
-
-\singlespacing
-```{r, engine='perl', eval=FALSE, echo=FALSE}
-#! /usr/bin/perl
-use warnings;
-use strict;
-use Cwd;
-use Getopt::Long;
-
-my $manifest;
-my $walltime;
-my $email;
-my $rscript;
-GetOptions ("m=s" => \$manifest, \
-            "w=s" => \$walltime, \
-            "e=s" => \$email, \
-            "rscript=s" => \$rscript) or die$!;
-my $wd = getcwd;
-if (!-d "$wd/job_scripts") { mkdir "$wd/job_scripts"; }
-if (!-d "$wd/log") { mkdir "$wd/log"; }
-if (!-d "$wd/job_scripts/metal_scripts") \
-    { mkdir "$wd/job_scripts/metal_scripts"; }
-if (!-d "$wd/temp") { mkdir "$wd/temp"; }
-if (!-d "$wd/out") { mkdir "$wd/out"; }
-open MANIFEST, "$manifest" or die$!;
-my $line = 1;
-while(<MANIFEST>) {
-	if ($line == 1) {
-		$line++;
-		next;
-	}
-	chomp($_);
-	my @temparray = split("\t", $_);
-	my $vcf = "$temparray[0]";
-	my $out = $temparray[1];
-	my $ptSubset = $temparray[2];
-	my $genome = $temparray[3];
-	my $outcome = $temparray[4];
-	my $memory = $temparray[5];
-	open JOB1, ">${out}_1.sh" or die$!;
-	print JOB1 "\#!/bin/bash\n\
-	            #SBATCH --time=$walltime\n\
-	            #SBATCH --nodes=1\n\
-	            #SBATCH --mem=$memory\n\
-	            #SBATCH --mail-user=$email\n\
-	            #SBATCH --ntasks-per-node=4";
-	print JOB1 "\n\#SBATCH --mail-type=END\n\
-	            #SBATCH --partition=general-compute \
-	                    --qos general-compute\n\
-	            #SBATCH --job-name=$out\_c1\n\
-	            #SBATCH --output=$wd/log/\%j\_$out.out\n\
-	            #SBATCH --error=$wd/log/\%j\_$out.err\n\n";
-	print JOB1 "\#Get date and time\n\
-	            tstart=\$(date +\%s)\n\
-	            echo \"\#\#\#\#\#\# start time:\"`date`\n\n";
-	print JOB1 "echo \"SLURM_JOB_ID\"=\$SLURM_JOB_ID\n\
-	            echo \"SLURM_JOB_NODELIST\"=\$SLURM_JOB_NODELIST\n\
-	            echo \"SLURM_NNODES\"=\$SLURM_NNODES\n\
-	            echo \"SLURM_NTASKS\"=\$SLURM_NTASKS\n";
-	print JOB1 "echo \"SLURMTMPDIR\"=\$SLURMTMPDIR\n\
-	            echo \"working directory\"=\$SLURM_SUBMIT_DIR\n\
-	            echo \"************************\"\n";
-	print JOB1 "NPROCs=`srun --nodes=\${SLURM_NNODES} \
-	            bash -c 'hostname' | wc -l`\n\
-	            echo NPROCS=\$NPROCS";
-	print JOB1 "\nmodule load R\n\
-	            \nR --file=$rscript -q \
-	            --args cohort 1 \
-	            vcf.file $vcf \
-	            out.file $wd/$out \
-	            ptSubset $ptSubset \
-	            genome $genome \
-	            outcome $outcome \
-	            ncores \$SLURM_NTASKS\n\
-	            \n\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\n";
-	close JOB1;
-	system "mv ${out}_1.sh $wd/job_scripts/\n";
-	my $job1 =`sbatch $wd/job_scripts/${out}_1.sh`;
-	chomp $job1;
-	my @jobid = split(" ", $job1);
-	$job1 = $jobid[3];
-	print "$out Cohort 1 job submitted $job1 \n";
-	open JOB2, ">${out}_2.sh" or die$!;
-
-	print JOB2 "\#!/bin/bash\n\
-	            #SBATCH --time=$walltime\n\
-	            #SBATCH --nodes=1\n\
-	            #SBATCH --mem=$memory\n\
-	            #SBATCH --mail-user=$email\n\
-	            #SBATCH --ntasks-per-node=4";
-	print JOB2 "\n\#SBATCH --mail-type=END\n\
-	           #SBATCH --partition=general-compute \
-	                   --qos=general-compute\n\
-	           #SBATCH --job-name=$out\_c2\n\
-	           #SBATCH --output=$wd/log/\%j\_$out.out\n\
-	           #SBATCH --error=$wd/log/\%j\_$out.err\n\n";
-	print JOB2 "\#Get date and time\n\
-	            tstart=\$(date +\%s)\n\
-	            echo \"\#\#\#\#\#\# start time:\"`date`\n\n";
-	print JOB2 "echo \"SLURM_JOB_ID\"=\$SLURM_JOB_ID\n\
-	            echo \"SLURM_JOB_NODELIST\"=\$SLURM_JOB_NODELIST\n\
-	            echo \"SLURM_NNODES\"=\$SLURM_NNODES\n\
-	            echo \"SLURM_NTASKS\"=\$SLURM_NTASKS\n";
-	print JOB2 "echo \"SLURMTMPDIR\"=\$SLURMTMPDIR\n\
-	            echo \"working directory\"=\$SLURM_SUBMIT_DIR\n\n\
-	            echo \"************************\"\n\n";
-	print JOB2 "NPROCs=`srun --nodes=\${SLURM_NNODES} bash -c \
-	            'hostname' | wc -l`\necho NPROCS=\$NPROCS\n";
-	print JOB2 "\nmodule load R\n\
-	            \nR --file=$rscript -q \
-	            --args cohort 2 \
-	            vcf.file $vcf \
-	            out.file $wd/$out 
-	            \ptSubset $ptSubset \
-	            genome $genome \
-	            outcome $outcome \
-	            ncores \$SLURM_NTASKS\n\
-	            \n\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\n";
-	close JOB2;
-
-	system "mv ${out}_2.sh $wd/job_scripts/\n";
-	my $job2 =`sbatch $wd/job_scripts/${out}_2.sh`;
-	chomp $job2;
-	@jobid = split(" ", $job2);
-	$job2 = $jobid[3];
-	print "$out Cohort 2 job submitted $job2 \n";
-	open JOB3, ">${out}_3.sh" or die$!;
-	print JOB3 "\#!/bin/bash\n\#SBATCH --time=$walltime\n\
-	            #SBATCH --nodes=1\n\
-	            #SBATCH --mem=8000\n\
-	            #SBATCH --mail-user=$email";
-	print JOB3 "\n\#SBATCH --mail-type=END\n\
-	            #SBATCH --partition=general-compute \
-	                    --qos=general-compute\n\
-	            #SBATCH --job-name=$out\_meta\n\
-	            #SBATCH --output=$wd/log/\%j\_$out.out\n\
-	            #SBATCH --error=$wd/log/\%j\_$out.err\n\n";
-	print JOB3 "\#Get date and time\n\
-	            tstart=\$(date +\%s)\n
-	            echo \"\#\#\#\#\#\# start time:\"`date`\n\n";
-	print JOB3 "echo \"SLURM_JOB_ID\"=\$SLURM_JOB_ID\n\
-	            echo \"SLURM_JOB_NODELIST\"=\$SLURM_JOB_NODELIST\n\
-	            echo \"SLURM_NNODES\"=\$SLURM_NNODES\n";
-	print JOB3 "echo \"SLURMTMPDIR\"=\$SLURMTMPDIR\n\
-	            echo \"working directory\"=\$SLURM_SUBMIT_DIR\n\n\
-	            echo \"************************\"\n\n";
-	print JOB3 "NPROCs=`srun --nodes=\${SLURM_NNODES} bash \
-	            -c 'hostname' | wc -l`\necho NPROCS=\$NPROCS\n";
-	print JOB3 "awk -F \"\\t\" 'OFS=\";\" { print \$1,\$2,\$3,\$4,\$5,\$6}' \
-	            $wd/$out\_c1.coxph > $wd/$out\_first6.txt\n";
-	print JOB3 "awk -F \"\\t\" 'OFS=\"\\t\" {for (i=5; i<NF; i++) printf \$i \
-	            \"\\t\"; print \$NF}' $wd/$out\_c1.coxph > $wd/$out\_last.txt\n";
-	print JOB3 "paste -d \"\\t\" $wd/$out\_first6.txt \
-	            $wd/$out\_last.txt > $wd/$out\_c1.formetal\n";
-	print JOB3 "awk -F \"\\t\" 'OFS=\";\" { print \$1,\$2,\$3,\$4,\$5,\$6}' \
-	            $wd/$out\_c2.coxph > $wd/$out\_first6.txt\n";
-	print JOB3 "awk -F \"\\t\" 'OFS=\"\\t\" {for (i=5; i<NF; i++) printf \$i \"\\t\";\
-	            print \$NF}' $wd/$out\_c2.coxph > $wd/$out\_last.txt\n";
-	print JOB3 "paste -d \"\\t\" $wd/$out\_first6.txt $wd/$out\_last.txt > \
-	            $wd/$out\_c2.formetal\n";
-	#create the metal_arguments.txt file for this job - these are distinguished 
-	# by the variable $out, so that needs to be unique for each run.
-	open METAL, ">$wd/job_scripts/metal_scripts/metal_arguments_$out.txt" or die$!;
-	print METAL "\#Meta analysis for cohort 1 and cohort 2\n\
-	            SCHEME STDERR\n\
-	            SEPARATOR TAB\n\
-	            MARKER RSID;TYPED;CHR;POS;REF;ALT\n";
-	print METAL "ALLELE REF ALT\n\
-	            EFFECT COEF\n\
-	            STDERR SE.COEF\n\
-	            PVALUE PVALUE\n\
-	            WEIGHT N\n\
-	            PROCESS $wd/$out\_c1.formetal\n";
-	print METAL "PROCESS $wd/$out\_c2.formetal\n\
-	            OUTFILE $wd/$out\_metal_out. .tbl\n\
-	            MINWEIGHT 10\n\
-	            ANALYZE HETEROGENEITY\n\n\
-	            EXIT\n";
-	close METAL;
-	#lines to run metal for this $out
-	print JOB3 "module load metal\n\n";
-	print JOB3 "metal $wd/job_scripts/metal_scripts/ \
-	            metal_arguments_$out.txt\n";
-	#clean up the name of the metal outfile
-	print JOB3 "cp $wd/$out\_metal_out*tbl $wd/$out.tbl\n";
-
-	#end up with $out.tbl, $out_c1.formetal, and $out_c2.formetal - put these together in R
-	print JOB3 "module load R\n";
-	print JOB3 "R --file=/projects/rpci/lsuchest/lsuchest/DBMT_metaPipeline/spread_metal.R \
-	            -q --args metal_result $wd/$out.tbl \
-	            for_metal_cohort1 \$wd/$out\_c1.formetal \
-	            for_metal_cohort2 $wd/$out\_c2.formetal \
-	            full_output $wd/$out.res\n\n\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\#\n";
-	print JOB3 "rm $wd/$out\_c1_temp.formetal\n";
-	print JOB3 "rm $wd/$out\_c2_temp.formetal\n";
-	print JOB3 "rm $wd/$out\_first6.txt\n";
-	print JOB3 "rm $wd/$out\_last.txt\n";
-	print JOB3 "mv $wd/$out\_c1* $wd/temp\n";
-	print JOB3 "mv $wd/$out\_c2* $wd/temp\n";
-	print JOB3 "mv $wd/$out\_metal* $wd/temp\n";
-	print JOB3 "mv $wd/$out.tbl $wd/temp\n";
-	print JOB3 "mv $wd/$out.res $wd/out\n";
-	close JOB3;
-	system "mv ${out}_3.sh $wd/job_scripts/\n";
-	my $job3 =`sbatch --dependency=afterok:${job1}:${job2} $wd/job_scripts/${out}_3.sh`;
-	chomp $job3;
-        @jobid = split(" ", $job3);
-        $job3 = $jobid[3];
-	print "$out METAL script for cohorts 1 and 2 submitted $job3 \n";
-```
-
-\doublespacing
-
-## Custom Manhattan Plot Generator
-
-## Post-GWAS Annotation
-After the meta-analysis GWAS are complete, we annotated SNPs that reached a suggestive significance threshold $P < 5\times{10}^{-05}$. Annotation aids reseachers develop mechanistic hypotheses to further characterize the impact of non-coding variants on clinical phenotypes and/or normal genetic variation. Annotation was done by leveraging publicly available databases that have compiled data from large scale studies (ENCODE, GTEx) using HaploReg [@haploreg], RegulomeDB [@Boyle_2012], and single nucleotide polymorphisms annotator (SNiPA) [@snipa].  
-
-HaploReg leverages LD information from the 1000 Genomes Project to compile chromatin states and protein binding annotation from ENCODE and Roadmap to Epigenome projects [@haploreg]. HaploReg also collects and curates data from sequence conservation studies, as well as studies that determine effects of SNPs and consequences on regulatory motifs and/or gene expression (eQTL) [@haploreg]. HaploReg data was accessed using haploR [@haploR].  
-
-RegulomeDB is a collection of annotation databses that reports SNPs with known and/or predicted regualtory elements in intergenic regions of the human genome [@Boyle_2012]. Known and predicted regulatory DNA elements include regions of DNAase hypersensitivity, binding sites of transcription factors (TFs), and promoter regions that have been experimentally/biochemically characterized to regulate transcription [@Boyle_2012]. The entire RegulomeDB database was downloaded and stored on UB CCR for ease of access when annotating regions of interest.  
-
-SNiPA annotations come from Ensembl87 (v3.2). It comprises variant-phenotype associations and annotations contained in Ensembl 92 release, as well as pQTL data. pQTL association datai s obtained from the pGWAS study in blood [@sun_2018]. SNiPA includes more than 16,500 cis- and trans-associations with blood protein levels [@snipa]. The genome assembly for SNiPA is GRCh37.p13 and it uses 1000 Genomes Project Phase 3 (v5). SNiPA obtains data from HGMD, dbGaP, ClinVar, OMIM variation, UniProt, GWAS Catalog, DrugBank, DECIPHER, and GTEx eQTL associations [@snipa]. Flanking regions of +/- 150kb from the sentinel SNP (snp of interest) are pulled from DISCOVeRY-BMT results.   
-
-## SNiPA Region 
-
-# Results
 
 \begin{figure}
     \centering
@@ -428,13 +188,23 @@ SNiPA annotations come from Ensembl87 (v3.2). It comprises variant-phenotype ass
     \label{fig:run_times}  
 \end{figure}
 
-\doublespacing
+We ran 168 different analyses (504 analysis jobs total) (Table \ref{tab:jobs_run}). The clinical covariates that we included in our models are in Table \ref{tab:models_run}. The clinical covariates were selected as they pertained to clinical relevance. For covariates in REL, the model was selected using bidirectional stepwise regression. Although we ran hundreds of analyses, we will only discuss ALL analyses censored at 1-year in Chapter 5. Each GWAS took just over 4 hours when submitting entire GWAS at the same time on UB CCR (Figure \ref{fig:run_times}). Instances of delay of analysis due to backlog in Slurm Workload queue were rare. An entire genome began at $\approx 40$ million SNPs and after QC (INFO > 0.8, MAF > 0.005, filtering out SNPs that did not converge from Cox model), the final genome was $\approx 8$ million SNPs, or the equivalent to 3.47 GB of storage (Figure \ref{fig:run_times}).
+
+
+## Post-GWAS Analyses
+While GWAS in and of itself is a powerful method to identify disease-associated SNPs, it does not necessarily address the underlying biology the association signals. After the meta-analysis GWAS are complete, we first looked at our association signals. To visualize this, we created our own custom Manhattan plot in `ggplot2` [@ggplot2], that labels the SNPs that are below $P_{meta} < 5\times{10}^{-8}$ threshold (code available on dissertation GitHub repository). The next step was to use publicly available data resources to annotate SNPs that reached the suggestive significance threshold $P_{meta} < 5\times{10}^{-5}$. Annotation aids researchers develop mechanistic hypotheses to further characterize the impact of non-coding variants on clinical phenotypes and/or normal genetic variation. Annotation was done by leveraging publicly available databases that have compiled data from large scale studies (ENCODE, GTEx) using HaploReg [@haploreg], RegulomeDB [@Boyle_2012], and single nucleotide polymorphisms annotator (SNiPA) [@snipa].  
+
+### Annotation Resources
+HaploReg leverages LD information from the 1000 Genomes Project to compile chromatin states and protein binding annotation from ENCODE and Roadmap to Epigenome projects [@haploreg]. HaploReg also collects and curates data from sequence conservation studies, as well as studies that determine effects of SNPs and consequences on regulatory motifs and/or gene expression (eQTL) [@haploreg]. HaploReg data was accessed using haploR [@haploR].  
+
+RegulomeDB is a collection of annotation databases that reports SNPs with known and/or predicted regulatory elements in intergenic regions of the human genome [@Boyle_2012]. Known and predicted regulatory DNA elements include regions of DNAase hypersensitivity, binding sites of transcription factors (TFs), and promoter regions that have been experimentally/biochemically characterized to regulate transcription [@Boyle_2012]. The entire RegulomeDB database was downloaded and stored on UB CCR for ease of access when annotating regions of interest.  
+
+SNiPA annotations come from Ensembl87 (v3.2). It comprises variant-phenotype associations and annotations contained in Ensembl 92 release, as well as pQTL data. pQTL association data is s obtained from the pGWAS study in blood [@sun_2018]. SNiPA includes more than 16,500 cis- and trans-associations with blood protein levels [@snipa]. The genome assembly for SNiPA is GRCh37.p13 and it uses 1000 Genomes Project Phase 3 (v5). SNiPA obtains data from HGMD, dbGaP, ClinVar, OMIM variation, UniProt, GWAS Catalog, DrugBank, DECIPHER, and GTEx eQTL associations [@snipa]. Flanking regions of +/- 150kb from the sentinel SNP (snp of interest) are pulled from DISCOVeRY-BMT results.   
+
+The R code and SLURM scripts for data manipulating and pulling regions for HaploReg, RegulomeDB, and SNiPA are available on this dissertation's GitHub repostiory.
 
 # Discussion
-We were successful in automating 
 
-PhenoScanner
-PrediXscan
-
+In this chapter we described the fulcrum to all of analyses run in DISCOVeRY-BMT Sanger imputation results. We developed a pipeline that facilitated automation of hundreds of survival analyses that ensured ease of implementation and reproducibility. We also described post-GWAS analyses that have yet to be integrated into this pipeline. An ongoing project is underway that will unite an annotation (SNiPA, HaploReg, and RegulomeDB) workflow with our current pipeline. As the phenotype of DISCOVeRY-BMT is quite complex, this will allow our lab to uncover insights in a much more reproducible and less cumbersome manner. Additional databases such as PhenoScanner [@staley_2016] and Blood eQTL Browser [@westra_2013] will also be implemented into the annotation portion of this pipeline. 
 
 

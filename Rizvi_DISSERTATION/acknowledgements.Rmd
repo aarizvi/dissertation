@@ -9,14 +9,12 @@ output: pdf_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-I would like to express my deepest gratitude to my adviser Dr. Lara Sucheston-Campbell. She has been an incredible mentor for me and has set me up with any and every opportunity that I had my eyes set on. 
+I would like to express my deepest gratitude to my adviser Dr. Lara Sucheston-Campbell. She has been an incredible mentor for me and has set me up with any and every opportunity that I have had my eyes on. She really cares about her students and I am truly grateful for that. 
 
-I am forever indebted to Dr. Barbara Foster, for taking a chance on me and giving me the opportunity to get an interview for the PhD program at RPCI, at the eleventh hour before the academic year began in 2015.
+I am forever indebted to my Master's adviser, Dr. Barbara Foster, for taking a chance on me and working her magic to get an opportunity to interview for a PhD position at RPCI. She did this for me even though I did not formally apply to program, the class was already full, and the next academic year was beginning in a matter of weeks. 
 
-Thank you to Dr. Martin Morgan for taking time out of his extremely busy schedule to work with me one-on-one and teach me the inner workings of R.
+Dr. Martin Morgan exposed to me wealth of knowledge on R and would take time out of his extremely busy schedule to work one-on-one with me. Dr. Moray Campbell set me up with a career defining opportunity where I went to Europe for a year and began my journey of pursuing quantitative biology. Dr. Seb Battaglia, my Master's co-adivser, his training contributed to my successes in graduate school.
 
-I would not have gone done the road of computational biology/bioinformatics if it were not for two very important mentors of mine: Dr. Moray Campbell and Dr. Sebastiano Battaglia. Dr. Campbell set me up with a life defining opprtunity: the Cancer and Systems Biology program at the University of Luxembourg and VU University Amsterdam. And Dr. Battaglia for his mentorship during my Master's thesis.
+And thank you to Ezgi Karaesmen, I truly believe I would not had the level of success I have had for past four years if it were not for you. Your love, your support, your intelligence, and your ability to challenge me on my scientific ideas and my ability to think have been instrumental towards my development as a scientist, I cannot thank you enough. 
 
-And thank you to Ezgi Karaesmen -- if it were not for you, I truly believe I would not had the level of success I have had for past four years. Your love, your support, your intelligence, and your ability to challenge me on my scientific thought, my coding, and my ability to think have been instrumental my development as a scientist -- I cannot thank you enough. 
-
-This work was supported by the National Institute of Health/National Heart, Blood, and Lung Institute R01HL102278 and National Institute of Health/National Cancer Institute R03CA188733. Support provided by the Center for Computational Research at the University at Buffalo.
+This work was supported by National Institute of Health/National Heart, Blood, and Lung Institute R01HL102278 and National Institute of Health/National Cancer Institute R03CA188733. Support provided by Center for Computational Research at University at Buffalo.
