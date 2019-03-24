@@ -11,7 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 I would like to express my deepest gratitude to my adviser Dr. Lara Sucheston-Campbell. She has been an incredible mentor for me and has set me up with any and every opportunity that I have had my eyes on. She really cares about her students and I am truly grateful for that. 
 
-I am forever indebted to my Master's adviser, Dr. Barbara Foster, for taking a chance on me and working her magic to get an opportunity to interview for a PhD position at RPCI. She did this for me even though I did not formally apply to program, the class was already full, and the next academic year was beginning in a matter of weeks. 
+I am forever indebted to my Master's adviser, Dr. Barbara Foster, for taking a chance on me and working her magic to get me an opportunity to interview for a PhD position at RPCI. This was done despite the application cycle closing several months beforehand, the incoming class was full, and the next academic year was beginning in a matter of weeks.
 
 Dr. Martin Morgan exposed to me wealth of knowledge on R and would take time out of his extremely busy schedule to work one-on-one with me. Dr. Moray Campbell set me up with a career defining opportunity where I went to Europe for a year and began my journey of pursuing quantitative biology. Dr. Seb Battaglia, my Master's co-adivser, his training contributed to my successes in graduate school.
 

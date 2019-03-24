@@ -188,13 +188,57 @@ Donor Allogeneic Hematopoietic Stem Cell Transplantation}
 \fancyfoot[C]{\thepage} \chapter*{ABSTRACT}
 \addcontentsline{toc}{section}{Abstract}
 
+\doublespacing
+HLA-matched unrelated donor (MUD) hematopoietic stem cell
+transplantation (HSCT) is used as a potential curative therapy for
+otherwise fatal hematological cancers, including but not limited to
+acute and chronic leukemia, Hodgkin and non-Hodgkin lymphoma, and
+myelodysplastic syndrome (MDS). MUD-HSCT involves the transfer of
+healthy individual (donor) bone marrow stem cells to an unhealthy
+patient (recipient). Despite improvements in human leukocyte antigen
+(HLA) matching algorithms, treatment protocols and patient care overall
+survival (OS) rates profoundly decrease in the first 1-year
+post-transplant. The largest predictor of mortality during this time
+frame is HLA matching, emphasizing the importance of genetic variation
+in determining survival. Despite the clear importance of genetics to
+survival following transplant, the relationship of non-HLA genetic
+variation remains underexplored. In this dissertaton, we characterized
+and explored the independent and joint non-HLA genetic contributions to
+survival outcomes in donors and recipients with acute leukemias or MDS
+using pre-existing genome-wide association study (GWAS),
+\emph{D}etermining the \emph{I}nfluence of \emph{S}usceptibility
+\emph{CO}nveying \emph{V}ariants \emph{R}elated to one-\emph{Y}ear
+mortality after \emph{BMT} (DISCOVeRY-BMT), a study of 3,532
+donor-recipient pairs with survival, clinical and genomic data
+available.
+
+We used DISCOVeRY-BMT to replicate or validate all previous literature
+that investigated survival outcomes after allogeneic HSCT. None of the
+previous literature was reproduced, likely due to the previous cohorts
+comprising heterogeneous samples (testing with multiple diseases) or
+small sample sizes. Next we developed an R/Bioconductor software package
+called gwasurvivr. This package takes input from popular genomics
+software and performs multivariate Cox regression survival analysis in a
+scalable and efficient manner. We integrated gwasurvivr into an
+automated pipeline that performs full survival GWAS analyses and
+conducts meta-analysis. We conducted this on numerous subsets of
+DISCOVeRY-BMT. Here, we report only post-HSCT genetic associations for
+acute lymphoblastic leukemia (ALL) subset of DISCOVeRY-BMT GWAS. We
+found SNPs associated to recipients for the outcomes overall survival
+(OS), disease related moratlity (DRM), and organ failure (OF). We also
+found donor SNPs associated with OS, transplant-related moratlity (TRM),
+DRM, and graft-versus host disease (GVHD). Lastly, we probed our
+findings for biological relevance (affecting gene expression or
+transcription factor binding) by annotating associated SNPs using
+publicly available databases.
+
 \afterpage{
     
 \begin{landscape}
 \begin{figure}
     \centering
     \includegraphics[width=8.7in, height=7.5in]{~/Desktop/figures/abstract/pipeline_draft.png}
-    \caption[Graphical Abstract]{Graphical Abstract. The flow of the abstract begins on the right. }
+    \caption[Graphical Abstract]{Graphical Abstract. The flow of the abstract begins on the upper left, illustrating the HSCT process of a patient receiving chemotherapy and/or radiation prior to kill all of the patients bone marrow cells prior to allogeneic HSCT. An HLA matched donor donates their healthy hematopoietic stem cells (HSCs) to the recipient. We genotyped both the donor and recipient blood samples for a GWAS testing for associations with survival outcomes. The gray boxes describe the DISCOVeRY-BMT phenotype and sample sizes, as well as our workflow pipeline. The graphical figures on the far right are typical output after GWAS (Manhattan plot and regional plot) to visualize results.}
     \label{fig:abstract}  
 \end{figure}
 \end{landscape}
@@ -202,11 +246,20 @@ Donor Allogeneic Hematopoietic Stem Cell Transplantation}
 
 \newpage
 
-\pagestyle{plain} \fancyhead[L]{} \fancyhead[R]{} \fancyfoot[C]{}
-\chapter*{DEDICATION} \addcontentsline{toc}{section}{Dedication}
+\pagestyle{plain} \fancyhead[L]{} \fancyhead[R]{}
+\fancyfoot[C]{\thepage} \addcontentsline{toc}{section}{Dedication}
 
-Dedicated to Ezgi, my parents, my siblings and their kids, and my sweet
-little pooch Bernie.
+\vspace*{\fill}
+
+\begin{center}
+    \doublespacing
+    This is dedicated to Ezgi, \\
+    my parents, my siblings, and their families, \\
+    for their endless love and support. \\
+    And to my sweet little pooch Bernie.
+  \end{center}
+
+\vspace*{\fill}
 
 \newpage
 
@@ -218,34 +271,33 @@ little pooch Bernie.
 
 I would like to express my deepest gratitude to my adviser Dr.~Lara
 Sucheston-Campbell. She has been an incredible mentor for me and has set
-me up with any and every opportunity that I had my eyes set on.
+me up with any and every opportunity that I have had my eyes on. She
+really cares about her students and I am truly grateful for that.
 
-I am forever indebted to Dr.~Barbara Foster, for taking a chance on me
-and giving me the opportunity to get an interview for the PhD program at
-RPCI, at the eleventh hour before the academic year began in 2015.
+I am forever indebted to my Master's adviser, Dr.~Barbara Foster, for
+taking a chance on me and working her magic to get me an opportunity to
+interview for a PhD position at RPCI. This was done despite the
+application cycle closing several months beforehand, the incoming class
+was full, and the next academic year was beginning in a matter of weeks.
 
-Thank you to Dr.~Martin Morgan for taking time out of his extremely busy
-schedule to work with me one-on-one and teach me the inner workings of
-R.
+Dr.~Martin Morgan exposed to me wealth of knowledge on R and would take
+time out of his extremely busy schedule to work one-on-one with me.
+Dr.~Moray Campbell set me up with a career defining opportunity where I
+went to Europe for a year and began my journey of pursuing quantitative
+biology. Dr.~Seb Battaglia, my Master's co-adivser, his training
+contributed to my successes in graduate school.
 
-I would not have gone done the road of computational
-biology/bioinformatics if it were not for two very important mentors of
-mine: Dr.~Moray Campbell and Dr.~Sebastiano Battaglia. Dr.~Campbell set
-me up with a life defining opprtunity: the Cancer and Systems Biology
-program at the University of Luxembourg and VU University Amsterdam. And
-Dr.~Battaglia for his mentorship during my Master's thesis.
+And thank you to Ezgi Karaesmen, I truly believe I would not had the
+level of success I have had for past four years if it were not for you.
+Your love, your support, your intelligence, and your ability to
+challenge me on my scientific ideas and my ability to think have been
+instrumental towards my development as a scientist, I cannot thank you
+enough.
 
-And thank you to Ezgi Karaesmen -- if it were not for you, I truly
-believe I would not had the level of success I have had for past four
-years. Your love, your support, your intelligence, and your ability to
-challenge me on my scientific thought, my coding, and my ability to
-think have been instrumental my development as a scientist -- I cannot
-thank you enough.
-
-This work was supported by the National Institute of Health/National
-Heart, Blood, and Lung Institute R01HL102278 and National Institute of
-Health/National Cancer Institute R03CA188733. Support provided by the
-Center for Computational Research at the University at Buffalo.
+This work was supported by National Institute of Health/National Heart,
+Blood, and Lung Institute R01HL102278 and National Institute of
+Health/National Cancer Institute R03CA188733. Support provided by Center
+for Computational Research at University at Buffalo.
 
 \newpage
 
@@ -743,7 +795,7 @@ normal stem cells but retain the self-renewal property. Leukemic cells
 are limited in their ability to proliferate and incessantly are
 replenished from leukemic stem cells. Acute leukemias are characterized
 by the rapid increase of immature blood cells, such that the bone marrow
-is unable to produce health blood cells. Immediate treatment is
+is unable to produce healthy blood cells. Immediate treatment is
 required. Acute leukemias can be treated with some combination of
 chemotherapy, radiation therapy or an HSCT. When all other treatment
 options have been exhausted, an HSCT is used as last resort.
@@ -1535,7 +1587,9 @@ OS, TRM and DRM evaluated SNPs associated with time to death with all
 survivors censored at 1 year post-HSCT (Therneau and Grambsch
 \protect\hyperlink{ref-therneau2013}{2013}). PFS was defined as the time
 to disease progression or death. The covariates that were included in
-the model were (see appendix for R code):\\
+the model were (see
+\href{https://github.com/aarizvi/dissertation/tree/master/code/chapter2}{Appendix
+GitHub} for R code):\\
 1. OS -- recipient age, disease status (early or advanced), graft source
 (bone marrow or peripheral blood)\\
 2. DRM -- recipient age, disease status (early or advanced)\\
@@ -1591,7 +1645,8 @@ data chunk for chromosome 3
 was used to extract the data out from the IMPUTE2 and output it into the
 a VCF file. The location for these files was stored on the University at
 Buffalo Computational Center Resource (UB CCR) supercomputer. See
-Appendix for full code on analysis.
+\href{https://github.com/aarizvi/dissertation/tree/master/code/chapter2}{Appendix
+GitHub} for full code on analysis.
 
 \singlespacing
 
@@ -1609,8 +1664,9 @@ Appendix for full code on analysis.
 \noindent The data wrangling to prepare the data for these models was
 done in R. The Cox survival models were written and automated with
 custom R code that leveraged the survival package (Therneau and Grambsch
-\protect\hyperlink{ref-therneau2013}{2013}) (see Appendix for code used
-for the full analysis).
+\protect\hyperlink{ref-therneau2013}{2013}) (see
+\href{https://github.com/aarizvi/dissertation/tree/master/code/chapter2}{Appendix
+GitHub} for code used for the full analysis).
 
 \subsection{Gene-based assocation
 testing}\label{gene-based-assocation-testing}
@@ -1671,7 +1727,9 @@ command line:
 \doublespaced
 \noindent VEGAS2 analyses were using SNPs from all of the identified
 genes and p-values from DISCOVeRY-BMT (for all outcomes and 3 genomes)
-on UB CCR (see Appendix).
+on UB CCR (see
+\href{https://github.com/aarizvi/dissertation/tree/master/code/chapter2}{Appendix
+GitHub}).
 
 \subsection{Functional Annotation}\label{functional-annotation}
 
@@ -2259,7 +2317,8 @@ the code that was published can be found in the
 \href{https://github.com/suchestoncampbelllab/gwasurvivr_manuscript}{gwasurvivr
 manuscript repository}. \href{https://git-lfs.github.com/}{GitHub Large
 File Storage (LFS)} is on GitHub Large File Storage (LFS) or in the
-Appendix.
+\href{https://github.com/aarizvi/dissertation/tree/master/code/chapter3}{Appendix
+GitHub}.
 
 The repository can be cloned by invoking the following command:
 
@@ -2449,13 +2508,16 @@ demonstration in this document is labeled \texttt{gcoxph}. In
 \href{https://github.com/suchestoncampbelllab/gwasurvivr_manuscript/blob/master/supplemental_data/code/gcoxph_model.R}{\texttt{gcoxph\_model.R}}
 we fit the model without the SNP and the parameter estimates are then
 used as initial points for all subsequent models and applied over all
-SNPs in the dataset (See manuscript GitHub, links in Appendix). To
-decrease the number of iterations needed for convergence when optimizing
-the parameter estimates in the Cox model we modified the R package
-survival and function \texttt{survival::coxph.fit} (Therneau and
-Grambsch \protect\hyperlink{ref-therneau2013}{2013}). Covariates in the
-model are first fit without the SNP, and those parameter estimates are
-used as initial points for analyses with each SNP. If no additional
+SNPs in the dataset (See
+\href{https://github.com/suchestoncampbelllab/gwasurvivr_manuscript}{manuscript
+GitHub} or
+\href{https://github.com/aarizvi/dissertation/tree/master/code/chapter3}{Dissertation
+GitHub}). To decrease the number of iterations needed for convergence
+when optimizing the parameter estimates in the Cox model we modified the
+R package survival and function \texttt{survival::coxph.fit} (Therneau
+and Grambsch \protect\hyperlink{ref-therneau2013}{2013}). Covariates in
+the model are first fit without the SNP, and those parameter estimates
+are used as initial points for analyses with each SNP. If no additional
 covariates are added to the model, the parameter estimation optimization
 begins with null initial value. This is implemented in gwasurvivr by
 manually creating the objects found in the helper function
@@ -2548,7 +2610,11 @@ Furthermore, the \texttt{.sample} file from IMPUTE2 includes 4 columns
 respective genotypes. For SurvivalGWAS\_SV and GWASTools, the simulated
 phenotypes were appended to column 5 onward in the \texttt{.sample}
 file. The code for all of these analyses is available (or linked to) in
-the appendix or from the manuscript GitHub.
+the
+\href{https://github.com/aarizvi/dissertation/tree/master/code/chapter3}{Appendix
+GitHub} or from the
+\href{https://github.com/suchestoncampbelllab/gwasurvivr_manuscript}{manuscript
+GitHub}.
 
 \subsubsection{Running analysis}\label{running-analysis}
 
@@ -2610,8 +2676,11 @@ passing variables that were assigned in bash into R variables and
 passing them into \texttt{gwasurvivr} or GWASTools within an R session.
 Both genipe and SurvivalGWAS\_SV can be invoked directly from the
 command line, so bash scripts were written to automate these processes
-for the different experiments. Please see the Appendix or manuscript
-GitHub for the code.
+for the different experiments. Please see the
+\href{https://github.com/aarizvi/dissertation/tree/master/code/chapter3}{Appendix
+GitHub} or
+\href{https://github.com/suchestoncampbelllab/gwasurvivr_manuscript}{manuscript
+GitHub} for the code.
 
 \section{Results}\label{results-1}
 
@@ -2740,13 +2809,19 @@ survival analyses in our lab on GWAS data. Often, we would need to
 double check analyses before presenting findings at a conference or in a
 publication. We lacked reliable software that would enable
 straightforward reproducibility, and assumed other labs were
-experiencing this as well. While other software already existed with the
+experiencing this as well. A strategy to improve analyses would to
+convert all genetic data into GDS and then for subsequent analyses the
+survival analyses would complete in a fraction of the time. We could
+improve this package by adding visualizations and also by leveraging
+SeqVarTools, a new R/Bioconductor package that uses GDS format and
+implements row wise computations. An additional useful feature would be
+expanding the parallel functionality to compute across nodes rather than
+within a single node. We would leverage \texttt{BiocParallel} to
+implement this feature. While other software already existed with the
 intent of addressing these needs, we developed \texttt{gwasurvivr} be in
 the R/Bioconductor ecosystem and be flexible such that it can be easily
 integrated into workflows and pipelines, as well as being easily
 adjusted for advanced users.
-
-Convert everything to GDS and then run after
 
 \FloatBarrier
 
@@ -2887,7 +2962,7 @@ scripts). Manifest file fields can be found in Table 2.
 \caption{\label{tab:unnamed-chunk-29}Manifest file column descriptions}
 \centering
 \fontsize{9}{11}\selectfont
-\begin{tabular}{c>{\centering\arraybackslash}p{40em}}
+\begin{tabular}{c>{\centering\arraybackslash}p{36em}}
 \hiderowcolors
 \toprule
 Column name & Description\\

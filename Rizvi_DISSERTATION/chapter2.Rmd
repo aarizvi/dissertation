@@ -74,7 +74,7 @@ Thus, replication analyses were conducted when the original study included HLA M
 All samples were genotyped using the Illumina Human OmniExpress BeadChip and the Illumina HumanExome BeadChip (University of Southern California Genomics Facility). In total, 637,655 and 632,823 SNPs from the OmniExpress BeadChip were available for imputation in cohorts 1 and 2, respectively, using 1000 Genomes Project phase 3. The missing genotypes were imputed using IMPUTE2 software [@Howie_2009]. QCTOOL was used to remove imputed genotypes with an info score > 0.7, certainty > 0.7, and a minor allele frequency $\geq$ 0.005. To test the joint effect of recipient and donor genetic variation, the recipient-donor (R-D) *mismatch* genome computed by taking the absolute value of the difference of minor alleles between recipient and donor at each SNP. For example, at a given SNP where the recipient is homozygous minor (2 minor alleles) and the donor is heterozygous (1 minor allele), the mismatch allele dosage would be $|2-1|=1$. Rs2066847 (SNP13) in *NOD2/CARD15* was the only variant analyzed from the Illumina HumanExome, as it was not typed on the OmniExpress chip or available following imputation.
 
 ## Genetic Models
-Prior to genetic analyses, clinical covariates for inclusion in genome-wide survival models were selected using bidirectional stepwise regression [@Venables_2002] on Cox proportional hazard models [@cox1972] of OS, PFS, TRM and DRM using R statistical software [@r_core]. Cox proportional hazard models of OS, TRM and DRM evaluated SNPs associated with time to death with all survivors censored at 1 year post-HSCT  [@therneau2013]. PFS was defined as the time to disease progression or death. The covariates that were included in the model were (see appendix for R code):   
+Prior to genetic analyses, clinical covariates for inclusion in genome-wide survival models were selected using bidirectional stepwise regression [@Venables_2002] on Cox proportional hazard models [@cox1972] of OS, PFS, TRM and DRM using R statistical software [@r_core]. Cox proportional hazard models of OS, TRM and DRM evaluated SNPs associated with time to death with all survivors censored at 1 year post-HSCT  [@therneau2013]. PFS was defined as the time to disease progression or death. The covariates that were included in the model were (see [Appendix GitHub](https://github.com/aarizvi/dissertation/tree/master/code/chapter2) for R code):   
 1. OS -- recipient age, disease status (early or advanced), graft source (bone marrow or peripheral blood)  
 2. DRM -- recipient age, disease status (early or advanced)   
 3. TRM -- recipient age, body mass index (BMI) (underweight, normal, overweight, obese), graft source (bone marrow or peripheral blood)    
@@ -88,7 +88,7 @@ Depending on the disease group, disease types were adjusted for by creating an i
 2. R-D Group 2 -- donors only had *CCR5* H1/H1 haplotype  
 3. R-D Group 3 -- recipients only had *CCR5* H1/H1 haplotype  
 
-\noindent The imputed data for *CCR5* was in the IMPUTE2 output data chunk for chromosome 3 (`BMT093013_forImpute.chr3-45000000-50000000.impute2`). QCTOOL was used to extract the data out from the IMPUTE2 and output it into the a VCF file. The location for these files was stored on the University at Buffalo Computational Center Resource (UB CCR) supercomputer. See Appendix for full code on analysis. 
+\noindent The imputed data for *CCR5* was in the IMPUTE2 output data chunk for chromosome 3 (`BMT093013_forImpute.chr3-45000000-50000000.impute2`). QCTOOL was used to extract the data out from the IMPUTE2 and output it into the a VCF file. The location for these files was stored on the University at Buffalo Computational Center Resource (UB CCR) supercomputer. See [Appendix GitHub](https://github.com/aarizvi/dissertation/tree/master/code/chapter2) for full code on analysis. 
 
 \singlespacing
 ```{bash, eval=FALSE}
@@ -100,7 +100,7 @@ qctool \
 ```
 
 \doublespacing
-\noindent The data wrangling to prepare the data for these models was done in R. The Cox survival models were written and automated with custom R code that leveraged the survival package [@therneau2013] (see Appendix for code used for the full analysis). 
+\noindent The data wrangling to prepare the data for these models was done in R. The Cox survival models were written and automated with custom R code that leveraged the survival package [@therneau2013] (see [Appendix GitHub](https://github.com/aarizvi/dissertation/tree/master/code/chapter2) for code used for the full analysis). 
 
 
 ## Gene-based assocation testing
@@ -135,7 +135,7 @@ vegas2 \
 ```
 
 \doublespaced
-\noindent VEGAS2 analyses were using SNPs from all of the identified genes and p-values from DISCOVeRY-BMT (for all outcomes and 3 genomes) on UB CCR (see Appendix). 
+\noindent VEGAS2 analyses were using SNPs from all of the identified genes and p-values from DISCOVeRY-BMT (for all outcomes and 3 genomes) on UB CCR (see [Appendix GitHub](https://github.com/aarizvi/dissertation/tree/master/code/chapter2)). 
 
 ## Functional Annotation
 To gain a deeper understanding of genetic associations, often bioinformatics approaches leverage the plethora of curated, publically available datasets and databases [@gallagher_2018]. The databases used in this study were RegulomeDB [@Boyle_2012], Blood expression quantitative trait loci (eQTL) Browser [@westra_2013], and Variant Effect Predictor (VEP) [@vep_2010], which were used to annotate the SNPs in the candidate genes. For RegulomeDB and Blood eQTL Browser, the full database consisting of raw data scores, P-values, and annotations were downloaded. VEP annotation was done directly on VEP's website. 
